@@ -1,9 +1,11 @@
 # multimedia-browser
 
 ## 项目概述
+
 这是一个使用Electron和Vue.js构建的多媒体浏览器应用程序，旨在提供一个跨平台的媒体文件浏览和管理解决方案。
 
 ## 技术栈
+
 - **主框架**：Electron v37.2.3
 - **前端框架**：Vue.js v3.5.17
 - **构建工具**：Vite v7.0.5 + electron-vite v4.0.0
@@ -11,6 +13,7 @@
 - **代码质量**：ESLint v9.31.0 + Prettier v3.6.2
 
 ## 项目结构
+
 项目采用典型的Electron应用架构，分为三个主要部分：
 
 ```

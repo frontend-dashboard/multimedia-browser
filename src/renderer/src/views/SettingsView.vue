@@ -20,14 +20,14 @@
         </el-form-item>
 
         <el-form-item :label="t('settings.defaultViewMode')">
-          <el-select v-model="defaultViewMode" @change="updateDefaultViewMode" style="width: 100%">
+          <el-select v-model="defaultViewMode" style="width: 100%" @change="updateDefaultViewMode">
             <el-option :label="t('options.gridView')" value="grid" />
             <el-option :label="t('options.listView')" value="list" />
           </el-select>
         </el-form-item>
 
         <el-form-item :label="t('settings.defaultSortBy')">
-          <el-select v-model="defaultSortBy" @change="updateDefaultSortBy" style="width: 100%">
+          <el-select v-model="defaultSortBy" style="width: 100%" @change="updateDefaultSortBy">
             <el-option :label="t('options.sortByName')" value="name" />
             <el-option :label="t('options.sortByDate')" value="date" />
             <el-option :label="t('options.sortBySize')" value="size" />
@@ -37,8 +37,8 @@
         <el-form-item :label="t('settings.defaultSortOrder')">
           <el-select
             v-model="defaultSortOrder"
-            @change="updateDefaultSortOrder"
             style="width: 100%"
+            @change="updateDefaultSortOrder"
           >
             <el-option :label="t('options.ascending')" value="asc" />
             <el-option :label="t('options.descending')" value="desc" />
@@ -56,8 +56,8 @@
         <el-form-item :label="t('settings.defaultMediaType')">
           <el-select
             v-model="defaultMediaType"
-            @change="updateDefaultMediaType"
             style="width: 100%"
+            @change="updateDefaultMediaType"
           >
             <el-option :label="t('options.allTypes')" value="all" />
             <el-option :label="t('options.imagesOnly')" value="images" />
@@ -87,7 +87,7 @@
         </el-form-item>
 
         <el-form-item :label="t('settings.theme')">
-          <el-select v-model="theme" @change="updateTheme" style="width: 100%">
+          <el-select v-model="theme" style="width: 100%" @change="updateTheme">
             <el-option :label="t('options.lightTheme')" value="light" />
             <el-option :label="t('options.darkTheme')" value="dark" />
             <el-option :label="t('options.systemTheme')" value="system" />
@@ -95,7 +95,7 @@
         </el-form-item>
 
         <el-form-item :label="t('settings.language')">
-          <el-select v-model="language" @change="updateLanguage" style="width: 100%">
+          <el-select v-model="language" style="width: 100%" @change="updateLanguage">
             <el-option :label="t('options.simplifiedChinese')" value="zh-CN" />
             <el-option :label="t('options.traditionalChinese')" value="zh-TW" />
             <el-option :label="t('options.english')" value="en-US" />
@@ -130,10 +130,10 @@
     </el-card>
 
     <div class="actions">
-      <el-button type="primary" @click="saveSettings" icon="Save">{{
+      <el-button type="primary" icon="Save" @click="saveSettings">{{
         t('settings.save')
       }}</el-button>
-      <el-button type="default" @click="resetSettings" icon="RefreshRight">{{
+      <el-button type="default" icon="RefreshRight" @click="resetSettings">{{
         t('settings.reset')
       }}</el-button>
     </div>

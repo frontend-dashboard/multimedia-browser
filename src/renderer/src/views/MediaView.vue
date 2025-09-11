@@ -13,15 +13,15 @@
           v-model="searchTerm"
           :placeholder="t('media.searchPlaceholder')"
           prefix-icon="Search"
-          @input="handleSearch"
           class="search-input"
+          @input="handleSearch"
         />
 
         <el-select
           v-model="selectedType"
-          @change="handleTypeFilter"
           :placeholder="t('media.selectType')"
           class="filter-select"
+          @change="handleTypeFilter"
         >
           <el-option :label="t('options.allTypes')" value="all" />
           <el-option :label="t('media.image')" value="images" />
@@ -33,16 +33,16 @@
           <el-button
             :type="viewMode === 'grid' ? 'primary' : 'default'"
             icon="Grid"
-            @click="setViewMode('grid')"
             circle
             :title="t('options.gridView')"
+            @click="setViewMode('grid')"
           />
           <el-button
             :type="viewMode === 'list' ? 'primary' : 'default'"
             icon="List"
-            @click="setViewMode('list')"
             circle
             :title="t('options.listView')"
+            @click="setViewMode('list')"
           />
         </div>
       </div>
@@ -57,7 +57,7 @@
             currentPath ? currentPath.split('/').pop() : t('media.noPathSelected')
           }}</el-breadcrumb-item>
         </el-breadcrumb>
-        <el-button type="primary" @click="openDirectory" :loading="loading">
+        <el-button type="primary" :loading="loading" @click="openDirectory">
           <el-icon><FolderOpened /></el-icon>
           {{ t('media.selectDirectory') }}
         </el-button>
