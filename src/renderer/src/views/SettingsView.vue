@@ -253,7 +253,7 @@ let cleanupSystemThemeListener = null
 onMounted(() => {
   loadSettings()
   applyTheme(theme.value)
-  
+
   // 设置系统主题变化的事件监听器
   cleanupSystemThemeListener = setupSystemThemeListener()
 })

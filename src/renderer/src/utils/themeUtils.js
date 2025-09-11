@@ -57,7 +57,7 @@ export const initializeTheme = () => {
  */
 export const setupSystemThemeListener = (callback = null) => {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-  
+
   // 定义处理函数
   const handleSystemThemeChange = () => {
     const currentTheme = localStorage.getItem('theme') || 'light'
@@ -69,10 +69,10 @@ export const setupSystemThemeListener = (callback = null) => {
       }
     }
   }
-  
+
   // 添加事件监听器
   mediaQuery.addEventListener('change', handleSystemThemeChange)
-  
+
   // 返回清理函数
   return () => {
     mediaQuery.removeEventListener('change', handleSystemThemeChange)
