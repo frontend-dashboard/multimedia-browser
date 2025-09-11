@@ -1,7 +1,8 @@
 <script setup>
 import { reactive } from 'vue'
 
-const versions = reactive({ ...window.electron.process.versions })
+// 使用我们在preload中正确暴露的process.versions
+const versions = reactive({ ...(window.electron?.process?.versions || { electron: '', chrome: '', node: '' }) })
 </script>
 
 <template>
