@@ -1,40 +1,76 @@
 <template>
   <div class="home-view">
-    <h1>多媒体浏览器</h1>
-    <p>欢迎使用多媒体浏览器应用程序</p>
-    
+    <el-card class="welcome-card" shadow="hover">
+      <template #header>
+        <div class="card-header">
+          <span>多媒体浏览器</span>
+        </div>
+      </template>
+      <div class="welcome-content">
+        <p>欢迎使用多媒体浏览器应用程序</p>
+      </div>
+    </el-card>
+
+    <el-divider />
+
     <div class="features">
-      <div class="feature-card">
+      <el-card class="feature-card" shadow="hover" :body-style="{ padding: '25px' }">
+        <div class="card-icon">
+          <el-icon><FolderOpened /></el-icon>
+        </div>
         <h3>浏览媒体文件</h3>
         <p>浏览和管理您的本地图片、音频和视频文件</p>
-        <router-link to="/media" class="btn">开始浏览</router-link>
-      </div>
-      
-      <div class="feature-card">
+        <router-link to="/media">
+          <el-button type="primary" size="default" class="mt-4">
+            开始浏览
+            <el-icon><Right /></el-icon>
+          </el-button>
+        </router-link>
+      </el-card>
+
+      <el-card class="feature-card" shadow="hover" :body-style="{ padding: '25px' }">
+        <div class="card-icon">
+          <el-icon><Pictures /></el-icon>
+        </div>
         <h3>媒体预览</h3>
         <p>预览各种格式的媒体文件</p>
-      </div>
-      
-      <div class="feature-card">
+        <router-link to="/media">
+          <el-button type="default" size="default" class="mt-4">
+            查看详情
+            <el-icon><Right /></el-icon>
+          </el-button>
+        </router-link>
+      </el-card>
+
+      <el-card class="feature-card" shadow="hover" :body-style="{ padding: '25px' }">
+        <div class="card-icon">
+          <el-icon><Setting /></el-icon>
+        </div>
         <h3>自定义设置</h3>
         <p>根据您的喜好自定义应用设置</p>
-        <router-link to="/settings" class="btn">前往设置</router-link>
-      </div>
+        <router-link to="/settings">
+          <el-button type="default" size="default" class="mt-4">
+            前往设置
+            <el-icon><Right /></el-icon>
+          </el-button>
+        </router-link>
+      </el-card>
     </div>
-    
-    <div class="tips">
-      <h3>使用提示</h3>
-      <ul>
+
+    <el-divider />
+
+    <el-alert title="使用提示" type="info" :closable="false" class="tips">
+      <ul class="tips-list">
         <li>点击"开始浏览"按钮浏览您的媒体文件</li>
         <li>在媒体浏览页面可以按类型筛选文件</li>
         <li>使用设置页面自定义应用外观和行为</li>
       </ul>
-    </div>
+    </el-alert>
   </div>
 </template>
 
 <script setup>
-// 可以在这里添加组件的逻辑
+// 图标已在main.js中全局注册，不需要在此处导入
 </script>
 
 <style scoped>
@@ -42,106 +78,85 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
-  text-align: center;
 }
 
-.home-view h1 {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
+.welcome-card {
+  margin-bottom: 30px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 600;
   color: var(--color-text);
 }
 
-.home-view p {
+.welcome-content {
+  text-align: center;
+  padding: 20px 0;
   font-size: 1.2rem;
   color: var(--color-text-2);
-  margin-bottom: 40px;
 }
 
 .features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
-  margin-bottom: 60px;
+  margin-bottom: 30px;
 }
 
 .feature-card {
-  background-color: var(--color-background-soft);
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: var(--el-color-primary);
+  text-align: center;
 }
 
 .feature-card h3 {
   font-size: 1.5rem;
   margin-bottom: 15px;
   color: var(--color-text);
+  text-align: center;
 }
 
 .feature-card p {
   font-size: 1rem;
   color: var(--color-text-2);
   margin-bottom: 20px;
-}
-
-.btn {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: var(--ev-button-alt-bg);
-  color: var(--ev-button-alt-text);
-  border: none;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background-color: var(--ev-button-alt-hover-bg);
+  text-align: center;
 }
 
 .tips {
-  background-color: var(--color-background-mute);
-  padding: 30px;
-  border-radius: 10px;
   max-width: 800px;
   margin: 0 auto;
 }
 
-.tips h3 {
-  font-size: 1.3rem;
-  margin-bottom: 20px;
-  color: var(--color-text);
+.tips-list {
+  margin-top: 10px;
+  padding-left: 20px;
 }
 
-.tips ul {
-  list-style: none;
-  padding: 0;
-}
-
-.tips li {
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.tips-list li {
+  margin-bottom: 5px;
   color: var(--color-text-2);
 }
 
-.tips li:last-child {
-  border-bottom: none;
-}
-
 @media (max-width: 768px) {
-  .home-view h1 {
-    font-size: 2rem;
-  }
-  
   .features {
     grid-template-columns: 1fr;
+  }
+
+  .card-header {
+    font-size: 1.5rem;
   }
 }
 </style>

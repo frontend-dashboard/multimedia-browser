@@ -5,9 +5,14 @@ import { useMediaStore } from './store/modules/media'
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 const mediaStore = useMediaStore()
+console.log(mediaStore)
+
 const isDarkTheme = computed(() => {
   const theme = localStorage.getItem('theme') || 'dark'
-  return theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  return (
+    theme === 'dark' ||
+    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  )
 })
 </script>
 
@@ -19,17 +24,15 @@ const isDarkTheme = computed(() => {
         <img alt="logo" class="logo" src="./assets/electron.svg" />
         <span class="app-name">多媒体浏览器</span>
       </div>
-      
+
       <div class="navbar-nav">
         <RouterLink to="/" class="nav-link" active-class="active">首页</RouterLink>
         <RouterLink to="/media" class="nav-link" active-class="active">媒体浏览</RouterLink>
         <RouterLink to="/settings" class="nav-link" active-class="active">设置</RouterLink>
       </div>
-      
+
       <div class="navbar-actions">
-        <button class="btn btn-small" @click="ipcHandle">
-          发送IPC
-        </button>
+        <button class="btn btn-small" @click="ipcHandle">发送IPC</button>
       </div>
     </nav>
 
@@ -82,12 +85,13 @@ const isDarkTheme = computed(() => {
 }
 
 .nav-link {
-  padding: 0.5rem 1rem;
   color: var(--color-text);
   text-decoration: none;
   border-radius: 4px;
   transition: all 0.3s ease;
   font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  font-size: 14px;
 }
 
 .nav-link:hover {
@@ -137,19 +141,14 @@ const isDarkTheme = computed(() => {
     flex-wrap: wrap;
     gap: 1rem;
   }
-  
+
   .navbar-nav {
     gap: 0.5rem;
     order: 3;
     width: 100%;
     justify-content: center;
   }
-  
-  .nav-link {
-    padding: 0.4rem 0.8rem;
-    font-size: 14px;
-  }
-  
+
   .main-content {
     padding: 1rem;
   }

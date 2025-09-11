@@ -25,21 +25,22 @@ export const useMediaStore = defineStore('media', {
     // 获取筛选后的媒体文件
     filteredMediaFiles: (state) => {
       let files = [...state.mediaFiles]
-      
+
       // 类型筛选
       if (state.filter.type !== 'all') {
-        files = files.filter(file => file.type.startsWith(state.filter.type))
+        files = files.filter((file) => file.type.startsWith(state.filter.type))
       }
-      
+
       // 搜索筛选
       if (state.filter.search) {
         const searchLower = state.filter.search.toLowerCase()
-        files = files.filter(file => 
-          file.name.toLowerCase().includes(searchLower) ||
-          file.path.toLowerCase().includes(searchLower)
+        files = files.filter(
+          (file) =>
+            file.name.toLowerCase().includes(searchLower) ||
+            file.path.toLowerCase().includes(searchLower)
         )
       }
-      
+
       // 排序
       files.sort((a, b) => {
         let comparison = 0
@@ -56,7 +57,7 @@ export const useMediaStore = defineStore('media', {
         }
         return state.settings.sortOrder === 'asc' ? comparison : -comparison
       })
-      
+
       return files
     }
   },
@@ -66,37 +67,37 @@ export const useMediaStore = defineStore('media', {
     setMediaFiles(files) {
       this.mediaFiles = files
     },
-    
+
     // 添加单个媒体文件
     addMediaFile(file) {
       this.mediaFiles.push(file)
     },
-    
+
     // 移除媒体文件
     removeMediaFile(filePath) {
-      this.mediaFiles = this.mediaFiles.filter(file => file.path !== filePath)
+      this.mediaFiles = this.mediaFiles.filter((file) => file.path !== filePath)
     },
-    
+
     // 设置当前选中的文件
     setSelectedFile(file) {
       this.selectedFile = file
     },
-    
+
     // 设置当前目录路径
     setCurrentPath(path) {
       this.currentPath = path
     },
-    
+
     // 更新筛选条件
     updateFilter(filter) {
       this.filter = { ...this.filter, ...filter }
     },
-    
+
     // 更新设置
     updateSettings(settings) {
       this.settings = { ...this.settings, ...settings }
     },
-    
+
     // 清除所有数据
     clearAll() {
       this.mediaFiles = []

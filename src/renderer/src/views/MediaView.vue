@@ -1,96 +1,151 @@
 <template>
   <div class="media-view">
-    <div class="header">
-      <h1>媒体浏览</h1>
+    <el-card class="header-card" shadow="never">
+      <template #header>
+        <div class="card-header">
+          <el-icon><Folder /></el-icon>
+          <span class="header-title">媒体浏览</span>
+        </div>
+      </template>
 
       <div class="controls">
-        <div class="search-bar">
-          <input type="text" placeholder="搜索文件..." v-model="searchTerm" @input="handleSearch" />
-        </div>
+        <el-input
+          v-model="searchTerm"
+          placeholder="搜索文件..."
+          prefix-icon="Search"
+          @input="handleSearch"
+          class="search-input"
+        />
 
-        <div class="filter-controls">
-          <select v-model="selectedType" @change="handleTypeFilter">
-            <option value="all">所有类型</option>
-            <option value="images">图片</option>
-            <option value="videos">视频</option>
-            <option value="audio">音频</option>
-          </select>
-        </div>
+        <el-select
+          v-model="selectedType"
+          @change="handleTypeFilter"
+          placeholder="选择类型"
+          class="filter-select"
+        >
+          <el-option label="所有类型" value="all" />
+          <el-option label="图片" value="images" />
+          <el-option label="视频" value="videos" />
+          <el-option label="音频" value="audio" />
+        </el-select>
 
         <div class="view-controls">
-          <button
-            :class="{ active: viewMode === 'grid' }"
+          <el-button
+            :type="viewMode === 'grid' ? 'primary' : 'default'"
+            icon="Grid"
             @click="setViewMode('grid')"
+            circle
             title="网格视图"
-          >
-            🗂️
-          </button>
-          <button
-            :class="{ active: viewMode === 'list' }"
+          />
+          <el-button
+            :type="viewMode === 'list' ? 'primary' : 'default'"
+            icon="List"
             @click="setViewMode('list')"
+            circle
             title="列表视图"
-          >
-            📋
-          </button>
+          />
         </div>
       </div>
-    </div>
+    </el-card>
 
-    <div class="current-path">
-      <p>当前路径: {{ currentPath || '未选择路径' }}</p>
-      <button class="btn" @click="openDirectory">选择目录</button>
-    </div>
-
-    <div class="media-grid" :class="viewMode">
-      <div v-if="loading" class="loading">加载中...</div>
-      <div v-else-if="filteredMediaFiles.length === 0" class="empty-state">
-        <p>没有找到媒体文件</p>
-        <p>请选择包含媒体文件的目录</p>
+    <el-card class="path-card mb-4" shadow="never">
+      <div class="current-path">
+        <el-breadcrumb separator-class="el-icon-arrow-right">
+          <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+          <el-breadcrumb-item>媒体浏览</el-breadcrumb-item>
+          <el-breadcrumb-item>{{
+            currentPath ? currentPath.split('/').pop() : '未选择路径'
+          }}</el-breadcrumb-item>
+        </el-breadcrumb>
+        <el-button type="primary" @click="openDirectory" :loading="loading">
+          <el-icon><FolderOpened /></el-icon>
+          选择目录
+        </el-button>
       </div>
-      <div v-else>
-        <div
-          v-for="file in filteredMediaFiles"
-          :key="file.path"
-          class="media-item"
-          :class="{ selected: selectedFile?.path === file.path }"
-          @click="selectFile(file)"
+    </el-card>
+
+    <el-card shadow="never">
+      <div
+        v-loading="loading"
+        element-loading-text="加载中..."
+        element-loading-spinner="el-icon-loading"
+      >
+        <el-empty
+          v-if="filteredMediaFiles.length === 0 && !loading"
+          description="没有找到媒体文件"
+          image-size="100"
         >
-          <div class="media-preview">
-            <!-- 根据文件类型显示不同的预览图标 -->
-            <img
-              v-if="file.type.startsWith('images')"
-              :src="getPreviewUrl(file)"
-              alt="{{ file.name }}"
-              class="preview-image"
-              loading="lazy"
-            />
-            <div v-else-if="file.type.startsWith('videos')" class="preview-icon">🎬</div>
-            <div v-else-if="file.type.startsWith('audio')" class="preview-icon">🎵</div>
-            <div v-else class="preview-icon">📄</div>
-          </div>
-          <div class="media-info">
-            <p class="file-name">{{ file.name }}</p>
-            <p class="file-size">{{ formatFileSize(file.size) }}</p>
-          </div>
+          <div class="empty-hint">请选择包含媒体文件的目录</div>
+        </el-empty>
+
+        <div v-else class="media-grid" :class="viewMode">
+          <el-card
+            v-for="file in filteredMediaFiles"
+            :key="file.path"
+            :class="['media-item', { selected: selectedFile && selectedFile.path === file.path }]"
+            shadow="hover"
+            :body-style="{ padding: '15px', cursor: 'pointer' }"
+            @click="selectFile(file)"
+          >
+            <div class="media-preview">
+              <!-- 根据文件类型显示不同的预览图标 -->
+              <el-image
+                v-if="file.type.startsWith('images')"
+                :src="getPreviewUrl(file)"
+                :alt="file.name"
+                class="preview-image"
+                fit="cover"
+                lazy
+              />
+              <div v-else-if="file.type.startsWith('videos')" class="preview-icon">
+                <el-icon size="40"><Video /></el-icon>
+              </div>
+              <div v-else-if="file.type.startsWith('audio')" class="preview-icon">
+                <el-icon size="40"><Headphones /></el-icon>
+              </div>
+              <div v-else class="preview-icon">
+                <el-icon size="40"><Document /></el-icon>
+              </div>
+            </div>
+            <div class="media-info">
+              <p class="file-name">{{ file.name }}</p>
+              <p class="file-size">{{ formatFileSize(file.size) }}</p>
+            </div>
+          </el-card>
         </div>
       </div>
-    </div>
+    </el-card>
 
     <!-- 选中文件的详细信息 -->
-    <div v-if="selectedFile" class="file-details">
-      <h3>文件详情</h3>
-      <p><strong>文件名:</strong> {{ selectedFile.name }}</p>
-      <p><strong>大小:</strong> {{ formatFileSize(selectedFile.size) }}</p>
-      <p><strong>类型:</strong> {{ getFileType(selectedFile.type) }}</p>
-      <p><strong>路径:</strong> {{ selectedFile.path }}</p>
-      <p><strong>修改日期:</strong> {{ formatDate(selectedFile.modifiedTime) }}</p>
-    </div>
+    <el-card v-if="selectedFile" shadow="never" class="mt-4">
+      <template #header>
+        <div class="card-header">
+          <el-icon><InfoFilled /></el-icon>
+          <span>文件详情</span>
+        </div>
+      </template>
+      <el-descriptions border :column="{ xs: 1, sm: 2 }">
+        <el-descriptions-item label="文件名">{{ selectedFile.name }}</el-descriptions-item>
+        <el-descriptions-item label="大小">{{
+          formatFileSize(selectedFile.size)
+        }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{
+          getFileType(selectedFile.type)
+        }}</el-descriptions-item>
+        <el-descriptions-item label="路径">{{ selectedFile.path }}</el-descriptions-item>
+        <el-descriptions-item label="修改日期">{{
+          formatDate(selectedFile.modifiedTime)
+        }}</el-descriptions-item>
+      </el-descriptions>
+    </el-card>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useMediaStore } from '../store/modules/media'
+
+// 图标已在main.js中全局注册，不需要在此处导入
 
 const mediaStore = useMediaStore()
 
@@ -101,7 +156,6 @@ const viewMode = ref('grid')
 const loading = ref(false)
 
 // 计算属性 - 从store获取数据
-const mediaFiles = computed(() => mediaStore.mediaFiles)
 const selectedFile = computed(() => mediaStore.selectedFile)
 const currentPath = computed(() => mediaStore.currentPath)
 const filteredMediaFiles = computed(() => mediaStore.filteredMediaFiles)
@@ -197,9 +251,15 @@ const formatDate = (timestamp) => {
 
 // 获取预览URL（模拟）
 const getPreviewUrl = (file) => {
-  // 在实际应用中，这里应该返回实际文件的URL
-  // 对于Electron应用，可以使用file://协议或data URL
-  return 'https://picsum.photos/200/200?random=' + Math.floor(Math.random() * 1000)
+  if (file.type.startsWith('images')) {
+    return file.path
+  } else if (file.type.startsWith('videos')) {
+    return file.path
+  } else if (file.type.startsWith('audio')) {
+    return file.path
+  } else {
+    return 'https://picsum.photos/200/200?random=' + Math.floor(Math.random() * 1000)
+  }
 }
 
 // 组件挂载时从store加载设置
@@ -217,13 +277,18 @@ onMounted(() => {
   padding: 20px;
 }
 
-.header {
-  margin-bottom: 30px;
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
-.header h1 {
-  font-size: 2rem;
-  margin-bottom: 20px;
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -232,25 +297,16 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 15px;
   align-items: center;
+  margin-top: 15px;
 }
 
-.search-bar input {
-  padding: 10px 15px;
-  border: 1px solid var(--ev-button-alt-border);
-  border-radius: 5px;
-  background-color: var(--color-background-soft);
-  color: var(--color-text);
-  font-size: 14px;
+.search-input {
+  flex: 1;
   min-width: 250px;
 }
 
-.filter-controls select {
-  padding: 10px 15px;
-  border: 1px solid var(--ev-button-alt-border);
-  border-radius: 5px;
-  background-color: var(--color-background-soft);
-  color: var(--color-text);
-  font-size: 14px;
+.filter-select {
+  min-width: 150px;
 }
 
 .view-controls {
@@ -258,93 +314,40 @@ onMounted(() => {
   gap: 5px;
 }
 
-.view-controls button {
-  padding: 10px 15px;
-  border: 1px solid var(--ev-button-alt-border);
-  border-radius: 5px;
-  background-color: var(--color-background-soft);
-  color: var(--color-text);
-  cursor: pointer;
-  font-size: 18px;
-  transition: all 0.3s ease;
-}
-
-.view-controls button:hover,
-.view-controls button.active {
-  background-color: var(--ev-button-alt-hover-bg);
-}
-
 .current-path {
-  margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
-  background-color: var(--color-background-soft);
-  border-radius: 5px;
-}
-
-.current-path p {
-  color: var(--color-text-2);
-  margin: 0;
-}
-
-.btn {
-  padding: 8px 16px;
-  background-color: var(--ev-button-alt-bg);
-  color: var(--ev-button-alt-text);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-}
-
-.btn:hover {
-  background-color: var(--ev-button-alt-hover-bg);
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .media-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
-  margin-bottom: 30px;
 }
 
 .media-grid.list {
   grid-template-columns: 1fr;
 }
 
-.loading,
-.empty-state {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--color-text-2);
-}
-
 .media-item {
-  background-color: var(--color-background-soft);
-  border-radius: 8px;
-  padding: 15px;
-  cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
 }
 
 .media-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .media-item.selected {
-  border-color: #6988e6;
-  background-color: rgba(105, 136, 230, 0.1);
+  border-color: var(--el-color-primary);
+  box-shadow: 0 0 0 2px rgba(64, 169, 255, 0.2);
 }
 
 .media-preview {
   width: 100%;
-  height: 150px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -357,11 +360,13 @@ onMounted(() => {
 .preview-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
 
 .preview-icon {
-  font-size: 3rem;
+  color: var(--color-text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .media-info {
@@ -383,26 +388,18 @@ onMounted(() => {
   margin: 0;
 }
 
-.file-details {
-  background-color: var(--color-background-soft);
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 30px;
-}
-
-.file-details h3 {
-  font-size: 1.2rem;
-  margin-bottom: 15px;
-  color: var(--color-text);
-}
-
-.file-details p {
-  margin: 8px 0;
+.empty-hint {
+  margin-top: 10px;
   color: var(--color-text-2);
+  font-size: 0.9rem;
 }
 
-.file-details strong {
-  color: var(--color-text);
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 16px;
 }
 
 @media (max-width: 768px) {
@@ -411,18 +408,27 @@ onMounted(() => {
     align-items: stretch;
   }
 
-  .search-bar input {
-    min-width: auto;
+  .search-input,
+  .filter-select {
+    width: 100%;
   }
 
   .current-path {
     flex-direction: column;
+    align-items: stretch;
     gap: 10px;
-    text-align: center;
   }
 
   .media-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+
+  .card-header {
+    font-size: 1.2rem;
+  }
+
+  .header-title {
+    font-size: 1.2rem;
   }
 }
 </style>
