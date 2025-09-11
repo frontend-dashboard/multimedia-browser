@@ -1,23 +1,25 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import { computed } from 'vue'
-import { useMediaStore } from './store/modules/media'
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
-const mediaStore = useMediaStore()
-console.log(mediaStore)
 
-const isDarkTheme = computed(() => {
-  const theme = localStorage.getItem('theme') || 'dark'
-  return (
-    theme === 'dark' ||
-    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  )
+// 计算当前应使用的主题类
+const themeClass = computed(() => {
+  const theme = localStorage.getItem('theme') || 'light'
+  
+  // 跟随系统模式
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme'
+  }
+  
+  // 手动选择模式
+  return theme === 'dark' ? 'dark-theme' : 'light-theme'
 })
 </script>
 
 <template>
-  <div class="app-container" :class="{ 'dark-theme': isDarkTheme }">
+  <div class="app-container" :class="themeClass">
     <!-- 导航栏 -->
     <nav class="navbar">
       <div class="navbar-brand">

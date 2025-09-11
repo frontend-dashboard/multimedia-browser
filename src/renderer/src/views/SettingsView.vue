@@ -82,8 +82,9 @@
 
         <el-form-item label="主题">
           <el-select v-model="theme" @change="updateTheme" style="width: 100%">
-            <el-option label="深色模式" value="dark" />
+            <el-option label="白色模式" value="white" />
             <el-option label="浅色模式" value="light" />
+            <el-option label="深色模式" value="dark" />
             <el-option label="跟随系统" value="system" />
           </el-select>
         </el-form-item>
@@ -138,7 +139,7 @@ const defaultSortOrder = ref('asc')
 const defaultMediaType = ref('all')
 const showFileExtensions = ref(false)
 const showHiddenFiles = ref(false)
-const theme = ref('dark')
+const theme = ref('light')
 const language = ref('zh-CN')
 
 // 从store加载设置
@@ -153,7 +154,7 @@ const loadSettings = () => {
   // 从localStorage加载其他设置
   showFileExtensions.value = localStorage.getItem('showFileExtensions') === 'true'
   showHiddenFiles.value = localStorage.getItem('showHiddenFiles') === 'true'
-  theme.value = localStorage.getItem('theme') || 'dark'
+  theme.value = localStorage.getItem('theme') || 'light'
   language.value = localStorage.getItem('language') || 'zh-CN'
 }
 
@@ -217,7 +218,7 @@ const resetSettings = () => {
     // 重置localStorage设置
     localStorage.setItem('showFileExtensions', 'false')
     localStorage.setItem('showHiddenFiles', 'false')
-    localStorage.setItem('theme', 'dark')
+    localStorage.setItem('theme', 'light')
     localStorage.setItem('language', 'zh-CN')
 
     // 重新加载设置

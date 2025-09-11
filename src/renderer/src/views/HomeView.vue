@@ -30,7 +30,7 @@
 
       <el-card class="feature-card" shadow="hover" :body-style="{ padding: '25px' }">
         <div class="card-icon">
-          <el-icon><Pictures /></el-icon>
+          <el-icon><Picture /></el-icon>
         </div>
         <h3>媒体预览</h3>
         <p>预览各种格式的媒体文件</p>
@@ -70,14 +70,12 @@
 </template>
 
 <script setup>
-// 图标已在main.js中全局注册，不需要在此处导入
-</script>
+ // 图标已在main.js中全局注册，不需要在此处导入
+ </script>
 
 <style scoped>
 .home-view {
-  max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
 }
 
 .welcome-card {

@@ -98,10 +98,10 @@
                 lazy
               />
               <div v-else-if="file.type.startsWith('videos')" class="preview-icon">
-                <el-icon size="40"><Video /></el-icon>
+                <el-icon size="40"><VideoCamera /></el-icon>
               </div>
               <div v-else-if="file.type.startsWith('audio')" class="preview-icon">
-                <el-icon size="40"><Headphones /></el-icon>
+                <el-icon size="40"><Sound /></el-icon>
               </div>
               <div v-else class="preview-icon">
                 <el-icon size="40"><Document /></el-icon>
@@ -144,8 +144,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useMediaStore } from '../store/modules/media'
-
-// 图标已在main.js中全局注册，不需要在此处导入
+// Icons are globally registered in main.js, no need to import here
 
 const mediaStore = useMediaStore()
 
