@@ -70,11 +70,11 @@
 </template>
 
 <script setup>
- // 图标已在main.js中全局注册，不需要在此处导入
- import { useI18n } from 'vue-i18n'
- 
- const { t } = useI18n()
- </script>
+// 图标已在main.js中全局注册，不需要在此处导入
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+</script>
 
 <style scoped>
 .home-view {

@@ -52,9 +52,15 @@ watch(themeClass, () => {
       </div>
 
       <div class="navbar-nav">
-        <RouterLink to="/" class="nav-link" active-class="active">{{ t('navigation.home') }}</RouterLink>
-        <RouterLink to="/media" class="nav-link" active-class="active">{{ t('navigation.media') }}</RouterLink>
-        <RouterLink to="/settings" class="nav-link" active-class="active">{{ t('navigation.settings') }}</RouterLink>
+        <RouterLink to="/" class="nav-link" active-class="active">{{
+          t('navigation.home')
+        }}</RouterLink>
+        <RouterLink to="/media" class="nav-link" active-class="active">{{
+          t('navigation.media')
+        }}</RouterLink>
+        <RouterLink to="/settings" class="nav-link" active-class="active">{{
+          t('navigation.settings')
+        }}</RouterLink>
       </div>
 
       <div class="navbar-actions">
