@@ -24,9 +24,9 @@
           class="filter-select"
         >
           <el-option :label="t('options.allTypes')" value="all" />
-            <el-option :label="t('media.image')" value="images" />
-            <el-option :label="t('media.video')" value="videos" />
-            <el-option :label="t('media.audio')" value="audio" />
+          <el-option :label="t('media.image')" value="images" />
+          <el-option :label="t('media.video')" value="videos" />
+          <el-option :label="t('media.audio')" value="audio" />
         </el-select>
 
         <div class="view-controls">
@@ -58,9 +58,9 @@
           }}</el-breadcrumb-item>
         </el-breadcrumb>
         <el-button type="primary" @click="openDirectory" :loading="loading">
-            <el-icon><FolderOpened /></el-icon>
-            {{ t('media.selectDirectory') }}
-          </el-button>
+          <el-icon><FolderOpened /></el-icon>
+          {{ t('media.selectDirectory') }}
+        </el-button>
       </div>
     </el-card>
 
@@ -96,6 +96,7 @@
                 class="preview-image"
                 fit="cover"
                 lazy
+                @error="handleImageError($event, file)"
               >
                 <template #error>
                   <div class="preview-icon">
@@ -131,14 +132,18 @@
         </div>
       </template>
       <el-descriptions border :column="{ xs: 1, sm: 2 }">
-        <el-descriptions-item :label="t('media.fileName')">{{ selectedFile.name }}</el-descriptions-item>
+        <el-descriptions-item :label="t('media.fileName')">{{
+          selectedFile.name
+        }}</el-descriptions-item>
         <el-descriptions-item :label="t('media.fileSize')">{{
           formatFileSize(selectedFile.size)
         }}</el-descriptions-item>
         <el-descriptions-item :label="t('media.fileType')">{{
           getFileType(selectedFile.type)
         }}</el-descriptions-item>
-        <el-descriptions-item :label="t('media.filePath')">{{ selectedFile.path }}</el-descriptions-item>
+        <el-descriptions-item :label="t('media.filePath')">{{
+          selectedFile.path
+        }}</el-descriptions-item>
         <el-descriptions-item :label="t('media.modifiedDate')">{{
           formatDate(selectedFile.modifiedTime)
         }}</el-descriptions-item>
@@ -151,6 +156,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useMediaStore } from '../store/modules/media'
 import { useI18n } from 'vue-i18n'
+import { ElMessage } from 'element-plus'
 
 const { t } = useI18n()
 // Icons are globally registered in main.js, no need to import here
@@ -189,48 +195,39 @@ const selectFile = (file) => {
   mediaStore.setSelectedFile(file)
 }
 
-// 打开目录 - 这只是一个模拟，实际应用中需要使用Electron的对话框API
-const openDirectory = () => {
+// 打开目录
+const openDirectory = async () => {
   loading.value = true
 
-  // 模拟加载媒体文件
-  setTimeout(() => {
-    // 模拟媒体文件数据
-    const mockMediaFiles = [
-      {
-        name: 'example1.jpg',
-        path: '/path/to/example1.jpg',
-        size: 2048000, // 2MB
-        type: 'images/jpeg',
-        modifiedTime: Date.now() - 86400000 // 1天前
-      },
-      {
-        name: 'example2.png',
-        path: '/path/to/example2.png',
-        size: 1536000, // 1.5MB
-        type: 'images/png',
-        modifiedTime: Date.now() - 172800000 // 2天前
-      },
-      {
-        name: 'audio.mp3',
-        path: '/path/to/audio.mp3',
-        size: 5242880, // 5MB
-        type: 'audio/mpeg',
-        modifiedTime: Date.now() - 259200000 // 3天前
-      },
-      {
-        name: 'video.mp4',
-        path: '/path/to/video.mp4',
-        size: 20971520, // 20MB
-        type: 'videos/mp4',
-        modifiedTime: Date.now() - 345600000 // 4天前
-      }
-    ]
+  try {
+    // 检查是否在Electron环境中运行
+    if (window.api && typeof window.api.openDirectory === 'function') {
+      // 在Electron环境中，调用主进程打开目录选择对话框
+      const directoryPath = await window.api.openDirectory()
 
-    mediaStore.setCurrentPath('/path/to/media')
-    mediaStore.setMediaFiles(mockMediaFiles)
+      // 如果用户取消选择，直接返回
+      if (!directoryPath) {
+        loading.value = false
+        return
+      }
+
+      // 获取目录下的媒体文件
+      const mediaFiles = await window.api.getFilesInDirectory(directoryPath)
+
+      // 更新媒体库状态
+      mediaStore.setCurrentPath(directoryPath)
+      mediaStore.setMediaFiles(mediaFiles)
+    } else {
+      // 在浏览器环境中，显示一个提示
+      ElMessage.info('此功能需要在Electron应用程序中运行才能访问本地文件系统。')
+    }
+  } catch (error) {
+    console.error('打开目录失败:', error)
+    // 显示错误提示
+    ElMessage.error(t('media.openDirectoryError'))
+  } finally {
     loading.value = false
-  }, 1000)
+  }
 }
 
 // 格式化文件大小
@@ -257,16 +254,40 @@ const formatDate = (timestamp) => {
   return new Date(timestamp).toLocaleDateString()
 }
 
-// 获取预览URL（模拟）
+// 处理图片加载错误
+const handleImageError = (error, file) => {
+  console.error('图片加载失败事件:', error)
+  console.error('图片路径:', getPreviewUrl(file))
+  console.error('原始文件路径:', file.path)
+  console.error('文件类型:', file.type)
+
+  // 在控制台中显示更详细的错误信息
+  if (error.target && error.target.src) {
+    console.error('实际请求的URL:', error.target.src)
+    console.error('是否以file://开头:', error.target.src.startsWith('file://'))
+  }
+}
+
+// 获取预览URL（使用自定义的media-file协议）
 const getPreviewUrl = (file) => {
-  if (file.type.startsWith('images')) {
-    return file.path
-  } else if (file.type.startsWith('videos')) {
-    return file.path
-  } else if (file.type.startsWith('audio')) {
-    return file.path
-  } else {
-    return 'https://picsum.photos/200/200?random=' + Math.floor(Math.random() * 1000)
+  try {
+    // 使用我们自定义的'media-file'协议来加载文件
+    // 这可以避免一些安全限制，同时也能更可靠地加载本地文件
+
+    // 将反斜杠替换为正斜杠，确保路径格式一致
+    let normalizedPath = file.path.replace(/\\/g, '/')
+
+    // 对路径进行URL编码，确保特殊字符不会导致问题
+    const encodedPath = encodeURIComponent(normalizedPath)
+
+    // 使用我们自定义的协议
+    const previewUrl = 'media-file://' + encodedPath
+
+    return previewUrl
+  } catch (error) {
+    console.error('生成预览URL时出错:', error)
+    // 作为最后的后备方案，使用简单的file://协议
+    return 'file://' + file.path
   }
 }
 
