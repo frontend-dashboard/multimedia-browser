@@ -7,12 +7,12 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 // 计算当前应使用的主题类
 const themeClass = computed(() => {
   const theme = localStorage.getItem('theme') || 'light'
-  
+
   // 跟随系统模式
   if (theme === 'system') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme'
   }
-  
+
   // 手动选择模式
   return theme === 'dark' ? 'dark-theme' : 'light-theme'
 })

@@ -82,7 +82,6 @@
 
         <el-form-item label="主题">
           <el-select v-model="theme" @change="updateTheme" style="width: 100%">
-            <el-option label="白色模式" value="white" />
             <el-option label="浅色模式" value="light" />
             <el-option label="深色模式" value="dark" />
             <el-option label="跟随系统" value="system" />
@@ -228,7 +227,24 @@ const resetSettings = () => {
 
 // 应用主题
 const applyTheme = () => {
-  // 在实际应用中，这里可以添加切换CSS变量或类的逻辑
+  const root = document.documentElement
+
+  // 移除所有主题类
+  root.classList.remove('light-theme', 'dark-theme')
+
+  // 跟随系统模式
+  if (theme.value === 'system') {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    root.classList.add(isDarkMode ? 'dark-theme' : 'light-theme')
+  } else {
+    // 手动选择模式
+    if (theme.value === 'dark') {
+      root.classList.add('dark-theme')
+    } else if (theme.value === 'light') {
+      root.classList.add('light-theme')
+    }
+  }
+
   console.log('应用主题:', theme.value)
 }
 
