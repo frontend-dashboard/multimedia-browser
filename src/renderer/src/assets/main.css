@@ -410,3 +410,45 @@ a:hover {
 .el-loading-spinner .path {
   stroke: var(--color-text) !important;
 }
+
+/* 警告提示框组件 */
+.el-alert {
+  background-color: var(--color-background-soft) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}
+
+.el-alert__title {
+  color: var(--color-text) !important;
+}
+
+.el-alert__description {
+  color: var(--color-text-2) !important;
+}
+
+/* 深色主题下的警告提示框特定样式 */
+:root.dark-theme .el-alert {
+  background-color: var(--color-background-soft) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}
+
+:root.dark-theme .el-alert--info {
+  background-color: rgba(105, 136, 230, 0.1) !important;
+  border-color: rgba(105, 136, 230, 0.3) !important;
+}
+
+:root.dark-theme .el-alert--success {
+  background-color: rgba(114, 193, 135, 0.1) !important;
+  border-color: rgba(114, 193, 135, 0.3) !important;
+}
+
+:root.dark-theme .el-alert--warning {
+  background-color: rgba(255, 183, 0, 0.1) !important;
+  border-color: rgba(255, 183, 0, 0.3) !important;
+}
+
+:root.dark-theme .el-alert--error {
+  background-color: rgba(245, 108, 108, 0.1) !important;
+  border-color: rgba(245, 108, 108, 0.3) !important;
+}

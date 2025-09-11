@@ -17,6 +17,12 @@ for (const name in ElIcons) {
   app.component(name, ElIcons[name])
 }
 
+// 导入主题工具函数
+import { initializeTheme } from './utils/themeUtils.js'
+
+// 初始化主题
+initializeTheme()
+
 app.use(router)
 app.use(pinia)
 app.use(ElementPlus)

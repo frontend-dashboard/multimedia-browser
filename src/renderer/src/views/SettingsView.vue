@@ -141,9 +141,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useMediaStore } from '../store/modules/media'
+// 导入必要的库和组件
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useMediaStore } from '../store/modules/media.js'
+import { applyTheme, saveAndApplyTheme, setupSystemThemeListener } from '../utils/themeUtils.js'
 
 const { t, locale } = useI18n()
 
@@ -203,9 +205,7 @@ const updateShowHiddenFiles = () => {
 }
 
 const updateTheme = () => {
-  localStorage.setItem('theme', theme.value)
-  // 这里可以添加应用主题的逻辑
-  applyTheme()
+  saveAndApplyTheme(theme.value)
 }
 
 const updateLanguage = () => {
@@ -246,33 +246,23 @@ const resetSettings = () => {
   }
 }
 
-// 应用主题
-const applyTheme = () => {
-  const root = document.documentElement
-
-  // 移除所有主题类
-  root.classList.remove('light-theme', 'dark-theme')
-
-  // 跟随系统模式
-  if (theme.value === 'system') {
-    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-    root.classList.add(isDarkMode ? 'dark-theme' : 'light-theme')
-  } else {
-    // 手动选择模式
-    if (theme.value === 'dark') {
-      root.classList.add('dark-theme')
-    } else if (theme.value === 'light') {
-      root.classList.add('light-theme')
-    }
-  }
-
-  console.log('应用主题:', theme.value)
-}
+// 用于移除事件监听器的清理函数
+let cleanupSystemThemeListener = null
 
 // 组件挂载时加载设置
 onMounted(() => {
   loadSettings()
-  applyTheme()
+  applyTheme(theme.value)
+  
+  // 设置系统主题变化的事件监听器
+  cleanupSystemThemeListener = setupSystemThemeListener()
+})
+
+// 组件卸载时清理事件监听器
+onUnmounted(() => {
+  if (cleanupSystemThemeListener) {
+    cleanupSystemThemeListener()
+  }
 })
 </script>
 

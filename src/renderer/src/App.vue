@@ -1,44 +1,21 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getThemeClass } from './utils/themeUtils.js'
 
 const { t } = useI18n()
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 
-// 计算当前应使用的主题类
+// 计算当前应使用的主题类（仅用于模板绑定）
 const themeClass = computed(() => {
-  const theme = localStorage.getItem('theme') || 'light'
-
-  // 跟随系统模式
-  if (theme === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme'
-  }
-
-  // 手动选择模式
-  return theme === 'dark' ? 'dark-theme' : 'light-theme'
+  return getThemeClass()
 })
 
-// 应用主题到根元素
-const applyThemeToRoot = () => {
-  const root = document.documentElement
-  const currentTheme = themeClass.value
-
-  // 移除所有主题类
-  root.classList.remove('light-theme', 'dark-theme')
-  // 添加当前主题类
-  root.classList.add(currentTheme)
-}
-
-// 组件挂载时应用主题
+// 组件挂载时的其他初始化操作
 onMounted(() => {
-  applyThemeToRoot()
-})
-
-// 监听主题变化
-watch(themeClass, () => {
-  applyThemeToRoot()
+  // 主题应用已在main.js中处理
 })
 </script>
 
