@@ -4,14 +4,14 @@
       <template #header>
         <div class="card-header">
           <el-icon><Folder /></el-icon>
-          <span class="header-title">媒体浏览</span>
+          <span class="header-title">{{ t('navigation.media') }}</span>
         </div>
       </template>
 
       <div class="controls">
         <el-input
           v-model="searchTerm"
-          placeholder="搜索文件..."
+          :placeholder="t('media.searchPlaceholder')"
           prefix-icon="Search"
           @input="handleSearch"
           class="search-input"
@@ -20,13 +20,13 @@
         <el-select
           v-model="selectedType"
           @change="handleTypeFilter"
-          placeholder="选择类型"
+          :placeholder="t('media.selectType')"
           class="filter-select"
         >
-          <el-option label="所有类型" value="all" />
-          <el-option label="图片" value="images" />
-          <el-option label="视频" value="videos" />
-          <el-option label="音频" value="audio" />
+          <el-option :label="t('options.allTypes')" value="all" />
+            <el-option :label="t('media.image')" value="images" />
+            <el-option :label="t('media.video')" value="videos" />
+            <el-option :label="t('media.audio')" value="audio" />
         </el-select>
 
         <div class="view-controls">
@@ -35,14 +35,14 @@
             icon="Grid"
             @click="setViewMode('grid')"
             circle
-            title="网格视图"
+            :title="t('options.gridView')"
           />
           <el-button
             :type="viewMode === 'list' ? 'primary' : 'default'"
             icon="List"
             @click="setViewMode('list')"
             circle
-            title="列表视图"
+            :title="t('options.listView')"
           />
         </div>
       </div>
@@ -51,31 +51,31 @@
     <el-card class="path-card mb-4" shadow="never">
       <div class="current-path">
         <el-breadcrumb separator-class="el-icon-arrow-right">
-          <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-          <el-breadcrumb-item>媒体浏览</el-breadcrumb-item>
+          <el-breadcrumb-item :to="{ path: '/' }">{{ t('navigation.home') }}</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ t('navigation.media') }}</el-breadcrumb-item>
           <el-breadcrumb-item>{{
-            currentPath ? currentPath.split('/').pop() : '未选择路径'
+            currentPath ? currentPath.split('/').pop() : t('media.noPathSelected')
           }}</el-breadcrumb-item>
         </el-breadcrumb>
         <el-button type="primary" @click="openDirectory" :loading="loading">
-          <el-icon><FolderOpened /></el-icon>
-          选择目录
-        </el-button>
+            <el-icon><FolderOpened /></el-icon>
+            {{ t('media.selectDirectory') }}
+          </el-button>
       </div>
     </el-card>
 
     <el-card shadow="never">
       <div
         v-loading="loading"
-        element-loading-text="加载中..."
+        :element-loading-text="t('media.loading')"
         element-loading-spinner="el-icon-loading"
       >
         <el-empty
           v-if="filteredMediaFiles.length === 0 && !loading"
-          description="没有找到媒体文件"
+          :description="t('media.noFilesFound')"
           :image-size="100"
         >
-          <div class="empty-hint">请选择包含媒体文件的目录</div>
+          <div class="empty-hint">{{ t('media.selectMediaDirHint') }}</div>
         </el-empty>
 
         <div v-else class="media-grid" :class="viewMode">
@@ -127,19 +127,19 @@
       <template #header>
         <div class="card-header">
           <el-icon><InfoFilled /></el-icon>
-          <span>文件详情</span>
+          <span>{{ t('media.fileDetails') }}</span>
         </div>
       </template>
       <el-descriptions border :column="{ xs: 1, sm: 2 }">
-        <el-descriptions-item label="文件名">{{ selectedFile.name }}</el-descriptions-item>
-        <el-descriptions-item label="大小">{{
+        <el-descriptions-item :label="t('media.fileName')">{{ selectedFile.name }}</el-descriptions-item>
+        <el-descriptions-item :label="t('media.fileSize')">{{
           formatFileSize(selectedFile.size)
         }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{
+        <el-descriptions-item :label="t('media.fileType')">{{
           getFileType(selectedFile.type)
         }}</el-descriptions-item>
-        <el-descriptions-item label="路径">{{ selectedFile.path }}</el-descriptions-item>
-        <el-descriptions-item label="修改日期">{{
+        <el-descriptions-item :label="t('media.filePath')">{{ selectedFile.path }}</el-descriptions-item>
+        <el-descriptions-item :label="t('media.modifiedDate')">{{
           formatDate(selectedFile.modifiedTime)
         }}</el-descriptions-item>
       </el-descriptions>
@@ -150,6 +150,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useMediaStore } from '../store/modules/media'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 // Icons are globally registered in main.js, no need to import here
 
 const mediaStore = useMediaStore()
@@ -243,10 +246,10 @@ const formatFileSize = (bytes) => {
 
 // 获取文件类型
 const getFileType = (type) => {
-  if (type.startsWith('images')) return '图片'
-  if (type.startsWith('videos')) return '视频'
-  if (type.startsWith('audio')) return '音频'
-  return '其他'
+  if (type.startsWith('images')) return t('media.image')
+  if (type.startsWith('videos')) return t('media.video')
+  if (type.startsWith('audio')) return t('media.audio')
+  return t('media.other')
 }
 
 // 格式化日期

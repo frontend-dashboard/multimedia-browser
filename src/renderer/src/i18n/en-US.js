@@ -1,0 +1,97 @@
+export default {
+  app: {
+    name: 'Multimedia Browser',
+    description: 'A cross-platform media browsing application based on Electron and Vue.js'
+  },
+  navigation: {
+    home: 'Home',
+    media: 'Media Browse',
+    settings: 'Settings'
+  },
+  settings: {
+    title: 'Application Settings',
+    display: 'Display Settings',
+    media: 'Media Settings',
+    interface: 'Interface Settings',
+    about: 'About Application',
+    defaultViewMode: 'Default View Mode',
+    defaultSortBy: 'Default Sort By',
+    defaultSortOrder: 'Default Sort Order',
+    defaultMediaType: 'Default Media Type',
+    showFileExtensions: 'Show File Extensions',
+    showHiddenFiles: 'Show Hidden Files',
+    theme: 'Theme',
+    language: 'Language',
+    appName: 'Application Name',
+    version: 'Version',
+    description: 'Description',
+    license: 'License',
+    save: 'Save Settings',
+    reset: 'Reset to Default',
+    confirmReset: 'Are you sure you want to reset all settings to default?',
+    settingsSaved: 'Settings saved!'
+  },
+  options: {
+    gridView: 'Grid View',
+    listView: 'List View',
+    sortByName: 'Sort by Name',
+    sortByDate: 'Sort by Date',
+    sortBySize: 'Sort by Size',
+    ascending: 'Ascending',
+    descending: 'Descending',
+    allTypes: 'All Types',
+    imagesOnly: 'Images Only',
+    videosOnly: 'Videos Only',
+    audioOnly: 'Audio Only',
+    lightTheme: 'Light Mode',
+    darkTheme: 'Dark Mode',
+    systemTheme: 'Follow System',
+    simplifiedChinese: 'Simplified Chinese',
+    traditionalChinese: 'Traditional Chinese',
+    english: 'English'
+  },
+  actions: {
+      sendIPC: 'Send IPC',
+      close: 'Close',
+      confirm: 'Confirm',
+      cancel: 'Cancel'
+    },
+    media: {
+      searchPlaceholder: 'Search files...',
+      selectType: 'Select type',
+      noPathSelected: 'No path selected',
+      selectDirectory: 'Select directory',
+      loading: 'Loading...',
+      noFilesFound: 'No media files found',
+      selectMediaDirHint: 'Please select a directory containing media files',
+      fileDetails: 'File details',
+      fileName: 'File name',
+      fileSize: 'Size',
+      fileType: 'Type',
+      filePath: 'Path',
+      modifiedDate: 'Modified date',
+      image: 'Image',
+      video: 'Video',
+      audio: 'Audio',
+      other: 'Other'
+    },
+  home: {
+    welcome: 'Welcome to the Multimedia Browser application',
+    browseMedia: 'Browse Media Files',
+    browseMediaDesc: 'Browse and manage your local images, audio, and video files',
+    startBrowsing: 'Start Browsing',
+    mediaPreview: 'Media Preview',
+    mediaPreviewDesc: 'Preview media files in various formats',
+    viewDetails: 'View Details',
+    customSettings: 'Custom Settings',
+    customSettingsDesc: 'Customize application settings according to your preferences',
+    goToSettings: 'Go to Settings',
+    usageTips: 'Usage Tips',
+    tip1: 'Click the "Start Browsing" button to browse your media files',
+    tip2: 'Filter files by type on the media browsing page',
+    tip3: 'Use the settings page to customize application appearance and behavior'
+  },
+  about: {
+    versionInfo: 'Version Information'
+  }
+}

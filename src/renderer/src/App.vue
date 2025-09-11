@@ -1,6 +1,9 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import { computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 
@@ -45,17 +48,17 @@ watch(themeClass, () => {
     <nav class="navbar">
       <div class="navbar-brand">
         <img alt="logo" class="logo" src="./assets/electron.svg" />
-        <span class="app-name">多媒体浏览器</span>
+        <span class="app-name">{{ t('app.name') }}</span>
       </div>
 
       <div class="navbar-nav">
-        <RouterLink to="/" class="nav-link" active-class="active">首页</RouterLink>
-        <RouterLink to="/media" class="nav-link" active-class="active">媒体浏览</RouterLink>
-        <RouterLink to="/settings" class="nav-link" active-class="active">设置</RouterLink>
+        <RouterLink to="/" class="nav-link" active-class="active">{{ t('navigation.home') }}</RouterLink>
+        <RouterLink to="/media" class="nav-link" active-class="active">{{ t('navigation.media') }}</RouterLink>
+        <RouterLink to="/settings" class="nav-link" active-class="active">{{ t('navigation.settings') }}</RouterLink>
       </div>
 
       <div class="navbar-actions">
-        <button class="btn btn-small" @click="ipcHandle">发送IPC</button>
+        <button class="btn btn-small" @click="ipcHandle">{{ t('actions.sendIPC') }}</button>
       </div>
     </nav>
 

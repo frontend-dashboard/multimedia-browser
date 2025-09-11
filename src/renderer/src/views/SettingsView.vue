@@ -13,103 +13,102 @@
       <el-form>
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
-            <el-text type="primary" size="large"><strong>显示设置</strong></el-text>
+            <el-text type="primary" size="large"><strong>{{ t('settings.display') }}</strong></el-text>
           </el-divider>
         </el-form-item>
 
-        <el-form-item label="默认视图模式">
+        <el-form-item :label="t('settings.defaultViewMode')">
           <el-select v-model="defaultViewMode" @change="updateDefaultViewMode" style="width: 100%">
-            <el-option label="网格视图" value="grid" />
-            <el-option label="列表视图" value="list" />
+            <el-option :label="t('options.gridView')" value="grid" />
+            <el-option :label="t('options.listView')" value="list" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="默认排序方式">
+        <el-form-item :label="t('settings.defaultSortBy')">
           <el-select v-model="defaultSortBy" @change="updateDefaultSortBy" style="width: 100%">
-            <el-option label="按名称排序" value="name" />
-            <el-option label="按日期排序" value="date" />
-            <el-option label="按大小排序" value="size" />
+            <el-option :label="t('options.sortByName')" value="name" />
+            <el-option :label="t('options.sortByDate')" value="date" />
+            <el-option :label="t('options.sortBySize')" value="size" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="默认排序顺序">
+        <el-form-item :label="t('settings.defaultSortOrder')">
           <el-select
             v-model="defaultSortOrder"
             @change="updateDefaultSortOrder"
             style="width: 100%"
           >
-            <el-option label="升序" value="asc" />
-            <el-option label="降序" value="desc" />
+            <el-option :label="t('options.ascending')" value="asc" />
+            <el-option :label="t('options.descending')" value="desc" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
-            <el-text type="primary" size="large"><strong>媒体设置</strong></el-text>
+            <el-text type="primary" size="large"><strong>{{ t('settings.media') }}</strong></el-text>
           </el-divider>
         </el-form-item>
 
-        <el-form-item label="默认媒体类型">
+        <el-form-item :label="t('settings.defaultMediaType')">
           <el-select
             v-model="defaultMediaType"
             @change="updateDefaultMediaType"
             style="width: 100%"
           >
-            <el-option label="所有类型" value="all" />
-            <el-option label="仅图片" value="images" />
-            <el-option label="仅视频" value="videos" />
-            <el-option label="仅音频" value="audio" />
+            <el-option :label="t('options.allTypes')" value="all" />
+            <el-option :label="t('options.imagesOnly')" value="images" />
+            <el-option :label="t('options.videosOnly')" value="videos" />
+            <el-option :label="t('options.audioOnly')" value="audio" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="显示文件扩展名">
+        <el-form-item :label="t('settings.showFileExtensions')">
           <el-checkbox v-model="showFileExtensions" @change="updateShowFileExtensions">
-            显示文件扩展名
+            {{ t('settings.showFileExtensions') }}
           </el-checkbox>
         </el-form-item>
 
-        <el-form-item label="显示隐藏文件">
+        <el-form-item :label="t('settings.showHiddenFiles')">
           <el-checkbox v-model="showHiddenFiles" @change="updateShowHiddenFiles">
-            显示隐藏文件
+            {{ t('settings.showHiddenFiles') }}
           </el-checkbox>
         </el-form-item>
 
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
-            <el-text type="primary" size="large"><strong>界面设置</strong></el-text>
+            <el-text type="primary" size="large"><strong>{{ t('settings.interface') }}</strong></el-text>
           </el-divider>
         </el-form-item>
 
-        <el-form-item label="主题">
+        <el-form-item :label="t('settings.theme')">
           <el-select v-model="theme" @change="updateTheme" style="width: 100%">
-            <el-option label="浅色模式" value="light" />
-            <el-option label="深色模式" value="dark" />
-            <el-option label="跟随系统" value="system" />
+            <el-option :label="t('options.lightTheme')" value="light" />
+            <el-option :label="t('options.darkTheme')" value="dark" />
+            <el-option :label="t('options.systemTheme')" value="system" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="语言">
+        <el-form-item :label="t('settings.language')">
           <el-select v-model="language" @change="updateLanguage" style="width: 100%">
-            <el-option label="简体中文" value="zh-CN" />
-            <el-option label="English" value="en-US" />
+            <el-option :label="t('options.simplifiedChinese')" value="zh-CN" />
+            <el-option :label="t('options.traditionalChinese')" value="zh-TW" />
+            <el-option :label="t('options.english')" value="en-US" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
-            <el-text type="primary" size="large"><strong>关于应用</strong></el-text>
+            <el-text type="primary" size="large"><strong>{{ t('settings.about') }}</strong></el-text>
           </el-divider>
         </el-form-item>
 
         <el-form-item>
           <el-card class="about-card">
             <el-descriptions :column="1" border>
-              <el-descriptions-item label="应用名称">多媒体浏览器</el-descriptions-item>
-              <el-descriptions-item label="版本">1.0.0</el-descriptions-item>
-              <el-descriptions-item label="描述"
-                >一个基于Electron和Vue.js的跨平台媒体浏览应用</el-descriptions-item
-              >
-              <el-descriptions-item label="许可证">MIT许可证</el-descriptions-item>
+              <el-descriptions-item :label="t('settings.appName')">{{ t('app.name') }}</el-descriptions-item>
+              <el-descriptions-item :label="t('settings.version')">1.0.0</el-descriptions-item>
+              <el-descriptions-item :label="t('settings.description')">{{ t('app.description') }}</el-descriptions-item>
+              <el-descriptions-item :label="t('settings.license')">MIT License</el-descriptions-item>
             </el-descriptions>
           </el-card>
         </el-form-item>
@@ -117,8 +116,8 @@
     </el-card>
 
     <div class="actions">
-      <el-button type="primary" @click="saveSettings" icon="Save">保存设置</el-button>
-      <el-button type="default" @click="resetSettings" icon="RefreshRight">重置为默认值</el-button>
+      <el-button type="primary" @click="saveSettings" icon="Save">{{ t('settings.save') }}</el-button>
+      <el-button type="default" @click="resetSettings" icon="RefreshRight">{{ t('settings.reset') }}</el-button>
     </div>
   </div>
 </template>
@@ -126,6 +125,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useMediaStore } from '../store/modules/media'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 // 图标已在main.js中全局注册，不需要在此处导入
 
@@ -190,19 +192,20 @@ const updateTheme = () => {
 
 const updateLanguage = () => {
   localStorage.setItem('language', language.value)
-  // 这里可以添加应用语言的逻辑
+  // 更新i18n的locale
+  locale.value = language.value
 }
 
 // 保存所有设置
 const saveSettings = () => {
   // 已经通过update方法保存了大部分设置
   // 这里可以添加额外的保存逻辑或显示保存成功的提示
-  alert('设置已保存！')
+  alert(t('settings.settingsSaved'))
 }
 
 // 重置为默认值
 const resetSettings = () => {
-  if (confirm('确定要重置所有设置为默认值吗？')) {
+  if (confirm(t('settings.confirmReset'))) {
     // 重置store设置
     mediaStore.updateSettings({
       viewMode: 'grid',

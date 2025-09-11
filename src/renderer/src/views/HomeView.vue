@@ -3,11 +3,11 @@
     <el-card class="welcome-card" shadow="hover">
       <template #header>
         <div class="card-header">
-          <span>多媒体浏览器</span>
+          <span>{{ t('app.name') }}</span>
         </div>
       </template>
       <div class="welcome-content">
-        <p>欢迎使用多媒体浏览器应用程序</p>
+        <p>{{ t('home.welcome') }}</p>
       </div>
     </el-card>
 
@@ -18,11 +18,11 @@
         <div class="card-icon">
           <el-icon><FolderOpened /></el-icon>
         </div>
-        <h3>浏览媒体文件</h3>
-        <p>浏览和管理您的本地图片、音频和视频文件</p>
+        <h3>{{ t('home.browseMedia') }}</h3>
+        <p>{{ t('home.browseMediaDesc') }}</p>
         <router-link to="/media">
           <el-button type="primary" size="default" class="mt-4">
-            开始浏览
+            {{ t('home.startBrowsing') }}
             <el-icon><Right /></el-icon>
           </el-button>
         </router-link>
@@ -32,11 +32,11 @@
         <div class="card-icon">
           <el-icon><Picture /></el-icon>
         </div>
-        <h3>媒体预览</h3>
-        <p>预览各种格式的媒体文件</p>
+        <h3>{{ t('home.mediaPreview') }}</h3>
+        <p>{{ t('home.mediaPreviewDesc') }}</p>
         <router-link to="/media">
           <el-button type="default" size="default" class="mt-4">
-            查看详情
+            {{ t('home.viewDetails') }}
             <el-icon><Right /></el-icon>
           </el-button>
         </router-link>
@@ -46,11 +46,11 @@
         <div class="card-icon">
           <el-icon><Setting /></el-icon>
         </div>
-        <h3>自定义设置</h3>
-        <p>根据您的喜好自定义应用设置</p>
+        <h3>{{ t('home.customSettings') }}</h3>
+        <p>{{ t('home.customSettingsDesc') }}</p>
         <router-link to="/settings">
           <el-button type="default" size="default" class="mt-4">
-            前往设置
+            {{ t('home.goToSettings') }}
             <el-icon><Right /></el-icon>
           </el-button>
         </router-link>
@@ -59,11 +59,11 @@
 
     <el-divider />
 
-    <el-alert title="使用提示" type="info" :closable="false" class="tips">
+    <el-alert :title="t('home.usageTips')" type="info" :closable="false" class="tips">
       <ul class="tips-list">
-        <li>点击"开始浏览"按钮浏览您的媒体文件</li>
-        <li>在媒体浏览页面可以按类型筛选文件</li>
-        <li>使用设置页面自定义应用外观和行为</li>
+        <li>{{ t('home.tip1') }}</li>
+        <li>{{ t('home.tip2') }}</li>
+        <li>{{ t('home.tip3') }}</li>
       </ul>
     </el-alert>
   </div>
@@ -71,6 +71,9 @@
 
 <script setup>
  // 图标已在main.js中全局注册，不需要在此处导入
+ import { useI18n } from 'vue-i18n'
+ 
+ const { t } = useI18n()
  </script>
 
 <style scoped>

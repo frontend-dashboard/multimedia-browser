@@ -1,0 +1,97 @@
+export default {
+  app: {
+    name: '多媒體瀏覽器',
+    description: '一個基於Electron和Vue.js的跨平台媒體瀏覽應用'
+  },
+  navigation: {
+    home: '首頁',
+    media: '媒體瀏覽',
+    settings: '設置'
+  },
+  settings: {
+    title: '應用設置',
+    display: '顯示設置',
+    media: '媒體設置',
+    interface: '界面設置',
+    about: '關於應用',
+    defaultViewMode: '默認視圖模式',
+    defaultSortBy: '默認排序方式',
+    defaultSortOrder: '默認排序順序',
+    defaultMediaType: '默認媒體類型',
+    showFileExtensions: '顯示文件擴展名',
+    showHiddenFiles: '顯示隱藏文件',
+    theme: '主題',
+    language: '語言',
+    appName: '應用名稱',
+    version: '版本',
+    description: '描述',
+    license: '許可證',
+    save: '保存設置',
+    reset: '重置為默認值',
+    confirmReset: '確定要重置所有設置為默認值嗎？',
+    settingsSaved: '設置已保存！'
+  },
+  options: {
+    gridView: '網格視圖',
+    listView: '列表視圖',
+    sortByName: '按名稱排序',
+    sortByDate: '按日期排序',
+    sortBySize: '按大小排序',
+    ascending: '升序',
+    descending: '降序',
+    allTypes: '所有類型',
+    imagesOnly: '僅圖片',
+    videosOnly: '僅視頻',
+    audioOnly: '僅音頻',
+    lightTheme: '淺色模式',
+    darkTheme: '深色模式',
+    systemTheme: '跟隨系統',
+    simplifiedChinese: '簡體中文',
+    traditionalChinese: '繁體中文',
+    english: 'English'
+  },
+  actions: {
+      sendIPC: '發送IPC',
+      close: '關閉',
+      confirm: '確定',
+      cancel: '取消'
+    },
+    media: {
+      searchPlaceholder: '搜索文件...',
+      selectType: '選擇類型',
+      noPathSelected: '未選擇路徑',
+      selectDirectory: '選擇目錄',
+      loading: '加載中...',
+      noFilesFound: '沒有找到媒體文件',
+      selectMediaDirHint: '請選擇包含媒體文件的目錄',
+      fileDetails: '文件詳情',
+      fileName: '文件名',
+      fileSize: '大小',
+      fileType: '類型',
+      filePath: '路徑',
+      modifiedDate: '修改日期',
+      image: '圖片',
+      video: '視頻',
+      audio: '音頻',
+      other: '其他'
+    },
+  home: {
+    welcome: '歡迎使用多媒體瀏覽器應用程式',
+    browseMedia: '瀏覽媒體文件',
+    browseMediaDesc: '瀏覽和管理您的本地圖片、音頻和視頻文件',
+    startBrowsing: '開始瀏覽',
+    mediaPreview: '媒體預覽',
+    mediaPreviewDesc: '預覽各種格式的媒體文件',
+    viewDetails: '查看詳情',
+    customSettings: '自定義設置',
+    customSettingsDesc: '根據您的喜好自定義應用設置',
+    goToSettings: '前往設置',
+    usageTips: '使用提示',
+    tip1: '點擊"開始瀏覽"按鈕瀏覽您的媒體文件',
+    tip2: '在媒體瀏覽頁面可以按類型篩選文件',
+    tip3: '使用設置頁面自定義應用外觀和行為'
+  },
+  about: {
+    versionInfo: '版本資訊'
+  }
+}
