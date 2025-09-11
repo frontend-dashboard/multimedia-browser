@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { computed } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 
@@ -15,6 +15,27 @@ const themeClass = computed(() => {
 
   // 手动选择模式
   return theme === 'dark' ? 'dark-theme' : 'light-theme'
+})
+
+// 应用主题到根元素
+const applyThemeToRoot = () => {
+  const root = document.documentElement
+  const currentTheme = themeClass.value
+  
+  // 移除所有主题类
+  root.classList.remove('light-theme', 'dark-theme')
+  // 添加当前主题类
+  root.classList.add(currentTheme)
+}
+
+// 组件挂载时应用主题
+onMounted(() => {
+  applyThemeToRoot()
+})
+
+// 监听主题变化
+watch(themeClass, () => {
+  applyThemeToRoot()
 })
 </script>
 
@@ -132,8 +153,9 @@ const themeClass = computed(() => {
 }
 
 .main-content {
-  flex: 1;
+  height: calc(100vh - 68px);
   padding: 2rem;
+  overflow: auto;
 }
 
 /* 响应式设计 */
