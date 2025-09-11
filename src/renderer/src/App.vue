@@ -21,7 +21,7 @@ const themeClass = computed(() => {
 const applyThemeToRoot = () => {
   const root = document.documentElement
   const currentTheme = themeClass.value
-  
+
   // 移除所有主题类
   root.classList.remove('light-theme', 'dark-theme')
   // 添加当前主题类
@@ -81,8 +81,7 @@ watch(themeClass, () => {
   justify-content: space-between;
   padding: 1rem 2rem;
   background-color: var(--color-background-soft);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .navbar-brand {

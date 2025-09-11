@@ -10,8 +10,8 @@
     </el-card>
 
     <el-card shadow="never" class="mt-4">
-      <el-form label-width="120px">
-        <el-form-item label="显示设置" prop="section-title">
+      <el-form>
+        <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
             <el-text type="primary" size="large"><strong>显示设置</strong></el-text>
           </el-divider>
@@ -43,7 +43,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="媒体设置" prop="section-title">
+        <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
             <el-text type="primary" size="large"><strong>媒体设置</strong></el-text>
           </el-divider>
@@ -74,7 +74,7 @@
           </el-checkbox>
         </el-form-item>
 
-        <el-form-item label="界面设置" prop="section-title">
+        <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
             <el-text type="primary" size="large"><strong>界面设置</strong></el-text>
           </el-divider>
@@ -95,14 +95,14 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="关于应用" prop="section-title">
+        <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
             <el-text type="primary" size="large"><strong>关于应用</strong></el-text>
           </el-divider>
         </el-form-item>
 
         <el-form-item>
-          <el-card class="about-card" :body-style="{ padding: '20px', textAlign: 'center' }">
+          <el-card class="about-card">
             <el-descriptions :column="1" border>
               <el-descriptions-item label="应用名称">多媒体浏览器</el-descriptions-item>
               <el-descriptions-item label="版本">1.0.0</el-descriptions-item>
@@ -282,6 +282,7 @@ onMounted(() => {
 }
 
 .about-card {
+  width: 100%;
   background-color: var(--color-background-soft);
   margin-top: 10px;
 }
