@@ -1,7 +1,7 @@
-<script setup lang="ts">
+<script setup>
 import Versions from './components/Versions.vue'
 
-const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 </script>
 
 <template>
@@ -10,8 +10,6 @@ const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
   <div class="text">
     Build an Electron app with
     <span class="vue">Vue</span>
-    and
-    <span class="ts">TypeScript</span>
   </div>
   <p class="tip">Please try pressing <code>F12</code> to open the devTool</p>
   <div class="actions">

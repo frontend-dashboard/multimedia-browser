@@ -1,12 +1,12 @@
-import tseslint from '@electron-toolkit/eslint-config-ts'
+import eslintConfig from '@electron-toolkit/eslint-config'
 import eslintConfigPrettier from '@electron-toolkit/eslint-config-prettier'
 import eslintPluginVue from 'eslint-plugin-vue'
 import vueParser from 'vue-eslint-parser'
 
-export default tseslint.config(
+export default [
   { ignores: ['**/node_modules', '**/dist', '**/out'] },
-  tseslint.configs.recommended,
-  eslintPluginVue.configs['flat/recommended'],
+  eslintConfig,
+  ...eslintPluginVue.configs['flat/recommended'],
   {
     files: ['**/*.vue'],
     languageOptions: {
@@ -15,25 +15,16 @@ export default tseslint.config(
         ecmaFeatures: {
           jsx: true
         },
-        extraFileExtensions: ['.vue'],
-        parser: tseslint.parser
+        extraFileExtensions: ['.vue']
       }
     }
   },
   {
-    files: ['**/*.{ts,mts,tsx,vue}'],
+    files: ['**/*.{js,jsx,vue}'],
     rules: {
       'vue/require-default-prop': 'off',
-      'vue/multi-word-component-names': 'off',
-      'vue/block-lang': [
-        'error',
-        {
-          script: {
-            lang: 'ts'
-          }
-        }
-      ]
+      'vue/multi-word-component-names': 'off'
     }
   },
   eslintConfigPrettier
-)
+]

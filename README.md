@@ -1,6 +1,6 @@
 # multimedia-browser
 
-An Electron application with Vue and TypeScript
+An Electron application with Vue
 
 ## Recommended IDE Setup
 
