@@ -73,7 +73,7 @@
         <el-empty
           v-if="filteredMediaFiles.length === 0 && !loading"
           description="没有找到媒体文件"
-          image-size="100"
+          :image-size="100"
         >
           <div class="empty-hint">请选择包含媒体文件的目录</div>
         </el-empty>
@@ -96,12 +96,18 @@
                 class="preview-image"
                 fit="cover"
                 lazy
-              />
+              >
+                <template #error>
+                  <div class="preview-icon">
+                    <el-icon size="40"><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
               <div v-else-if="file.type.startsWith('videos')" class="preview-icon">
                 <el-icon size="40"><VideoCamera /></el-icon>
               </div>
               <div v-else-if="file.type.startsWith('audio')" class="preview-icon">
-                <el-icon size="40"><Sound /></el-icon>
+                <el-icon size="40"><Mic /></el-icon>
               </div>
               <div v-else class="preview-icon">
                 <el-icon size="40"><Document /></el-icon>
@@ -322,6 +328,7 @@ onMounted(() => {
 }
 
 .media-grid {
+  min-height: 350px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
@@ -362,6 +369,7 @@ onMounted(() => {
 }
 
 .preview-icon {
+  height: 100%;
   color: var(--color-text-2);
   display: flex;
   align-items: center;
