@@ -6,7 +6,8 @@ export default {
   navigation: {
     home: 'Home',
     media: 'Media Browse',
-    settings: 'Settings'
+    settings: 'Settings',
+    rpa: 'RPA'
   },
   settings: {
     title: 'Application Settings',

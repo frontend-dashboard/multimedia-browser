@@ -6,7 +6,8 @@ export default {
   navigation: {
     home: '首页',
     media: '媒体浏览',
-    settings: '设置'
+    settings: '设置',
+    rpa: 'RPA'
   },
   settings: {
     title: '应用设置',

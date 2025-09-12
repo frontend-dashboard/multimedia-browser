@@ -6,7 +6,8 @@ export default {
   navigation: {
     home: '首頁',
     media: '媒體瀏覽',
-    settings: '設置'
+    settings: '設置',
+    rpa: 'RPA'
   },
   settings: {
     title: '應用設置',

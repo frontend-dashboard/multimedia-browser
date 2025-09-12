@@ -16,6 +16,11 @@ const routes = [
     path: '/settings',
     name: 'Settings',
     component: () => import('@renderer/views/SettingsView.vue')
+  },
+  {
+    path: '/rpa',
+    name: 'RPA',
+    component: () => import('@renderer/views/RPAView.vue')
   }
 ]
 

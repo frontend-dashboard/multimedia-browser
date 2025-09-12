@@ -35,6 +35,9 @@ onMounted(() => {
         <RouterLink to="/media" class="nav-link" active-class="active">{{
           t('navigation.media')
         }}</RouterLink>
+        <RouterLink to="/rpa" class="nav-link" active-class="active">{{
+          t('navigation.rpa')
+        }}</RouterLink>
         <RouterLink to="/settings" class="nav-link" active-class="active">{{
           t('navigation.settings')
         }}</RouterLink>
