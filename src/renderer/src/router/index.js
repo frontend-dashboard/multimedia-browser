@@ -24,7 +24,10 @@ const routes = [
       {
         path: 'rpa',
         name: 'RPA',
-        component: () => import('@renderer/views/RPAView.vue')
+        component: () => import('@renderer/views/RPAView.vue'),
+        meta: {
+          keepAlive: true
+        }
       }
     ]
   }
