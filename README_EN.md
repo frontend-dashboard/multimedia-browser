@@ -4,19 +4,6 @@
 
 This is a modern multimedia browser application built with Electron and Vue.js, designed to provide a cross-platform solution for browsing and managing media files. The application supports file preview, theme switching, internationalization, and provides an intuitive user interface.
 
-## Future Plans
-
-- Add support for more media file types (such as videos, audio, images, etc.)
-- Implement file search and filtering functionality
-- Add batch operation features (such as batch deletion, batch renaming, etc.)
-- Provide a plugin system to support user-defined feature extensions
-- Optimize performance to support browsing and managing large files and directories
-- Add file tagging functionality to support file categorization and marking
-- Add file property editing functionality to support viewing and modifying file metadata
-- Implement file preview functionality to support quick preview of common media formats
-- Add file operation history to facilitate users undoing operations
-- Add multi-window support to improve multitasking efficiency
-
 ## Technology Stack
 
 - **Main Framework**: Electron v37.2.3
@@ -76,9 +63,9 @@ $ npm install
 $ npm run dev
 ```
 
-In development mode, the application will start a development server and automatically open an application window. The development server supports hot reloading, and the interface will automatically update after code changes.
+In development mode, the application starts a development server and automatically opens the application window. The development server supports hot reloading, and the interface will automatically update after code changes.
 
-### Build Application
+### Build the Application
 
 ```bash
 # Windows platform
@@ -116,23 +103,23 @@ $ npm run fix
 
 ### 1. Media File Browsing
 
-- Browse image, audio, and video files in the local file system
+- Browse local image, audio, and video files
 - Support different view modes (grid view, list view)
-- Provide file sorting and filtering functionality
+- Provide file sorting and filtering functions
 - Display detailed file information (name, size, type, etc.)
 
 ### 2. Theme System
 
 The application supports three theme modes:
-- **Light Theme**: Bright and refreshing interface style
-- **Dark Theme**: Suitable for night use, reducing eye fatigue
+- **Light Theme**: Bright, clean interface style
+- **Dark Theme**: Suitable for night use, reducing eye strain
 - **System Theme**: Automatically follows the operating system's theme settings
 
-Theme settings are saved in local storage, and the last selected theme will be automatically applied when the application starts next time.
+Theme settings are saved in local storage and will be automatically applied when the application starts next time.
 
 ### 3. Internationalization Support
 
-The application supports multiple language switching, including:
+The application supports multi-language switching, including:
 - Simplified Chinese (zh-CN)
 - Traditional Chinese (zh-TW)
 - English (en-US)
@@ -141,7 +128,7 @@ Language settings are also saved in local storage.
 
 ### 4. Settings Functionality
 
-On the settings page, users can configure:
+In the settings page, users can configure:
 - Theme preferences
 - Language selection
 - Display options (such as showing file extensions, hidden files, etc.)
@@ -153,53 +140,66 @@ The application implements a secure communication mechanism between the main pro
 
 ### 6. Version Information Display
 
-Display version information of Electron, Chromium, and Node.js currently used by the application.
+Display version information of the current Electron, Chromium, and Node.js used by the application.
 
-## User Guide
+## Future Plans
+
+- Add support for more media file types (such as videos, audio, images, etc.)
+- Implement file search and filtering functionality
+- Add batch operation features (such as batch deletion, batch renaming, etc.)
+- Provide a plugin system to support user-defined feature extensions
+- Optimize performance to support browsing and managing large files and directories
+- Add file tagging functionality to support file categorization and marking
+- Add file property editing functionality to support viewing and modifying file metadata
+- Implement file preview functionality to support quick preview of common media formats
+- Add file operation history to facilitate users undoing operations
+- Add multi-window support to improve multitasking efficiency
+
+## Usage Guide
 
 ### Start the Application
 
-After installing dependencies, use the `npm run dev` command to start development mode, or use the built executable file to start the application.
+After installing dependencies, start the development mode using the `npm run dev` command, or start the application using the built executable file.
 
 ### Browse Media Files
 
-After starting the application, you can view and manage local media files on the media browsing page. Use the controls on the interface to switch view modes, sorting methods, and filtering criteria.
+After the application starts, you can view and manage local media files on the media browsing page. Use the controls on the interface to switch view modes, sorting methods, and filtering conditions.
 
 ### Change Theme
 
-On the settings page, select your preferred theme mode through the drop-down menu:
+On the settings page, select your preferred theme mode through the dropdown menu:
 1. Click the "Settings" button in the navigation bar to enter the settings page
 2. Find the "Theme" option in the "Interface Settings" section
-3. Select "Light Theme", "Dark Theme", or "System Theme" from the drop-down menu
+3. Select "Light Theme", "Dark Theme", or "System Theme" from the dropdown menu
 4. The theme will be applied immediately after selection
 
 ### Switch Language
 
-On the settings page, switch the application language through the drop-down menu:
+On the settings page, switch the application language through the dropdown menu:
 1. Find the "Language" option in the "Interface Settings" section
-2. Select your preferred language from the drop-down menu
-3. The language will switch immediately
+2. Select the preferred language from the dropdown menu
+3. The language will be switched immediately
 
 ### Development Tools
 
 - Press F12 in the application window to open developer tools
-- Supports hot reloading, the interface will automatically update after code changes
+- Hot reloading is supported, and the interface will automatically update after code changes
 
 ## Development Notes
 
-1. **Inter-process Communication**: Use IPC mechanism to transfer data between main process and renderer process
+1. **Inter-process Communication**: Use IPC mechanism to transfer data between the main process and renderer process
 2. **Context Isolation**: The application enables context isolation to ensure the security of the renderer process
 3. **Preload Script**: All Node.js APIs that need to be accessed from the renderer process should be exposed in the preload script
 4. **Theme Management**: Theme-related utility functions are uniformly stored in `utils/themeUtils.js` to avoid code duplication
 5. **Internationalization**: Newly added text content needs to be translated in all language files
-6. **Code Standards**: Follow the project's ESLint and Prettier configurations
+6. **Code Standards**: Follow the project's ESLint and Prettier configuration
 
 ## Theme Development Guide
 
 The application's theme styles are mainly implemented through CSS variables, located in the `src/renderer/src/assets/` directory:
 
 - `base.css`: Defines basic CSS variables and reset styles
-- `main.css`: Defines main application styles and theme adaptation for Element Plus components
+- `main.css`: Defines the main application styles and theme adaptation for Element Plus components
 
 When adding new component styles, ensure that both light theme and dark theme style definitions are provided.
 
@@ -245,7 +245,7 @@ The project follows the following code standards:
 - Automatically insert a newline at the end of files
 - Automatically trim trailing whitespace
 
-These standards are defined through .editorconfig and .prettierrc.yaml files. It is recommended to use VSCode configured with corresponding plugins for development.
+These standards are defined through .editorconfig and .prettierrc.yaml files. It is recommended to use VSCode with corresponding plugins configured for development.
 
 ## Contribution Guide
 
@@ -259,24 +259,24 @@ We welcome and appreciate community contributions! If you are interested in part
 
 Before submitting code, please ensure:
 
-- The code complies with the project's coding standards
-- No new ESLint errors are introduced
-- Necessary documentation has been written for new features
-- New features have been tested on major platforms
+- The code conforms to the project's coding standards
+- No new Eslint errors are introduced
+- Necessary documentation is written for new features
+- New features are tested on major platforms
 
 ## Issue Reporting
 
-If you encounter problems during use or have improvement suggestions, please submit them through the following methods:
+If you encounter issues during use or have improvement suggestions, please submit them through the following methods:
 
 1. Submit issues through [GitHub Issues](https://github.com/yourusername/multimedia-browser/issues)
 2. Provide detailed issue descriptions, including:
    - Environment where the issue occurred (operating system, application version)
    - Detailed description of the issue
    - Reproduction steps
-   - Expected and actual behavior
+   - Expected behavior and actual behavior
    - Relevant error logs or screenshots
 
-We will handle your feedback as soon as possible.
+We will process your feedback as soon as possible.
 
 ## License
 
@@ -286,7 +286,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 Thank you to all developers and users who have contributed to this project!
 
-Thanks for the support of the following open source projects:
+Thanks for the support of the following open-source projects:
 - Electron
 - Vue.js
 - Element Plus
