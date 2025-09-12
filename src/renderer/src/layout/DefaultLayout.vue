@@ -1,6 +1,6 @@
 <script setup>
 import { RouterView } from 'vue-router'
-import { KeepAlive, computed } from 'vue'
+import { computed } from 'vue'
 import { getThemeClass } from '@renderer/utils/themeUtils.js'
 import NavBar from '@renderer/components/NavBar.vue'
 
