@@ -4,23 +4,29 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('@renderer/views/HomeView.vue')
-  },
-  {
-    path: '/media',
-    name: 'Media',
-    component: () => import('@renderer/views/MediaView.vue')
-  },
-  {
-    path: '/settings',
-    name: 'Settings',
-    component: () => import('@renderer/views/SettingsView.vue')
-  },
-  {
-    path: '/rpa',
-    name: 'RPA',
-    component: () => import('@renderer/views/RPAView.vue')
+    component: () => import('@renderer/layout/DefaultLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Home',
+        component: () => import('@renderer/views/HomeView.vue')
+      },
+      {
+        path: 'media',
+        name: 'Media',
+        component: () => import('@renderer/views/MediaView.vue')
+      },
+      {
+        path: 'settings',
+        name: 'Settings',
+        component: () => import('@renderer/views/SettingsView.vue')
+      },
+      {
+        path: 'rpa',
+        name: 'RPA',
+        component: () => import('@renderer/views/RPAView.vue')
+      }
+    ]
   }
 ]
 
