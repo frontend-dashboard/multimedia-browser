@@ -5,21 +5,33 @@ const routes = [
   {
     path: '/',
     component: () => import('@renderer/layout/DefaultLayout.vue'),
+    meta: {
+      keepAlive: true
+    },
     children: [
       {
-        path: '',
+        path: '/',
         name: 'Home',
-        component: () => import('@renderer/views/HomeView.vue')
+        component: () => import('@renderer/views/HomeView.vue'),
+        meta: {
+          keepAlive: false
+        }
       },
       {
         path: 'media',
         name: 'Media',
-        component: () => import('@renderer/views/MediaView.vue')
+        component: () => import('@renderer/views/MediaView.vue'),
+        meta: {
+          keepAlive: false
+        }
       },
       {
         path: 'settings',
         name: 'Settings',
-        component: () => import('@renderer/views/SettingsView.vue')
+        component: () => import('@renderer/views/SettingsView.vue'),
+        meta: {
+          keepAlive: false
+        }
       },
       {
         path: 'rpa',

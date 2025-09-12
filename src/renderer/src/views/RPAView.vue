@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, onUpdated, onActivated, onDeactivated } from 'vue'
+import { ref, onMounted, onUnmounted, onActivated, onDeactivated } from 'vue'
 
 const title = ref('RPA 视图')
 const isCached = ref(false)
@@ -40,12 +40,6 @@ const updateCount = ref(0)
 onMounted(() => {
   mountTime.value = new Date().toLocaleString()
   console.log('RPAView 组件已挂载 - 时间戳:', Date.now())
-})
-
-// 组件更新时增加更新计数
-onUpdated(() => {
-  updateCount.value++
-  console.log('RPAView 组件已更新 - 更新次数:', updateCount.value)
 })
 
 // KeepAlive特有的生命周期钩子
