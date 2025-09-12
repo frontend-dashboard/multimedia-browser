@@ -70,6 +70,10 @@
 </template>
 
 <script setup>
+//
+defineOptions({
+  name: 'HomeView'
+})
 // 图标已在main.js中全局注册，不需要在此处导入
 import { useI18n } from 'vue-i18n'
 

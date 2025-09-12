@@ -22,7 +22,9 @@
       <!-- 测试按钮 -->
       <div class="test-buttons">
         <el-button @click="incrementUpdateCount">更新组件状态</el-button>
-        <el-button type="primary" @click="$router.push('/media')">跳转到其他页面测试</el-button>
+        <el-button type="primary" @click="$router.push({ name: 'SettingsView' })">
+          跳转到其他页面测试
+        </el-button>
       </div>
     </div>
   </div>
@@ -35,6 +37,10 @@ const title = ref('RPA 视图')
 const isCached = ref(false)
 const mountTime = ref('')
 const updateCount = ref(0)
+
+defineOptions({
+  name: 'RPAView'
+})
 
 // 组件挂载时设置挂载时间
 onMounted(() => {

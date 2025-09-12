@@ -141,6 +141,9 @@
 </template>
 
 <script setup>
+defineOptions({
+  name: 'SettingsView'
+})
 // 导入必要的库和组件
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'

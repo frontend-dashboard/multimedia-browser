@@ -158,6 +158,10 @@ import { useMediaStore } from '../store/modules/media'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 
+defineOptions({
+  name: 'MediaView'
+})
+
 const { t } = useI18n()
 // Icons are globally registered in main.js, no need to import here
 
