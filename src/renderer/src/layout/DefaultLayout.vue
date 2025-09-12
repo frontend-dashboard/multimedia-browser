@@ -9,6 +9,11 @@ const themeClass = computed(() => {
   return getThemeClass()
 })
 
+// 缓存的路由组件名称列表
+const cachedViews = computed(() => {
+  return ['RPAView']
+})
+
 // 判断路由是否需要缓存
 const shouldKeepAlive = (route) => {
   console.log('检查路由缓存状态:', {
@@ -26,11 +31,7 @@ const shouldKeepAlive = (route) => {
     <NavBar />
     <!-- 主要内容区域 -->
     <main class="main-content">
-      <!-- 使用KeepAlive组件实现路由缓存 -->
-      <!-- 只缓存那些设置了meta: { keepAlive: true }的路由组件 -->
-      <!-- 按照Electron环境最佳实践，不使用解构赋值 -->
-      <RouterView v-slot="slotProps">
-        <!-- 显示当前路由的缓存状态 -->
+      <RouterView v-slot="{ Component, route }">
         <div
           style="
             background: rgba(0, 0, 0, 0.05);
@@ -40,28 +41,17 @@ const shouldKeepAlive = (route) => {
             font-size: 14px;
           "
         >
-          当前路由: {{ slotProps.route && slotProps.route.path ? slotProps.route.path : '未知' }} |
-          缓存状态:
-          <span :style="{ color: shouldKeepAlive(slotProps.route) ? 'green' : 'red' }">
-            {{ shouldKeepAlive(slotProps.route) ? '已启用缓存' : '未启用缓存' }}
+          当前路由:
+          {{ route && route.path ? route.path : '未知' }} | 缓存状态:
+          <span :style="{ color: shouldKeepAlive(route) ? 'green' : 'red' }">
+            {{ shouldKeepAlive(route) ? '已启用缓存' : '未启用缓存' }}
           </span>
+          <span> 缓存组件名称: {{ cachedViews.join(', ') }} </span>
         </div>
-
-        <!-- 优化的keepAlive实现，根据路由meta.keepAlive属性决定是否缓存 -->
-        <div v-if="shouldKeepAlive(slotProps.route)">
-          <KeepAlive>
-            <component
-              :is="slotProps.Component"
-              :key="slotProps.route && slotProps.route.fullPath ? slotProps.route.fullPath : ''"
-            />
-          </KeepAlive>
-        </div>
-        <div v-else>
-          <component
-            :is="slotProps.Component"
-            :key="slotProps.route && slotProps.route.fullPath ? slotProps.route.fullPath : ''"
-          />
-        </div>
+        <!-- 缓存路由组件 -->
+        <KeepAlive :include="cachedViews">
+          <Component :is="Component" :key="route.path" />
+        </KeepAlive>
       </RouterView>
     </main>
   </div>

@@ -11,7 +11,7 @@ const routes = [
     children: [
       {
         path: '/',
-        name: 'Home',
+        name: 'HomeView',
         component: () => import('@renderer/views/HomeView.vue'),
         meta: {
           keepAlive: false
@@ -19,7 +19,7 @@ const routes = [
       },
       {
         path: 'media',
-        name: 'Media',
+        name: 'MediaView',
         component: () => import('@renderer/views/MediaView.vue'),
         meta: {
           keepAlive: false
@@ -27,7 +27,7 @@ const routes = [
       },
       {
         path: 'settings',
-        name: 'Settings',
+        name: 'SettingsView',
         component: () => import('@renderer/views/SettingsView.vue'),
         meta: {
           keepAlive: false
@@ -35,7 +35,7 @@ const routes = [
       },
       {
         path: 'rpa',
-        name: 'RPA',
+        name: 'RPAView',
         component: () => import('@renderer/views/RPAView.vue'),
         meta: {
           keepAlive: true
