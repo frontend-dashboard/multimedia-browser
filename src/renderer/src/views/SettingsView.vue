@@ -130,7 +130,7 @@
     </el-card>
 
     <div class="actions">
-      <el-button type="primary" icon="Save" @click="saveSettings">{{
+      <el-button type="primary" icon="Promotion" @click="saveSettings">{{
         t('settings.save')
       }}</el-button>
       <el-button type="default" icon="RefreshRight" @click="resetSettings">{{
