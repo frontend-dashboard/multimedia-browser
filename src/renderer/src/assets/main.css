@@ -402,15 +402,6 @@ a:hover {
   background-color: var(--color-border) !important;
 }
 
-/* 加载动画 */
-.el-loading-mask {
-  background-color: rgba(0, 0, 0, 0.6) !important;
-}
-
-.el-loading-spinner .path {
-  stroke: var(--color-text) !important;
-}
-
 /* 警告提示框组件 */
 .el-alert {
   background-color: var(--color-background-soft) !important;

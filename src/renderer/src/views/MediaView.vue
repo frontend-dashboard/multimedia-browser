@@ -1,6 +1,6 @@
 <template>
   <div class="media-view">
-    <el-card class="header-card mb-4" shadow="never">
+    <el-card class="header-card mb-4" shadow="hover">
       <template #header>
         <div class="card-header">
           <el-icon><Folder /></el-icon>
@@ -22,7 +22,7 @@
       </div>
     </el-card>
 
-    <el-card class="path-card mb-4" shadow="never">
+    <el-card class="path-card mb-4" shadow="hover">
       <div class="controls">
         <el-input
           v-model="searchTerm"
@@ -63,12 +63,8 @@
       </div>
     </el-card>
 
-    <el-card shadow="never">
-      <div
-        v-loading="loading"
-        :element-loading-text="t('media.loading')"
-        element-loading-spinner="el-icon-loading"
-      >
+    <el-card shadow="hover">
+      <div :element-loading-text="t('media.loading')" v-loading="loading">
         <el-empty
           v-if="filteredMediaFiles.length === 0 && !loading"
           :description="t('media.noFilesFound')"
@@ -122,15 +118,14 @@
       </div>
     </el-card>
 
-    <!-- 选中文件的详细信息 -->
-    <el-card v-if="selectedFile" shadow="never" class="mt-4">
+    <el-drawer v-model="drawerVisible" :size="drawerSize" :before-close="handleClose">
       <template #header>
         <div class="card-header">
           <el-icon><InfoFilled /></el-icon>
           <span>{{ t('media.fileDetails') }}</span>
         </div>
       </template>
-      <el-descriptions border :column="{ xs: 1, sm: 2 }">
+      <el-descriptions border :column="1">
         <el-descriptions-item :label="t('media.fileName')">
           {{ selectedFile.name }}
         </el-descriptions-item>
@@ -147,7 +142,7 @@
           {{ formatDate(selectedFile.modifiedTime) }}
         </el-descriptions-item>
       </el-descriptions>
-    </el-card>
+    </el-drawer>
   </div>
 </template>
 
@@ -176,6 +171,13 @@ const loading = ref(false)
 const selectedFile = computed(() => mediaStore.selectedFile)
 const currentPath = computed(() => mediaStore.currentPath)
 const filteredMediaFiles = computed(() => mediaStore.filteredMediaFiles)
+const drawerSize = ref('500px')
+const drawerVisible = ref(false)
+
+// 处理抽屉关闭
+const handleClose = () => {
+  drawerVisible.value = false
+}
 
 // 处理搜索
 const handleSearch = () => {
@@ -196,6 +198,7 @@ const setViewMode = (mode) => {
 // 选择文件
 const selectFile = (file) => {
   mediaStore.setSelectedFile(file)
+  drawerVisible.value = true
 }
 
 // 打开目录
@@ -353,7 +356,7 @@ onMounted(() => {
 }
 
 .media-grid {
-  min-height: 350px;
+  min-height: 285px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
