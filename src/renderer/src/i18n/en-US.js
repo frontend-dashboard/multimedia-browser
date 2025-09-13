@@ -77,8 +77,6 @@ export default {
     audio: 'Audio',
     other: 'Other',
     openDirectoryError: 'Failed to open directory, please check if you have sufficient permissions',
-    showing: 'Showing',
-    files: 'files',
     loadingMore: 'Loading more...',
     noMoreFiles: 'No more files'
   },

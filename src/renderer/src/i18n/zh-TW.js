@@ -77,8 +77,6 @@ export default {
     audio: '音頻',
     other: '其他',
     openDirectoryError: '打開目錄失敗，請檢查您是否有足夠的權限',
-    showing: '顯示',
-    files: '個文件',
     loadingMore: '加載更多...',
     noMoreFiles: '沒有更多文件了'
   },

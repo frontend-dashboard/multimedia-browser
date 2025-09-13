@@ -31,7 +31,7 @@
           class="search-input"
           @input="handleSearch"
         />
-
+        <!-- 类型筛选器 -->
         <el-select
           v-model="selectedType"
           :placeholder="t('media.selectType')"
@@ -43,12 +43,7 @@
           <el-option :label="t('media.video')" value="videos" />
           <el-option :label="t('media.audio')" value="audio" />
         </el-select>
-
-        <div v-if="filteredMediaFilesCount > 0" class="file-count">
-          {{ t('media.showing') }} {{ paginatedMediaFiles.length }} / {{ filteredMediaFilesCount }}
-          {{ t('media.files') }}
-        </div>
-
+        <!-- 视图模式切换按钮 -->
         <div class="view-controls">
           <el-button
             :type="viewMode === 'grid' ? 'primary' : 'default'"
@@ -202,8 +197,11 @@ const setViewMode = (mode) => {
 const handleCurrentChange = (_currentPage) => {
   // 更新store中的当前页码
   mediaStore.pagination.currentPage = _currentPage
-  // 滚动到顶部
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  // 滚动到媒体网格容器顶部
+  const container = document.querySelector('.media-grid-container')
+  if (container) {
+    container.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 }
 
 // 处理每页显示数量变化
@@ -440,13 +438,6 @@ onUnmounted(() => {
   max-height: calc(100vh - 478px);
   overflow-y: auto;
   scroll-behavior: smooth;
-}
-
-/* 文件数量统计样式 */
-.file-count {
-  color: var(--color-text-2);
-  font-size: 0.9rem;
-  margin-left: auto;
 }
 
 /* 加载更多样式 */
