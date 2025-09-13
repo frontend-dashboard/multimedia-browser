@@ -24,52 +24,14 @@ export const useMediaStore = defineStore('media', {
       currentPage: 1, // 当前页码
       pageSize: 30, // 每页显示的文件数量
       hasMore: true // 是否还有更多文件可以加载
-    }
+    },
+    // 已加载的媒体文件缓存，用于优化分页性能
+    loadedMediaFiles: []
   }),
 
   getters: {
     // 获取筛选后的媒体文件
     filteredMediaFiles: (state) => {
-      let files = [...state.mediaFiles]
-
-      // 类型筛选
-      if (state.filter.type !== 'all') {
-        files = files.filter((file) => file.type.startsWith(state.filter.type))
-      }
-
-      // 搜索筛选
-      if (state.filter.search) {
-        const searchLower = state.filter.search.toLowerCase()
-        files = files.filter(
-          (file) =>
-            file.name.toLowerCase().includes(searchLower) ||
-            file.path.toLowerCase().includes(searchLower)
-        )
-      }
-
-      // 排序
-      files.sort((a, b) => {
-        let comparison = 0
-        switch (state.settings.sortBy) {
-          case 'name':
-            comparison = a.name.localeCompare(b.name)
-            break
-          case 'date':
-            comparison = a.modifiedTime - b.modifiedTime
-            break
-          case 'size':
-            comparison = a.size - b.size
-            break
-        }
-        return state.settings.sortOrder === 'asc' ? comparison : -comparison
-      })
-
-      return files
-    },
-
-    // 获取当前页的媒体文件（用于分页渲染）
-    paginatedMediaFiles: (state) => {
-      // 直接内联实现筛选逻辑以避免依赖getters参数
       let files = [...state.mediaFiles]
 
       // 类型筛选
@@ -104,16 +66,13 @@ export const useMediaStore = defineStore('media', {
         return state.settings.sortOrder === 'asc' ? comparison : -comparison
       })
 
-      // 分页逻辑
-      const { currentPage, pageSize } = state.pagination
-      const startIndex = (currentPage - 1) * pageSize
-      const endIndex = startIndex + pageSize
+      return files
+    },
 
-      // 更新是否还有更多文件的状态
-      state.pagination.hasMore = endIndex < files.length
-
-      // 返回当前页的文件
-      return files.slice(0, endIndex)
+    // 获取当前页的媒体文件（用于分页渲染）
+    paginatedMediaFiles: (state) => {
+      // 直接使用缓存的已加载文件
+      return state.loadedMediaFiles
     }
   },
 
@@ -121,6 +80,8 @@ export const useMediaStore = defineStore('media', {
     // 设置媒体文件列表
     setMediaFiles(files) {
       this.mediaFiles = files
+      // 初始化已加载的文件
+      this.initLoadedFiles()
     },
 
     // 添加单个媒体文件
@@ -156,7 +117,22 @@ export const useMediaStore = defineStore('media', {
     // 加载下一页
     loadMore() {
       if (this.pagination.hasMore) {
-        this.pagination.currentPage++
+        // 获取筛选后的所有文件
+        const filteredFiles = this.filteredMediaFiles
+        
+        // 计算下一页的索引范围
+        const { currentPage, pageSize } = this.pagination
+        const nextPage = currentPage + 1
+        const startIndex = (nextPage - 1) * pageSize
+        const endIndex = startIndex + pageSize
+        
+        // 更新分页状态
+        this.pagination.currentPage = nextPage
+        this.pagination.hasMore = endIndex < filteredFiles.length
+        
+        // 只加载新增的页面内容并添加到已加载文件中
+        const newPageFiles = filteredFiles.slice(startIndex, endIndex)
+        this.loadedMediaFiles = [...this.loadedMediaFiles, ...newPageFiles]
       }
     },
 
@@ -164,6 +140,7 @@ export const useMediaStore = defineStore('media', {
     resetPagination() {
       this.pagination.currentPage = 1
       this.pagination.hasMore = true
+      this.loadedMediaFiles = []
     },
 
     // 清除所有数据
@@ -172,6 +149,16 @@ export const useMediaStore = defineStore('media', {
       this.selectedFile = null
       this.currentPath = ''
       this.resetPagination()
+    },
+    
+    // 初始化已加载文件
+    initLoadedFiles() {
+      const filteredFiles = this.filteredMediaFiles
+      const { pageSize } = this.pagination
+      const endIndex = Math.min(pageSize, filteredFiles.length)
+      
+      this.loadedMediaFiles = filteredFiles.slice(0, endIndex)
+      this.pagination.hasMore = endIndex < filteredFiles.length
     }
   }
 })

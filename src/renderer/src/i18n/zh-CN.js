@@ -79,7 +79,8 @@ export default {
     openDirectoryError: '打开目录失败，请检查您是否有足够的权限',
     showing: '显示',
     files: '个文件',
-    loadingMore: '加载更多...'
+    loadingMore: '加载更多...',
+    noMoreFiles: '没有更多文件了'
   },
   home: {
     welcome: '欢迎使用多媒体浏览器应用程序',

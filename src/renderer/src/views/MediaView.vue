@@ -293,9 +293,9 @@ const handleScroll = () => {
   const scrollHeight = scrollContainer.scrollHeight
   const clientHeight = scrollContainer.clientHeight
 
-  // 当滚动到距离底部100px时加载更多
+  // 预加载功能：当滚动到距离底部300px时就开始加载更多
   if (
-    scrollHeight - scrollTop - clientHeight < 100 &&
+    scrollHeight - scrollTop - clientHeight < 300 &&
     mediaStore.pagination.hasMore &&
     !loading.value
   ) {
@@ -308,6 +308,9 @@ onMounted(() => {
   viewMode.value = mediaStore.settings.viewMode
   selectedType.value = mediaStore.filter.type
   searchTerm.value = mediaStore.filter.search
+
+  // 初始化已加载的文件
+  mediaStore.initLoadedFiles()
 
   // 延迟添加滚动监听，确保DOM已渲染
   setTimeout(() => {

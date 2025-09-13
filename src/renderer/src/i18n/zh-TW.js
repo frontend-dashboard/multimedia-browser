@@ -79,7 +79,8 @@ export default {
     openDirectoryError: '打開目錄失敗，請檢查您是否有足夠的權限',
     showing: '顯示',
     files: '個文件',
-    loadingMore: '加載更多...'
+    loadingMore: '加載更多...',
+    noMoreFiles: '沒有更多文件了'
   },
   home: {
     welcome: '歡迎使用多媒體瀏覽器應用程式',
