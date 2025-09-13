@@ -14,7 +14,7 @@
         >
           <template #error>
             <div class="image-error">
-              <el-icon><PictureFilled /></el-icon>
+              <el-icon><Picture /></el-icon>
               <p>图片加载失败</p>
               <p class="error-detail" v-if="previewUrl">URL: {{ previewUrl }}</p>
             </div>
@@ -51,7 +51,7 @@
       <div v-if="isUnsupported" class="unsupported-type">
         <el-empty description="不支持的文件类型">
           <template #image>
-            <el-icon class="empty-icon"><FileUnknownFilled /></el-icon>
+            <el-icon class="empty-icon"><Document /></el-icon>
           </template>
           <template #description>
             <p>无法预览此类型的文件: {{ fileExtension }}</p>
