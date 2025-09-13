@@ -132,21 +132,21 @@
         </div>
       </template>
       <el-descriptions border :column="{ xs: 1, sm: 2 }">
-        <el-descriptions-item :label="t('media.fileName')">{{
-          selectedFile.name
-        }}</el-descriptions-item>
-        <el-descriptions-item :label="t('media.fileSize')">{{
-          formatFileSize(selectedFile.size)
-        }}</el-descriptions-item>
-        <el-descriptions-item :label="t('media.fileType')">{{
-          getFileType(selectedFile.type)
-        }}</el-descriptions-item>
-        <el-descriptions-item :label="t('media.filePath')">{{
-          selectedFile.path
-        }}</el-descriptions-item>
-        <el-descriptions-item :label="t('media.modifiedDate')">{{
-          formatDate(selectedFile.modifiedTime)
-        }}</el-descriptions-item>
+        <el-descriptions-item :label="t('media.fileName')">
+          {{ selectedFile.name }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('media.fileSize')">
+          {{ formatFileSize(selectedFile.size) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('media.fileType')">
+          {{ getFileType(selectedFile.type) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('media.filePath')">
+          {{ selectedFile.path }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('media.modifiedDate')">
+          {{ formatDate(selectedFile.modifiedTime) }}
+        </el-descriptions-item>
       </el-descriptions>
     </el-card>
   </div>
@@ -372,11 +372,6 @@ onMounted(() => {
 
 .media-item:hover {
   transform: translateY(-2px);
-}
-
-.media-item.selected {
-  border-color: var(--el-color-primary);
-  box-shadow: 0 0 0 2px rgba(64, 169, 255, 0.2);
 }
 
 .media-preview {

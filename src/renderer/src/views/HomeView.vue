@@ -82,6 +82,7 @@ const { t } = useI18n()
 
 <style scoped>
 .home-view {
+  padding: 20px;
   margin: 0 auto;
 }
 

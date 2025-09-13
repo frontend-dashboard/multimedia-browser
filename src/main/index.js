@@ -16,12 +16,12 @@ function createWindow() {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      // 放宽安全限制以允许加载本地文件
-      webSecurity: false,
-      allowRunningInsecureContent: true,
-      // 启用Node.js集成
+      // 启用web安全策略
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      // 启用Node.js集成，但保持上下文隔离以提高安全性
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: true
     }
   })
 

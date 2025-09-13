@@ -1,38 +1,32 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 
 // Custom APIs for renderer
 const api = {
   // 打开目录选择对话框
   openDirectory: () => {
-    return electronAPI.ipcRenderer.invoke('open-directory-dialog')
+    return ipcRenderer.invoke('open-directory-dialog')
   },
   // 获取目录下的文件
   getFilesInDirectory: (path) => {
-    return electronAPI.ipcRenderer.invoke('get-files-in-directory', path)
+    return ipcRenderer.invoke('get-files-in-directory', path)
   }
 }
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', {
-      ...electronAPI,
-      ipcRenderer: electronAPI.ipcRenderer,
-      process: {
-        versions: process.versions
-      }
-    })
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
-  }
-} else {
-  window.electron = electronAPI
-  window.electron.process = {
-    versions: process.versions
-  }
-  window.api = api
+// 安全地向渲染器进程暴露API
+try {
+  contextBridge.exposeInMainWorld('electron', {
+    // 只暴露需要的Electron API
+    ipcRenderer: {
+      invoke: ipcRenderer.invoke,
+      on: ipcRenderer.on,
+      off: ipcRenderer.off,
+      send: ipcRenderer.send
+    },
+    process: {
+      versions: process.versions
+    }
+  })
+  contextBridge.exposeInMainWorld('api', api)
+} catch (error) {
+  console.error('Failed to expose APIs to renderer process:', error)
 }
