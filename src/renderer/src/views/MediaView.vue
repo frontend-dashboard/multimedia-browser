@@ -109,35 +109,47 @@
           <span>{{ t('media.fileDetails') }}</span>
         </div>
       </template>
-      <el-descriptions border :column="1" label-width="100px">
-        <el-descriptions-item :label="t('media.fileName')">
-          {{ selectedFile.name }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="t('media.fileSize')">
-          {{ formatFileSize(selectedFile.size) }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="t('media.fileType')">
-          {{ getFileType(selectedFile.type) }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="t('media.filePath')">
-          {{ selectedFile.path }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="t('media.modifiedDate')">
-          {{ formatDate(selectedFile.modifiedTime) }}
-        </el-descriptions-item>
-      </el-descriptions>
+      <div v-if="selectedFile" class="file-details-container">
+        <!-- 文件信息 -->
+        <el-descriptions border :column="1" label-width="100px">
+          <el-descriptions-item :label="t('media.fileName')">
+            {{ selectedFile.name }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('media.fileSize')">
+            {{ formatFileSize(selectedFile.size) }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('media.fileType')">
+            {{ getFileType(selectedFile.type) }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('media.filePath')">
+            {{ selectedFile.path }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('media.modifiedDate')">
+            {{ formatDate(selectedFile.modifiedTime) }}
+          </el-descriptions-item>
+        </el-descriptions>
+        <!-- 文件预览 -->
+        <div class="file-preview-section mb-4">
+          <FileDisplayCard
+            :preview-url="selectedFile.path"
+            :title="selectedFile.name"
+            :visible="drawerVisible"
+          />
+        </div>
+      </div>
     </el-drawer>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useMediaStore } from '../store/modules/media'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElIcon } from 'element-plus'
 
-// 导入新的文件预览组件
+// 导入文件预览组件
 import FilePreviewCard from '../components/FilePreviewCard.vue'
+import FileDisplayCard from '../components/FileDisplayCard.vue'
 
 defineOptions({
   name: 'MediaView'
@@ -282,24 +294,13 @@ const formatDate = (timestamp) => {
   return new Date(timestamp).toLocaleDateString()
 }
 
-// 由于已经预加载了所有文件，不再需要滚动加载更多内容
-// 因此移除了debounce函数和handleScroll函数的定义
-
 // 组件挂载时从store加载设置
 onMounted(() => {
   viewMode.value = mediaStore.settings.viewMode
   selectedType.value = mediaStore.filter.type
   searchTerm.value = mediaStore.filter.search
-
   // 初始化已加载的文件（现在会预加载所有文件）
   mediaStore.initLoadedFiles()
-
-  // 由于已经预加载了所有文件，不再需要添加滚动监听
-})
-
-// 组件卸载时移除滚动监听
-onUnmounted(() => {
-  // 由于已经不再添加滚动监听，所以这里也不需要移除
 })
 </script>
 
@@ -436,6 +437,19 @@ onUnmounted(() => {
 
 .mt-4 {
   margin-top: 16px;
+}
+
+/* 文件详情抽屉样式 */
+.file-details-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-preview-section {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 16px;
 }
 
 /* 滚动容器基础样式 */
