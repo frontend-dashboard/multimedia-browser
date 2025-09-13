@@ -18,6 +18,12 @@ export const useMediaStore = defineStore('media', {
       viewMode: 'grid', // 'grid', 'list'
       sortBy: 'name', // 'name', 'date', 'size'
       sortOrder: 'asc' // 'asc', 'desc'
+    },
+    // 分页相关状态
+    pagination: {
+      currentPage: 1, // 当前页码
+      pageSize: 30, // 每页显示的文件数量
+      hasMore: true // 是否还有更多文件可以加载
     }
   }),
 
@@ -59,6 +65,55 @@ export const useMediaStore = defineStore('media', {
       })
 
       return files
+    },
+
+    // 获取当前页的媒体文件（用于分页渲染）
+    paginatedMediaFiles: (state) => {
+      // 直接内联实现筛选逻辑以避免依赖getters参数
+      let files = [...state.mediaFiles]
+
+      // 类型筛选
+      if (state.filter.type !== 'all') {
+        files = files.filter((file) => file.type && file.type.startsWith(state.filter.type))
+      }
+
+      // 搜索筛选
+      if (state.filter.search) {
+        const searchLower = state.filter.search.toLowerCase()
+        files = files.filter(
+          (file) =>
+            (file.name && file.name.toLowerCase().includes(searchLower)) ||
+            (file.path && file.path.toLowerCase().includes(searchLower))
+        )
+      }
+
+      // 排序
+      files.sort((a, b) => {
+        let comparison = 0
+        switch (state.settings.sortBy) {
+          case 'name':
+            comparison = (a.name || '').localeCompare(b.name || '')
+            break
+          case 'date':
+            comparison = (a.modifiedTime || 0) - (b.modifiedTime || 0)
+            break
+          case 'size':
+            comparison = (a.size || 0) - (b.size || 0)
+            break
+        }
+        return state.settings.sortOrder === 'asc' ? comparison : -comparison
+      })
+
+      // 分页逻辑
+      const { currentPage, pageSize } = state.pagination
+      const startIndex = (currentPage - 1) * pageSize
+      const endIndex = startIndex + pageSize
+
+      // 更新是否还有更多文件的状态
+      state.pagination.hasMore = endIndex < files.length
+
+      // 返回当前页的文件
+      return files.slice(0, endIndex)
     }
   },
 
@@ -98,11 +153,25 @@ export const useMediaStore = defineStore('media', {
       this.settings = { ...this.settings, ...settings }
     },
 
+    // 加载下一页
+    loadMore() {
+      if (this.pagination.hasMore) {
+        this.pagination.currentPage++
+      }
+    },
+
+    // 重置分页
+    resetPagination() {
+      this.pagination.currentPage = 1
+      this.pagination.hasMore = true
+    },
+
     // 清除所有数据
     clearAll() {
       this.mediaFiles = []
       this.selectedFile = null
       this.currentPath = ''
+      this.resetPagination()
     }
   }
 })

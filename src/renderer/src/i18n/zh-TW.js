@@ -76,7 +76,10 @@ export default {
     video: '視頻',
     audio: '音頻',
     other: '其他',
-    openDirectoryError: '打開目錄失敗，請檢查您是否有足夠的權限'
+    openDirectoryError: '打開目錄失敗，請檢查您是否有足夠的權限',
+    showing: '顯示',
+    files: '個文件',
+    loadingMore: '加載更多...'
   },
   home: {
     welcome: '歡迎使用多媒體瀏覽器應用程式',

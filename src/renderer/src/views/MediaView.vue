@@ -44,6 +44,11 @@
           <el-option :label="t('media.audio')" value="audio" />
         </el-select>
 
+        <div v-if="filteredMediaFilesCount > 0" class="file-count">
+          {{ t('media.showing') }} {{ paginatedMediaFiles.length }} / {{ filteredMediaFilesCount }}
+          {{ t('media.files') }}
+        </div>
+
         <div class="view-controls">
           <el-button
             :type="viewMode === 'grid' ? 'primary' : 'default'"
@@ -74,14 +79,30 @@
           <div class="empty-hint">{{ t('media.selectMediaDirHint') }}</div>
         </el-empty>
         <!-- 媒体文件列表 -->
-        <div v-else class="media-grid" :class="viewMode">
-          <FilePreviewCard
-            v-for="file in filteredMediaFiles"
-            :key="file.path"
-            :file="file"
-            :is-selected="selectedFile && selectedFile.path === file.path"
-            @click="selectFile"
-          />
+        <div v-else>
+          <div class="media-grid-container">
+            <div class="media-grid" :class="viewMode">
+              <FilePreviewCard
+                v-for="file in paginatedMediaFiles"
+                :key="file.path"
+                :file="file"
+                :is-selected="selectedFile && selectedFile.path === file.path"
+                @click="selectFile"
+              />
+              <!-- 没有更多文件提示 -->
+              <div
+                v-if="!mediaStore.pagination.hasMore && filteredMediaFilesCount > 0"
+                class="no-more"
+              >
+                {{ t('media.noMoreFiles') }}
+              </div>
+            </div>
+            <!-- 加载更多提示 -->
+            <div v-if="mediaStore.pagination.hasMore" class="loading-more">
+              <el-icon><Loading /></el-icon>
+              <span>{{ t('media.loadingMore') }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </el-card>
@@ -115,10 +136,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMediaStore } from '../store/modules/media'
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElIcon } from 'element-plus'
 
 // 导入新的文件预览组件
 import FilePreviewCard from '../components/FilePreviewCard.vue'
@@ -142,6 +163,36 @@ const loading = ref(false)
 const selectedFile = computed(() => mediaStore.selectedFile)
 const currentPath = computed(() => mediaStore.currentPath)
 const filteredMediaFiles = computed(() => mediaStore.filteredMediaFiles)
+// 获取分页后的媒体文件
+const paginatedMediaFiles = computed(() => mediaStore.paginatedMediaFiles)
+
+// 获取筛选后的媒体文件总数
+const filteredMediaFilesCount = computed(() => {
+  try {
+    // 直接计算数量而不依赖于可能有问题的getter
+    let files = [...mediaStore.mediaFiles]
+
+    // 类型筛选
+    if (mediaStore.filter.type !== 'all') {
+      files = files.filter((file) => file.type && file.type.startsWith(mediaStore.filter.type))
+    }
+
+    // 搜索筛选
+    if (mediaStore.filter.search) {
+      const searchLower = mediaStore.filter.search.toLowerCase()
+      files = files.filter(
+        (file) =>
+          (file.name && file.name.toLowerCase().includes(searchLower)) ||
+          (file.path && file.path.toLowerCase().includes(searchLower))
+      )
+    }
+
+    return files.length
+  } catch (error) {
+    console.error('Error calculating filtered media files count:', error)
+    return 0
+  }
+})
 const drawerSize = ref('600px')
 const drawerVisible = ref(false)
 
@@ -153,11 +204,13 @@ const handleClose = () => {
 // 处理搜索
 const handleSearch = () => {
   mediaStore.updateFilter({ search: searchTerm.value })
+  mediaStore.resetPagination() // 重置分页
 }
 
 // 处理类型筛选
 const handleTypeFilter = () => {
   mediaStore.updateFilter({ type: selectedType.value })
+  mediaStore.resetPagination() // 重置分页
 }
 
 // 设置视图模式
@@ -231,11 +284,46 @@ const formatDate = (timestamp) => {
   return new Date(timestamp).toLocaleDateString()
 }
 
-// 组件挂载时从store加载设置
+// 监听滚动事件，实现分页加载
+const handleScroll = () => {
+  const scrollContainer = document.querySelector('.media-grid-container')
+  if (!scrollContainer) return
+
+  const scrollTop = scrollContainer.scrollTop
+  const scrollHeight = scrollContainer.scrollHeight
+  const clientHeight = scrollContainer.clientHeight
+
+  // 当滚动到距离底部100px时加载更多
+  if (
+    scrollHeight - scrollTop - clientHeight < 100 &&
+    mediaStore.pagination.hasMore &&
+    !loading.value
+  ) {
+    mediaStore.loadMore()
+  }
+}
+
+// 组件挂载时从store加载设置并添加滚动监听
 onMounted(() => {
   viewMode.value = mediaStore.settings.viewMode
   selectedType.value = mediaStore.filter.type
   searchTerm.value = mediaStore.filter.search
+
+  // 延迟添加滚动监听，确保DOM已渲染
+  setTimeout(() => {
+    const scrollContainer = document.querySelector('.media-grid-container')
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll)
+    }
+  }, 100)
+})
+
+// 组件卸载时移除滚动监听
+onUnmounted(() => {
+  const scrollContainer = document.querySelector('.media-grid-container')
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', handleScroll)
+  }
 })
 </script>
 
@@ -364,5 +452,37 @@ onMounted(() => {
 
 .mt-4 {
   margin-top: 16px;
+}
+
+/* 滚动容器样式 */
+.media-grid-container {
+  max-height: calc(100vh - 409px);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* 文件数量统计样式 */
+.file-count {
+  color: var(--color-text-2);
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+/* 加载更多样式 */
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: var(--color-text-2);
+}
+
+/* 没有更多文件样式 */
+.no-more {
+  text-align: center;
+  padding: 20px;
+  color: var(--color-text-2);
+  font-size: 0.9rem;
 }
 </style>

@@ -76,7 +76,10 @@ export default {
     video: '视频',
     audio: '音频',
     other: '其他',
-    openDirectoryError: '打开目录失败，请检查您是否有足够的权限'
+    openDirectoryError: '打开目录失败，请检查您是否有足够的权限',
+    showing: '显示',
+    files: '个文件',
+    loadingMore: '加载更多...'
   },
   home: {
     welcome: '欢迎使用多媒体浏览器应用程序',
