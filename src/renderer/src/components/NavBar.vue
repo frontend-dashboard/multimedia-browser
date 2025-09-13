@@ -1,8 +1,16 @@
 <script setup>
-import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
+const router = useRouter()
+const activeIndex = ref('home')
+
+const handleSelect = (key) => {
+  activeIndex.value = key
+  router.push(`/${key}`)
+}
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 </script>
@@ -14,24 +22,19 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
       <span class="app-name">{{ t('app.name') }}</span>
     </div>
 
-    <div class="navbar-nav">
-      <RouterLink to="/home" class="nav-link" active-class="" exact-active-class="active">
-        {{ t('navigation.home') }}
-      </RouterLink>
-      <RouterLink to="/media" class="nav-link" active-class="" exact-active-class="active">
-        {{ t('navigation.media') }}
-      </RouterLink>
-      <RouterLink to="/rpa" class="nav-link" active-class="" exact-active-class="active">
-        {{ t('navigation.rpa') }}
-      </RouterLink>
-      <RouterLink to="/settings" class="nav-link" active-class="" exact-active-class="active">
-        {{ t('navigation.settings') }}
-      </RouterLink>
-    </div>
+    <el-menu
+      :default-active="activeIndex"
+      class="el-menu-demo"
+      mode="horizontal"
+      @select="handleSelect"
+    >
+      <el-menu-item index="home">{{ t('navigation.home') }}</el-menu-item>
+      <el-menu-item index="media">{{ t('navigation.media') }}</el-menu-item>
+      <el-menu-item index="rpa">{{ t('navigation.rpa') }}</el-menu-item>
+      <el-menu-item index="settings">{{ t('navigation.settings') }}</el-menu-item>
+    </el-menu>
 
-    <div class="navbar-actions">
-      <button class="btn btn-small" @click="ipcHandle">{{ t('actions.sendIPC') }}</button>
-    </div>
+    <el-button type="primary" @click="ipcHandle">{{ t('actions.sendIPC') }}</el-button>
   </nav>
 </template>
 
@@ -62,69 +65,12 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
   color: var(--color-text);
 }
 
-.navbar-nav {
-  display: flex;
-  gap: 2rem;
-}
-
-.nav-link {
-  color: var(--color-text);
-  text-decoration: none;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  padding: 0.4rem 0.8rem;
-  font-size: 14px;
-}
-
-.nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.nav-link.active {
-  background-color: #6988e6;
-  color: white;
-}
-
-.navbar-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  background-color: #6988e6;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-}
-
-.btn:hover {
-  background-color: #5a78d6;
-}
-
-.btn-small {
-  padding: 6px 12px;
-  font-size: 13px;
-}
-
 /* 响应式设计 */
 @media (max-width: 650px) {
   .navbar {
     padding: 1rem;
     flex-wrap: wrap;
     gap: 1rem;
-  }
-
-  .navbar-nav {
-    gap: 0.5rem;
-    order: 3;
-    width: 100%;
-    justify-content: center;
   }
 }
 </style>

@@ -30,8 +30,8 @@ export const applyTheme = (theme = null) => {
   root.setAttribute('data-theme', currentTheme)
 
   // 为了兼容现有样式，仍然保留原有的主题类
-  root.classList.remove('light-theme', 'dark-theme')
-  root.classList.add(`${currentTheme}-theme`)
+  root.classList.remove('light', 'dark')
+  root.classList.add(`${currentTheme}`)
 
   console.log('应用Element Plus主题:', currentTheme)
 }
