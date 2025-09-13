@@ -27,6 +27,7 @@ export default {
     version: 'Version',
     description: 'Description',
     license: 'License',
+    versions: 'Version Information',
     save: 'Save Settings',
     reset: 'Reset to Default',
     confirmReset: 'Are you sure you want to reset all settings to default?',

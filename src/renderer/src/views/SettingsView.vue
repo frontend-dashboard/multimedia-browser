@@ -47,9 +47,9 @@
 
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
-            <el-text type="primary" size="large"
-              ><strong>{{ t('settings.media') }}</strong></el-text
-            >
+            <el-text type="primary" size="large">
+              <strong>{{ t('settings.media') }}</strong>
+            </el-text>
           </el-divider>
         </el-form-item>
 
@@ -80,9 +80,9 @@
 
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
-            <el-text type="primary" size="large"
-              ><strong>{{ t('settings.interface') }}</strong></el-text
-            >
+            <el-text type="primary" size="large">
+              <strong>{{ t('settings.interface') }}</strong>
+            </el-text>
           </el-divider>
         </el-form-item>
 
@@ -104,25 +104,28 @@
 
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
-            <el-text type="primary" size="large"
-              ><strong>{{ t('settings.about') }}</strong></el-text
-            >
+            <el-text type="primary" size="large">
+              <strong>{{ t('settings.about') }}</strong>
+            </el-text>
           </el-divider>
         </el-form-item>
 
         <el-form-item>
           <el-card class="about-card">
             <el-descriptions :column="1" border>
-              <el-descriptions-item :label="t('settings.appName')">{{
-                t('app.name')
-              }}</el-descriptions-item>
+              <el-descriptions-item :label="t('settings.appName')">
+                {{ t('app.name') }}
+              </el-descriptions-item>
               <el-descriptions-item :label="t('settings.version')">1.0.0</el-descriptions-item>
-              <el-descriptions-item :label="t('settings.description')">{{
-                t('app.description')
-              }}</el-descriptions-item>
-              <el-descriptions-item :label="t('settings.license')"
-                >MIT License</el-descriptions-item
-              >
+              <el-descriptions-item :label="t('settings.description')">
+                {{ t('app.description') }}
+              </el-descriptions-item>
+              <el-descriptions-item :label="t('settings.license')">
+                MIT License
+              </el-descriptions-item>
+              <el-descriptions-item :label="t('settings.versions')">
+                <Versions />
+              </el-descriptions-item>
             </el-descriptions>
           </el-card>
         </el-form-item>
@@ -149,6 +152,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMediaStore } from '../store/modules/media.js'
 import { applyTheme, saveAndApplyTheme, setupSystemThemeListener } from '../utils/themeUtils.js'
+import Versions from '../components/Versions.vue'
 
 const { t, locale } = useI18n()
 

@@ -27,6 +27,7 @@ export default {
     version: '版本',
     description: '描述',
     license: '許可證',
+    versions: '版本資訊',
     save: '保存設置',
     reset: '重置為默認值',
     confirmReset: '確定要重置所有設置為默認值嗎？',
