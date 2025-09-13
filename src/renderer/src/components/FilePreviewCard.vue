@@ -97,7 +97,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { VideoPlay, VideoCamera } from '@element-plus/icons-vue'
+import { VideoCamera } from '@element-plus/icons-vue'
 
 // Props
 const props = defineProps({
@@ -116,6 +116,10 @@ const emit = defineEmits(['click'])
 
 // 视频封面加载状态
 const videoThumbnailError = ref(false)
+// 重试次数
+const retryCount = ref(0)
+// 最大重试次数
+const MAX_RETRIES = 2
 
 // 计算属性
 // 视频源URL，用于加载视频并显示第一帧
@@ -225,10 +229,54 @@ const formatFileSize = (bytes) => {
 
 // 处理视频封面加载错误
 const handleVideoThumbnailError = (error) => {
-  console.error('视频封面加载失败事件:', error)
-  console.error('视频URL:', videoSourceUrl.value)
-  console.error('视频文件路径:', props.file.path)
-  videoThumbnailError.value = true
+  // 记录错误详情，包括错误类型和可能的原因
+  console.error('视频封面加载失败事件:', {
+    errorType: error.type || '未知错误',
+    errorTarget: error.target ? error.target.src : '未知目标',
+    errorMessage: error.message || '无错误信息',
+    videoPath: props.file.path,
+    fileName: props.file.name
+  })
+
+  // 实现重试逻辑
+  if (retryCount.value < MAX_RETRIES) {
+    // 增加重试计数
+    retryCount.value++
+    console.log(`尝试重新加载视频封面 (${retryCount.value}/${MAX_RETRIES})`)
+
+    // 延迟一段时间后重试，使用指数退避策略
+    const delay = Math.pow(2, retryCount.value) * 100 // 100ms, 200ms, 400ms...
+    setTimeout(() => {
+      try {
+        // 重置视频元素以重新加载
+        const videoElement = error.target
+        if (videoElement) {
+          // 修改URL参数来强制重新加载（在原有URL后添加时间戳）
+          const timestamp = new Date().getTime()
+          const urlWithTimestamp =
+            videoSourceUrl.value +
+            (videoSourceUrl.value.includes('?') ? '&' : '?') +
+            't=' +
+            timestamp
+
+          // 清空error状态并重新设置src
+          videoThumbnailError.value = false
+          videoElement.src = urlWithTimestamp
+          videoElement.load()
+        }
+      } catch (retryError) {
+        console.error(`第${retryCount.value}次重试失败:`, retryError)
+        // 如果重试也失败，标记为错误
+        if (retryCount.value >= MAX_RETRIES) {
+          videoThumbnailError.value = true
+        }
+      }
+    }, delay)
+  } else {
+    // 达到最大重试次数，显示错误状态
+    console.warn(`已达到最大重试次数(${MAX_RETRIES})，无法加载视频封面`)
+    videoThumbnailError.value = true
+  }
 }
 
 // 处理图片加载错误
