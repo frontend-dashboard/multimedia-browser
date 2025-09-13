@@ -213,6 +213,25 @@ a:hover {
   --el-fill-color-lighter: var(--color-background-mute) !important;
 }
 
+/* 加载遮罩通用样式 */
+.el-loading-mask {
+  background-color: var(--color-background-mute) !important;
+}
+
+/* 深色主题下的加载遮罩特定样式 */
+:root.dark-theme .el-loading-mask {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* 确保加载中的文本颜色也跟随主题变化 */
+.el-loading-text {
+  color: var(--color-text) !important;
+}
+
+:root.dark-theme .el-loading-text {
+  color: var(--color-text) !important;
+}
+
 /* 通用组件样式覆盖 */
 .el-button {
   color: var(--color-text) !important;

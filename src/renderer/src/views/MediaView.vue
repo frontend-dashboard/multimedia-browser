@@ -126,7 +126,7 @@
           <span>{{ t('media.fileDetails') }}</span>
         </div>
       </template>
-      <el-descriptions border :column="1">
+      <el-descriptions border :column="1" label-width="100px">
         <el-descriptions-item :label="t('media.fileName')">
           {{ selectedFile.name }}
         </el-descriptions-item>
@@ -172,7 +172,7 @@ const loading = ref(false)
 const selectedFile = computed(() => mediaStore.selectedFile)
 const currentPath = computed(() => mediaStore.currentPath)
 const filteredMediaFiles = computed(() => mediaStore.filteredMediaFiles)
-const drawerSize = ref('500px')
+const drawerSize = ref('600px')
 const drawerVisible = ref(false)
 
 // 处理抽屉关闭
