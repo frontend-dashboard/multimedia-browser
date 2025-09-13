@@ -168,30 +168,7 @@ const paginatedMediaFiles = computed(() => mediaStore.paginatedMediaFiles)
 
 // 获取筛选后的媒体文件总数
 const filteredMediaFilesCount = computed(() => {
-  try {
-    // 直接计算数量而不依赖于可能有问题的getter
-    let files = [...mediaStore.mediaFiles]
-
-    // 类型筛选
-    if (mediaStore.filter.type !== 'all') {
-      files = files.filter((file) => file.type && file.type.startsWith(mediaStore.filter.type))
-    }
-
-    // 搜索筛选
-    if (mediaStore.filter.search) {
-      const searchLower = mediaStore.filter.search.toLowerCase()
-      files = files.filter(
-        (file) =>
-          (file.name && file.name.toLowerCase().includes(searchLower)) ||
-          (file.path && file.path.toLowerCase().includes(searchLower))
-      )
-    }
-
-    return files.length
-  } catch (error) {
-    console.error('Error calculating filtered media files count:', error)
-    return 0
-  }
+  return filteredMediaFiles.value.length
 })
 const drawerSize = ref('600px')
 const drawerVisible = ref(false)
