@@ -7,26 +7,31 @@
           <span class="header-title">应用设置</span>
         </div>
       </template>
+      <el-form label-width="120px">
+        <el-form-item :label="t('settings.versions')">
+          <Versions />
+        </el-form-item>
+      </el-form>
     </el-card>
 
     <el-card shadow="never" class="mt-4">
       <el-form>
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
-            <el-text type="primary" size="large"
-              ><strong>{{ t('settings.display') }}</strong></el-text
-            >
+            <el-text type="primary" size="large">
+              <strong>{{ t('settings.display') }}</strong>
+            </el-text>
           </el-divider>
         </el-form-item>
 
-        <el-form-item :label="t('settings.defaultViewMode')">
+        <el-form-item :label="t('settings.defaultViewMode')" label-width="120px">
           <el-select v-model="defaultViewMode" style="width: 100%" @change="updateDefaultViewMode">
             <el-option :label="t('options.gridView')" value="grid" />
             <el-option :label="t('options.listView')" value="list" />
           </el-select>
         </el-form-item>
 
-        <el-form-item :label="t('settings.defaultSortBy')">
+        <el-form-item :label="t('settings.defaultSortBy')" label-width="120px">
           <el-select v-model="defaultSortBy" style="width: 100%" @change="updateDefaultSortBy">
             <el-option :label="t('options.sortByName')" value="name" />
             <el-option :label="t('options.sortByDate')" value="date" />
@@ -34,7 +39,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item :label="t('settings.defaultSortOrder')">
+        <el-form-item :label="t('settings.defaultSortOrder')" label-width="120px">
           <el-select
             v-model="defaultSortOrder"
             style="width: 100%"
@@ -53,7 +58,7 @@
           </el-divider>
         </el-form-item>
 
-        <el-form-item :label="t('settings.defaultMediaType')">
+        <el-form-item :label="t('settings.defaultMediaType')" label-width="120px">
           <el-select
             v-model="defaultMediaType"
             style="width: 100%"
@@ -66,13 +71,13 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item :label="t('settings.showFileExtensions')">
+        <el-form-item :label="t('settings.showFileExtensions')" label-width="120px">
           <el-checkbox v-model="showFileExtensions" @change="updateShowFileExtensions">
             {{ t('settings.showFileExtensions') }}
           </el-checkbox>
         </el-form-item>
 
-        <el-form-item :label="t('settings.showHiddenFiles')">
+        <el-form-item :label="t('settings.showHiddenFiles')" label-width="120px">
           <el-checkbox v-model="showHiddenFiles" @change="updateShowHiddenFiles">
             {{ t('settings.showHiddenFiles') }}
           </el-checkbox>
@@ -86,7 +91,7 @@
           </el-divider>
         </el-form-item>
 
-        <el-form-item :label="t('settings.theme')">
+        <el-form-item :label="t('settings.theme')" label-width="120px">
           <el-select v-model="theme" style="width: 100%" @change="updateTheme">
             <el-option :label="t('options.lightTheme')" value="light" />
             <el-option :label="t('options.darkTheme')" value="dark" />
@@ -94,7 +99,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item :label="t('settings.language')">
+        <el-form-item :label="t('settings.language')" label-width="120px">
           <el-select v-model="language" style="width: 100%" @change="updateLanguage">
             <el-option :label="t('options.simplifiedChinese')" value="zh-CN" />
             <el-option :label="t('options.traditionalChinese')" value="zh-TW" />
@@ -122,9 +127,6 @@
               </el-descriptions-item>
               <el-descriptions-item :label="t('settings.license')">
                 MIT License
-              </el-descriptions-item>
-              <el-descriptions-item :label="t('settings.versions')">
-                <Versions />
               </el-descriptions-item>
             </el-descriptions>
           </el-card>
