@@ -36,9 +36,19 @@ const routes = [
         meta: {
           keepAlive: false
         }
+      }
+    ]
+  },
+  {
+    path: '/rpa',
+    component: () => import('@renderer/layout/RpaLayout.vue'),
+    children: [
+      {
+        path: '/rpa',
+        redirect: '/rpa/home'
       },
       {
-        path: 'rpa',
+        path: 'home',
         name: 'RPAView',
         component: () => import('@renderer/views/RPAView.vue'),
         meta: {
