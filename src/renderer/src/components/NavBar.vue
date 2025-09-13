@@ -15,16 +15,16 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
     </div>
 
     <div class="navbar-nav">
-      <RouterLink to="/" class="nav-link" active-class="active">
+      <RouterLink to="/home" class="nav-link" active-class="" exact-active-class="active">
         {{ t('navigation.home') }}
       </RouterLink>
-      <RouterLink to="/media" class="nav-link" active-class="active">
+      <RouterLink to="/media" class="nav-link" active-class="" exact-active-class="active">
         {{ t('navigation.media') }}
       </RouterLink>
-      <RouterLink to="/rpa" class="nav-link" active-class="active">
+      <RouterLink to="/rpa" class="nav-link" active-class="" exact-active-class="active">
         {{ t('navigation.rpa') }}
       </RouterLink>
-      <RouterLink to="/settings" class="nav-link" active-class="active">
+      <RouterLink to="/settings" class="nav-link" active-class="" exact-active-class="active">
         {{ t('navigation.settings') }}
       </RouterLink>
     </div>

@@ -11,6 +11,10 @@ const routes = [
     children: [
       {
         path: '/',
+        redirect: '/home'
+      },
+      {
+        path: '/home',
         name: 'HomeView',
         component: () => import('@renderer/views/HomeView.vue'),
         meta: {
