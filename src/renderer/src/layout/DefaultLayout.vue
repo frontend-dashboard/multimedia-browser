@@ -1,9 +1,10 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterView, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { getThemeClass } from '@renderer/utils/themeUtils.js'
 import NavBar from '@renderer/components/NavBar.vue'
 
+const router = useRouter()
 // 计算当前应使用的主题类
 const themeClass = computed(() => {
   return getThemeClass()
@@ -11,7 +12,8 @@ const themeClass = computed(() => {
 
 // 缓存的路由组件名称列表
 const cachedViews = computed(() => {
-  return ['RPAView']
+  const allRoutes = router.getRoutes()
+  return allRoutes.filter((item) => item.meta?.keepAlive).map((item) => item.name)
 })
 
 // 判断路由是否需要缓存
