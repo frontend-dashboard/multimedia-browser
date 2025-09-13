@@ -113,7 +113,7 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
+@media (max-width: 650px) {
   .navbar {
     padding: 1rem;
     flex-wrap: wrap;

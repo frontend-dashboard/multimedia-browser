@@ -1,13 +1,28 @@
 <template>
   <div class="media-view">
-    <el-card class="header-card" shadow="never">
+    <el-card class="header-card mb-4" shadow="never">
       <template #header>
         <div class="card-header">
           <el-icon><Folder /></el-icon>
           <span class="header-title">{{ t('navigation.media') }}</span>
         </div>
       </template>
+      <div class="current-path">
+        <el-breadcrumb separator-class="el-icon-arrow-right">
+          <el-breadcrumb-item :to="{ path: '/' }">{{ t('navigation.home') }}</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ t('navigation.media') }}</el-breadcrumb-item>
+          <el-breadcrumb-item>{{
+            currentPath ? currentPath.split('/').pop() : t('media.noPathSelected')
+          }}</el-breadcrumb-item>
+        </el-breadcrumb>
+        <el-button type="primary" :loading="loading" @click="openDirectory">
+          <el-icon><FolderOpened /></el-icon>
+          {{ t('media.selectDirectory') }}
+        </el-button>
+      </div>
+    </el-card>
 
+    <el-card class="path-card mb-4" shadow="never">
       <div class="controls">
         <el-input
           v-model="searchTerm"
@@ -45,22 +60,6 @@
             @click="setViewMode('list')"
           />
         </div>
-      </div>
-    </el-card>
-
-    <el-card class="path-card mb-4" shadow="never">
-      <div class="current-path">
-        <el-breadcrumb separator-class="el-icon-arrow-right">
-          <el-breadcrumb-item :to="{ path: '/' }">{{ t('navigation.home') }}</el-breadcrumb-item>
-          <el-breadcrumb-item>{{ t('navigation.media') }}</el-breadcrumb-item>
-          <el-breadcrumb-item>{{
-            currentPath ? currentPath.split('/').pop() : t('media.noPathSelected')
-          }}</el-breadcrumb-item>
-        </el-breadcrumb>
-        <el-button type="primary" :loading="loading" @click="openDirectory">
-          <el-icon><FolderOpened /></el-icon>
-          {{ t('media.selectDirectory') }}
-        </el-button>
       </div>
     </el-card>
 
@@ -327,10 +326,8 @@ onMounted(() => {
 
 .controls {
   display: flex;
-  flex-wrap: wrap;
   gap: 15px;
   align-items: center;
-  margin-top: 15px;
 }
 
 .search-input {
@@ -339,7 +336,7 @@ onMounted(() => {
 }
 
 .filter-select {
-  min-width: 150px;
+  max-width: 200px;
 }
 
 .view-controls {
@@ -430,35 +427,5 @@ onMounted(() => {
 
 .mt-4 {
   margin-top: 16px;
-}
-
-@media (max-width: 768px) {
-  .controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-input,
-  .filter-select {
-    width: 100%;
-  }
-
-  .current-path {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .media-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  }
-
-  .card-header {
-    font-size: 1.2rem;
-  }
-
-  .header-title {
-    font-size: 1.2rem;
-  }
 }
 </style>

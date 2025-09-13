@@ -26,7 +26,7 @@ const routes = [
         name: 'MediaView',
         component: () => import('@renderer/views/MediaView.vue'),
         meta: {
-          keepAlive: false
+          keepAlive: true
         }
       },
       {
