@@ -25,8 +25,24 @@
 
       <!-- 视频预览 -->
       <div v-else-if="file.type.startsWith('videos')" class="preview-icon-container">
-        <div class="preview-icon">
-          <el-icon size="40"><VideoCamera /></el-icon>
+        <!-- 使用视频元素并自动加载第一帧 -->
+        <div class="video-thumbnail-wrapper">
+          <video
+            class="preview-video-thumbnail"
+            :src="videoSourceUrl"
+            muted
+            playsinline
+            loop
+            autoplay
+            @canplay="captureFirstFrame"
+            @error="handleVideoThumbnailError"
+          >
+            您的浏览器不支持视频播放
+          </video>
+          <!-- 如果封面加载失败，显示默认视频图标 -->
+          <div v-if="videoThumbnailError" class="preview-icon fallback-icon">
+            <el-icon size="40"><VideoCamera /></el-icon>
+          </div>
         </div>
         <div class="file-type-badge">视频</div>
       </div>
@@ -80,7 +96,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { VideoPlay, VideoCamera } from '@element-plus/icons-vue'
 
 // Props
 const props = defineProps({
@@ -97,7 +114,43 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(['click'])
 
+// 视频封面加载状态
+const videoThumbnailError = ref(false)
+
 // 计算属性
+// 视频源URL，用于加载视频并显示第一帧
+const videoSourceUrl = computed(() => {
+  try {
+    // 获取原始文件路径
+    const originalPath = props.file.path
+
+    // 规范化路径分隔符
+    let normalizedPath = originalPath.replace(/\\/g, '/')
+
+    // 对路径进行URL编码，确保特殊字符不会导致问题
+    const encodedPath = encodeURIComponent(normalizedPath)
+
+    // 返回视频文件的URL
+    return 'media-file://' + encodedPath
+  } catch (error) {
+    console.error('生成视频源URL时出错:', error)
+    return '' // 如果出错则返回空字符串
+  }
+})
+
+// 捕获视频第一帧后暂停，避免自动播放
+const captureFirstFrame = (event) => {
+  try {
+    const videoElement = event.target
+    // 暂停视频，只显示第一帧
+    videoElement.pause()
+    // 重置视频到开始位置，确保显示的是第一帧
+    videoElement.currentTime = 0
+  } catch (error) {
+    console.error('捕获视频第一帧时出错:', error)
+  }
+}
+
 const previewUrl = computed(() => {
   try {
     // 使用我们自定义的'media-file'协议来加载文件
@@ -170,6 +223,14 @@ const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
+// 处理视频封面加载错误
+const handleVideoThumbnailError = (error) => {
+  console.error('视频封面加载失败事件:', error)
+  console.error('视频URL:', videoSourceUrl.value)
+  console.error('视频文件路径:', props.file.path)
+  videoThumbnailError.value = true
+}
+
 // 处理图片加载错误
 const handleImageError = (error) => {
   console.error('图片加载失败事件:', error)
@@ -221,6 +282,32 @@ const handleClick = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+/* 视频缩略图容器 */
+.video-thumbnail-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* 视频封面缩略图样式 */
+.preview-video-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: var(--color-background-mute);
+}
+
+/* 封面加载失败时的后备图标 */
+.fallback-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-background-mute);
 }
 
 .preview-icon {

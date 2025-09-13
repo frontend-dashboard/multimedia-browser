@@ -84,6 +84,65 @@ app.whenReady().then(() => {
     return result.canceled ? null : result.filePaths[0]
   })
 
+  // 获取视频封面
+  ipcMain.handle('get-video-thumbnail', async (_, videoPath) => {
+    try {
+      // 检查文件是否存在
+      await fs.access(videoPath)
+      
+      // 方案1: 使用Electron的nativeImage和视频第一帧
+      // 注意：这种方法在某些Electron版本中可能不支持
+      // 我们先实现一个基本的方案，实际项目中可能需要使用ffmpeg等工具
+      
+      // 在实际应用中，您可能需要使用ffmpeg或其他工具来提取视频的第一帧
+      // 下面是使用ffmpeg的示例代码（注释形式）
+      
+      // 简单方案：尝试使用视频URL作为封面（实际项目中可能需要更复杂的实现）
+      // 在实际应用中，您可能需要使用ffmpeg或其他工具来提取视频的第一帧
+      // 这里我们先返回一个基本的实现，返回视频本身作为封面（浏览器会自动显示第一帧）
+      
+      // 如果您安装了ffmpeg，可以使用以下代码来提取视频封面
+      /*
+      const ffmpegPath = '/usr/local/bin/ffmpeg'; // 请根据您的实际路径修改
+      
+      return new Promise((resolve, reject) => {
+        const process = spawn(ffmpegPath, [
+          '-i', videoPath,
+          '-ss', '00:00:01', // 提取第1秒的帧
+          '-vframes', '1',
+          '-vf', 'scale=320:-1', // 缩放到宽度320，高度自动
+          thumbnailPath
+        ]);
+        
+        process.on('close', (code) => {
+          if (code === 0) {
+            resolve({ success: true, thumbnailPath });
+          } else {
+            reject(new Error(`FFmpeg process exited with code ${code}`));
+          }
+        });
+        
+        process.on('error', (error) => {
+          reject(error);
+        });
+      });
+      */
+      
+      // 基本实现：返回视频路径作为封面
+      // 浏览器会尝试显示视频的第一帧作为封面
+      return {
+        success: true,
+        thumbnailUrl: `media-file://${encodeURIComponent(videoPath)}`
+      }
+    } catch (error) {
+      console.error('获取视频封面失败:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+  })
+  
   // 处理获取目录下的文件
   ipcMain.handle('get-files-in-directory', async (_, directoryPath) => {
     try {

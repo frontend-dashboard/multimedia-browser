@@ -9,6 +9,10 @@ const api = {
   // 获取目录下的文件
   getFilesInDirectory: (path) => {
     return ipcRenderer.invoke('get-files-in-directory', path)
+  },
+  // 获取视频封面
+  getVideoThumbnail: (videoPath) => {
+    return ipcRenderer.invoke('get-video-thumbnail', videoPath)
   }
 }
 
