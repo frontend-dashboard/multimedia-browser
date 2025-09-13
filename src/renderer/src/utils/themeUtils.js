@@ -1,9 +1,9 @@
 // 主题相关工具函数
 
 /**
- * 获取当前应使用的主题类名
+ * 获取当前应使用的Element Plus主题
  * @param {string} theme - 主题设置值 ('light', 'dark', 'system')
- * @returns {string} - 'light-theme' 或 'dark-theme'
+ * @returns {string} - 'light' 或 'dark'
  */
 export const getThemeClass = (theme = null) => {
   // 如果没有提供主题，则从localStorage获取或使用默认值
@@ -11,27 +11,29 @@ export const getThemeClass = (theme = null) => {
 
   // 跟随系统模式
   if (currentTheme === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 
   // 手动选择模式
-  return currentTheme === 'dark' ? 'dark-theme' : 'light-theme'
+  return currentTheme === 'dark' ? 'dark' : 'light'
 }
 
 /**
- * 应用主题到根元素
+ * 应用Element Plus主题到根元素
  * @param {string} theme - 可选，指定要应用的主题
  */
 export const applyTheme = (theme = null) => {
   const root = document.documentElement
-  const themeClass = getThemeClass(theme)
+  const currentTheme = getThemeClass(theme)
 
-  // 移除所有主题类
+  // 设置Element Plus的主题
+  root.setAttribute('data-theme', currentTheme)
+
+  // 为了兼容现有样式，仍然保留原有的主题类
   root.classList.remove('light-theme', 'dark-theme')
-  // 添加当前主题类
-  root.classList.add(themeClass)
+  root.classList.add(`${currentTheme}-theme`)
 
-  console.log('应用主题:', themeClass)
+  console.log('应用Element Plus主题:', currentTheme)
 }
 
 /**
@@ -44,7 +46,7 @@ export const saveAndApplyTheme = (theme) => {
 }
 
 /**
- * 初始化主题（应用启动时使用）
+ * 初始化Element Plus主题（应用启动时使用）
  */
 export const initializeTheme = () => {
   applyTheme()

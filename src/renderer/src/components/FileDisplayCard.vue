@@ -7,16 +7,16 @@
           :src="getLocalFileUrl(previewUrl)"
           fit="contain"
           :preview-src-list="[getLocalFileUrl(previewUrl)]"
-          @load="loading = false"
-          @error="handleError('图片加载失败')"
           preview-teleported
           :z-index="3000"
+          @load="loading = false"
+          @error="handleError('图片加载失败')"
         >
           <template #error>
             <div class="image-error">
               <el-icon><Picture /></el-icon>
               <p>图片加载失败</p>
-              <p class="error-detail" v-if="previewUrl">URL: {{ previewUrl }}</p>
+              <p v-if="previewUrl" class="error-detail">URL: {{ previewUrl }}</p>
             </div>
           </template>
         </el-image>
@@ -30,9 +30,9 @@
           autoplay
           muted
           playsinline
+          class="preview-video"
           @loadedmetadata="loading = false"
           @error="handleError('视频加载失败')"
-          class="preview-video"
         ></video>
       </div>
 
@@ -262,6 +262,7 @@ watch(
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 
 .image-error .el-icon {
   font-size: 48px;

@@ -118,8 +118,6 @@ export const useMediaStore = defineStore('media', {
       this.settings = { ...this.settings, ...settings }
     },
 
-
-
     // 重置分页
     resetPagination() {
       this.pagination.currentPage = 1
