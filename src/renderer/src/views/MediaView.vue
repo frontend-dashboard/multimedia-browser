@@ -64,7 +64,7 @@
     </el-card>
     <!-- 媒体文件卡片 -->
     <el-card shadow="hover">
-      <div :element-loading-text="t('media.loading')" v-loading="loading">
+      <div v-loading="loading" :element-loading-text="t('media.loading')">
         <!-- 空状态提示 -->
         <el-empty
           v-if="filteredMediaFiles.length === 0 && !loading"
@@ -75,46 +75,13 @@
         </el-empty>
         <!-- 媒体文件列表 -->
         <div v-else class="media-grid" :class="viewMode">
-          <el-card
+          <FilePreviewCard
             v-for="file in filteredMediaFiles"
             :key="file.path"
-            :class="['media-item', { selected: selectedFile && selectedFile.path === file.path }]"
-            shadow="hover"
-            :body-style="{ padding: '15px', cursor: 'pointer' }"
-            @click="selectFile(file)"
-          >
-            <div class="media-preview">
-              <!-- 根据文件类型显示不同的预览图标 -->
-              <el-image
-                v-if="file.type.startsWith('images')"
-                :src="getPreviewUrl(file)"
-                :alt="file.name"
-                class="preview-image"
-                fit="cover"
-                lazy
-                @error="handleImageError($event, file)"
-              >
-                <template #error>
-                  <div class="preview-icon">
-                    <el-icon size="40"><Picture /></el-icon>
-                  </div>
-                </template>
-              </el-image>
-              <div v-else-if="file.type.startsWith('videos')" class="preview-icon">
-                <el-icon size="40"><VideoCamera /></el-icon>
-              </div>
-              <div v-else-if="file.type.startsWith('audio')" class="preview-icon">
-                <el-icon size="40"><Mic /></el-icon>
-              </div>
-              <div v-else class="preview-icon">
-                <el-icon size="40"><Document /></el-icon>
-              </div>
-            </div>
-            <div class="media-info">
-              <p class="file-name">{{ file.name }}</p>
-              <p class="file-size">{{ formatFileSize(file.size) }}</p>
-            </div>
-          </el-card>
+            :file="file"
+            :is-selected="selectedFile && selectedFile.path === file.path"
+            @click="selectFile"
+          />
         </div>
       </div>
     </el-card>
@@ -152,6 +119,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useMediaStore } from '../store/modules/media'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
+
+// 导入新的文件预览组件
+import FilePreviewCard from '../components/FilePreviewCard.vue'
 
 defineOptions({
   name: 'MediaView'
@@ -259,43 +229,6 @@ const getFileType = (type) => {
 // 格式化日期
 const formatDate = (timestamp) => {
   return new Date(timestamp).toLocaleDateString()
-}
-
-// 处理图片加载错误
-const handleImageError = (error, file) => {
-  console.error('图片加载失败事件:', error)
-  console.error('图片路径:', getPreviewUrl(file))
-  console.error('原始文件路径:', file.path)
-  console.error('文件类型:', file.type)
-
-  // 在控制台中显示更详细的错误信息
-  if (error.target && error.target.src) {
-    console.error('实际请求的URL:', error.target.src)
-    console.error('是否以file://开头:', error.target.src.startsWith('file://'))
-  }
-}
-
-// 获取预览URL（使用自定义的media-file协议）
-const getPreviewUrl = (file) => {
-  try {
-    // 使用我们自定义的'media-file'协议来加载文件
-    // 这可以避免一些安全限制，同时也能更可靠地加载本地文件
-
-    // 将反斜杠替换为正斜杠，确保路径格式一致
-    let normalizedPath = file.path.replace(/\\/g, '/')
-
-    // 对路径进行URL编码，确保特殊字符不会导致问题
-    const encodedPath = encodeURIComponent(normalizedPath)
-
-    // 使用我们自定义的协议
-    const previewUrl = 'media-file://' + encodedPath
-
-    return previewUrl
-  } catch (error) {
-    console.error('生成预览URL时出错:', error)
-    // 作为最后的后备方案，使用简单的file://协议
-    return 'file://' + file.path
-  }
 }
 
 // 组件挂载时从store加载设置
