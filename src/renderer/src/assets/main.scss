@@ -1,96 +1,19 @@
-@charset "UTF-8";
 /* 主样式文件 */
-/* 基础颜色变量 */
-:root {
-  --ev-c-white: #ffffff;
-  --ev-c-white-soft: #f8f8f8;
-  --ev-c-white-mute: #f2f2f2;
-  --ev-c-black: #1b1b1f;
-  --ev-c-black-soft: #222222;
-  --ev-c-black-mute: #282828;
-  --ev-c-gray-1: #515c67;
-  --ev-c-gray-2: #414853;
-  --ev-c-gray-3: #32363f;
-  --ev-c-gray-light-1: #8392a5;
-  --ev-c-gray-light-2: #a0aec0;
-  --ev-c-gray-light-3: #e2e8f0;
-  --ev-c-text-1: rgba(0, 0, 0, 0.86);
-  --ev-c-text-2: rgba(0, 0, 0, 0.6);
-  --ev-c-text-3: rgba(0, 0, 0, 0.38);
-  --ev-c-text-light-1: rgba(0, 0, 0, 0.86);
-  --ev-c-text-light-2: rgba(0, 0, 0, 0.6);
-  --ev-c-text-light-3: rgba(0, 0, 0, 0.38);
-  --ev-button-alt-border: transparent;
-  --ev-button-alt-text: var(--ev-c-text-1);
-  --ev-button-alt-bg: var(--ev-c-gray-3);
-  --ev-button-alt-hover-border: transparent;
-  --ev-button-alt-hover-text: var(--ev-c-text-1);
-  --ev-button-alt-hover-bg: var(--ev-c-gray-2);
-}
-
-/* 默认主题 - 设置为浅色主题作为默认 */
-:root {
-  --color-background: var(--ev-c-white);
-  --color-background-soft: var(--ev-c-white-soft);
-  --color-background-mute: var(--ev-c-white-mute);
-  --color-text: var(--ev-c-text-light-1);
-  --color-text-2: var(--ev-c-text-light-2);
-  --color-text-3: var(--ev-c-text-light-3);
-  --color-border: rgba(0, 0, 0, 0.1);
-  --ev-button-alt-text: var(--ev-c-text-light-1);
-  --ev-button-alt-bg: var(--ev-c-gray-light-3);
-  --ev-button-alt-hover-bg: var(--ev-c-gray-light-2);
-}
-
-/* 浅色主题 */
-:root.light-theme {
-  /* 与默认主题保持一致 */
-}
-
-/* 深色主题 */
-:root.dark-theme {
-  --color-background: var(--ev-c-black);
-  --color-background-soft: var(--ev-c-black-soft);
-  --color-background-mute: var(--ev-c-black-mute);
-  --color-text: var(--ev-c-white);
-  --color-text-2: rgba(255, 255, 255, 0.8);
-  --color-text-3: rgba(255, 255, 255, 0.6);
-  --color-border: rgba(255, 255, 255, 0.1);
-  --ev-button-alt-text: var(--ev-c-white);
-  --ev-button-alt-bg: var(--ev-c-gray-3);
-  --ev-button-alt-hover-bg: var(--ev-c-gray-2);
-}
-
-/* 基础样式重置 */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  font-weight: normal;
-}
-
-ul {
-  list-style: none;
-}
-
-body {
-  min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
-  line-height: 1.6;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@import './base.scss';
 
 code {
   font-weight: 600;
   padding: 3px 5px;
   border-radius: 2px;
   background-color: var(--color-background-mute);
-  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    SF Mono,
+    Menlo,
+    Consolas,
+    Liberation Mono,
+    monospace;
   font-size: 85%;
 }
 
@@ -235,6 +158,7 @@ a:hover {
 
 /* Element Plus 组件主题适配 */
 /* 全局重置Element Plus样式，确保所有组件使用CSS变量 */
+
 /* 基础背景和文本颜色 */
 .el-button,
 .el-input,
@@ -270,6 +194,7 @@ a:hover {
 }
 
 /* 浅色主题特定样式 - 与全局样式保持一致，无需额外定义 */
+
 /* 深色主题特定样式 */
 :root.dark-theme {
   --el-bg-color: var(--color-background) !important;
