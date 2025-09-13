@@ -89,19 +89,19 @@
                 :is-selected="selectedFile && selectedFile.path === file.path"
                 @click="selectFile"
               />
-              <!-- 没有更多文件提示 -->
-              <div
-                v-if="!mediaStore.pagination.hasMore && filteredMediaFilesCount > 0"
-                class="no-more"
-              >
-                {{ t('media.noMoreFiles') }}
-              </div>
             </div>
-            <!-- 加载更多提示 -->
-            <div v-if="mediaStore.pagination.hasMore" class="loading-more">
-              <el-icon><Loading /></el-icon>
-              <span>{{ t('media.loadingMore') }}</span>
-            </div>
+          </div>
+          <!-- 分页控件 -->
+          <div class="pagination-container">
+            <el-pagination
+              :current-page="mediaStore.pagination.currentPage"
+              :page-size="mediaStore.pagination.pageSize"
+              :page-sizes="[20, 40, 80, 120]"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="filteredMediaFilesCount"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+            />
           </div>
         </div>
       </div>
@@ -205,18 +205,36 @@ const handleClose = () => {
 const handleSearch = () => {
   mediaStore.updateFilter({ search: searchTerm.value })
   mediaStore.resetPagination() // 重置分页
+  mediaStore.initLoadedFiles() // 重新加载筛选后的文件
 }
 
 // 处理类型筛选
 const handleTypeFilter = () => {
   mediaStore.updateFilter({ type: selectedType.value })
   mediaStore.resetPagination() // 重置分页
+  mediaStore.initLoadedFiles() // 重新加载筛选后的文件
 }
 
 // 设置视图模式
 const setViewMode = (mode) => {
   viewMode.value = mode
   mediaStore.updateSettings({ viewMode: mode })
+}
+
+// 处理页码切换
+const handleCurrentChange = (_currentPage) => {
+  // 更新store中的当前页码
+  mediaStore.pagination.currentPage = _currentPage
+  // 滚动到顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// 处理每页显示数量变化
+const handleSizeChange = (_pageSize) => {
+  // 更新store中的每页显示数量
+  mediaStore.pagination.pageSize = _pageSize
+  // 重置到第一页
+  mediaStore.pagination.currentPage = 1
 }
 
 // 选择文件
@@ -284,49 +302,24 @@ const formatDate = (timestamp) => {
   return new Date(timestamp).toLocaleDateString()
 }
 
-// 监听滚动事件，实现分页加载
-const handleScroll = () => {
-  const scrollContainer = document.querySelector('.media-grid-container')
-  if (!scrollContainer) return
+// 由于已经预加载了所有文件，不再需要滚动加载更多内容
+// 因此移除了debounce函数和handleScroll函数的定义
 
-  const scrollTop = scrollContainer.scrollTop
-  const scrollHeight = scrollContainer.scrollHeight
-  const clientHeight = scrollContainer.clientHeight
-
-  // 预加载功能：当滚动到距离底部300px时就开始加载更多
-  if (
-    scrollHeight - scrollTop - clientHeight < 300 &&
-    mediaStore.pagination.hasMore &&
-    !loading.value
-  ) {
-    mediaStore.loadMore()
-  }
-}
-
-// 组件挂载时从store加载设置并添加滚动监听
+// 组件挂载时从store加载设置
 onMounted(() => {
   viewMode.value = mediaStore.settings.viewMode
   selectedType.value = mediaStore.filter.type
   searchTerm.value = mediaStore.filter.search
 
-  // 初始化已加载的文件
+  // 初始化已加载的文件（现在会预加载所有文件）
   mediaStore.initLoadedFiles()
 
-  // 延迟添加滚动监听，确保DOM已渲染
-  setTimeout(() => {
-    const scrollContainer = document.querySelector('.media-grid-container')
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll)
-    }
-  }, 100)
+  // 由于已经预加载了所有文件，不再需要添加滚动监听
 })
 
 // 组件卸载时移除滚动监听
 onUnmounted(() => {
-  const scrollContainer = document.querySelector('.media-grid-container')
-  if (scrollContainer) {
-    scrollContainer.removeEventListener('scroll', handleScroll)
-  }
+  // 由于已经不再添加滚动监听，所以这里也不需要移除
 })
 </script>
 
@@ -370,6 +363,14 @@ onUnmounted(() => {
 .view-controls {
   display: flex;
   gap: 5px;
+}
+
+/* 分页控件样式 */
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
 }
 
 .current-path {
@@ -459,7 +460,7 @@ onUnmounted(() => {
 
 /* 滚动容器样式 */
 .media-grid-container {
-  max-height: calc(100vh - 409px);
+  max-height: calc(100vh - 478px);
   overflow-y: auto;
   scroll-behavior: smooth;
 }
@@ -479,6 +480,15 @@ onUnmounted(() => {
   gap: 10px;
   padding: 20px;
   color: var(--color-text-2);
+}
+
+/* 完全隐藏加载提示，实现无感分页 */
+.loading-more.invisible {
+  opacity: 0;
+  height: 0;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 /* 没有更多文件样式 */

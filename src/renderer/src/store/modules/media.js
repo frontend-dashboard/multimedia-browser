@@ -22,8 +22,10 @@ export const useMediaStore = defineStore('media', {
     // 分页相关状态
     pagination: {
       currentPage: 1, // 当前页码
-      pageSize: 30, // 每页显示的文件数量
-      hasMore: true // 是否还有更多文件可以加载
+      pageSize: 40, // 每页显示的文件数量 (增加每页数量，减少加载次数)
+      hasMore: true, // 是否还有更多文件可以加载
+      isLoading: false, // 是否正在加载中，避免重复加载
+      preloadPages: 3 // 预加载的页数，提前加载更多内容减少用户等待
     },
     // 已加载的媒体文件缓存，用于优化分页性能
     loadedMediaFiles: []
@@ -71,8 +73,13 @@ export const useMediaStore = defineStore('media', {
 
     // 获取当前页的媒体文件（用于分页渲染）
     paginatedMediaFiles: (state) => {
-      // 直接使用缓存的已加载文件
-      return state.loadedMediaFiles
+      // 实现前端分页逻辑
+      const { currentPage, pageSize } = state.pagination
+      const startIndex = (currentPage - 1) * pageSize
+      const endIndex = startIndex + pageSize
+
+      // 从已预加载的所有文件中截取当前页的数据
+      return state.loadedMediaFiles.slice(startIndex, endIndex)
     }
   },
 
@@ -114,25 +121,53 @@ export const useMediaStore = defineStore('media', {
       this.settings = { ...this.settings, ...settings }
     },
 
-    // 加载下一页
-    loadMore() {
-      if (this.pagination.hasMore) {
+    // 加载下一页或多页，支持无感预加载
+    async loadMore(pagesToLoad = null) {
+      // 如果正在加载或没有更多数据，则不执行加载
+      if (this.pagination.isLoading || !this.pagination.hasMore) {
+        return Promise.resolve()
+      }
+
+      try {
+        // 设置加载状态
+        this.pagination.isLoading = true
+
         // 获取筛选后的所有文件
         const filteredFiles = this.filteredMediaFiles
-        
-        // 计算下一页的索引范围
-        const { currentPage, pageSize } = this.pagination
-        const nextPage = currentPage + 1
-        const startIndex = (nextPage - 1) * pageSize
-        const endIndex = startIndex + pageSize
-        
+
+        // 获取分页配置
+        const { currentPage, pageSize, preloadPages } = this.pagination
+        // 如果没有指定加载页数，则使用预加载配置的页数
+        const pagesToLoadValue = pagesToLoad || Math.min(preloadPages, 5) // 最多预加载5页避免过度消耗资源
+
+        // 计算加载范围
+        const endPage = currentPage + pagesToLoadValue
+        const startIndex = currentPage * pageSize
+        const endIndex = endPage * pageSize
+
         // 更新分页状态
-        this.pagination.currentPage = nextPage
+        this.pagination.currentPage = endPage
         this.pagination.hasMore = endIndex < filteredFiles.length
-        
+
         // 只加载新增的页面内容并添加到已加载文件中
         const newPageFiles = filteredFiles.slice(startIndex, endIndex)
-        this.loadedMediaFiles = [...this.loadedMediaFiles, ...newPageFiles]
+
+        // 优化性能：如果文件数量较少，可以立即添加，避免不必要的等待
+        if (newPageFiles.length < pageSize * 2) {
+          this.loadedMediaFiles = [...this.loadedMediaFiles, ...newPageFiles]
+        } else {
+          // 对于大量数据，使用微任务延迟添加，避免阻塞UI
+          await new Promise((resolve) => setTimeout(resolve, 50))
+          this.loadedMediaFiles = [...this.loadedMediaFiles, ...newPageFiles]
+        }
+
+        return Promise.resolve()
+      } catch (error) {
+        console.error('加载更多文件失败:', error)
+        return Promise.reject(error)
+      } finally {
+        // 无论成功失败，都要重置加载状态
+        this.pagination.isLoading = false
       }
     },
 
@@ -140,6 +175,7 @@ export const useMediaStore = defineStore('media', {
     resetPagination() {
       this.pagination.currentPage = 1
       this.pagination.hasMore = true
+      this.pagination.isLoading = false
       this.loadedMediaFiles = []
     },
 
@@ -150,15 +186,20 @@ export const useMediaStore = defineStore('media', {
       this.currentPath = ''
       this.resetPagination()
     },
-    
-    // 初始化已加载文件
+
+    // 初始化已加载文件（预加载所有文件）
     initLoadedFiles() {
       const filteredFiles = this.filteredMediaFiles
-      const { pageSize } = this.pagination
-      const endIndex = Math.min(pageSize, filteredFiles.length)
-      
-      this.loadedMediaFiles = filteredFiles.slice(0, endIndex)
-      this.pagination.hasMore = endIndex < filteredFiles.length
+
+      // 预加载所有文件
+      this.loadedMediaFiles = filteredFiles
+
+      // 更新分页状态
+      this.pagination.hasMore = false // 已经加载了所有文件
+      this.pagination.currentPage = 1 // 重置到第一页
+
+      // 确保加载状态被正确重置
+      this.pagination.isLoading = false
     }
   }
 })
