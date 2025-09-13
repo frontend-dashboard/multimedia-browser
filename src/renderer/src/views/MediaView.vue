@@ -86,8 +86,8 @@
               />
             </div>
           </div>
-          <!-- 分页控件 -->
-          <div class="pagination-container">
+          <!-- 分页控件（只有在文件总数大于每页显示数量时显示） -->
+          <div v-if="showPagination" class="pagination-container">
             <el-pagination
               :current-page="mediaStore.pagination.currentPage"
               :page-size="mediaStore.pagination.pageSize"
@@ -164,6 +164,11 @@ const paginatedMediaFiles = computed(() => mediaStore.paginatedMediaFiles)
 // 获取筛选后的媒体文件总数
 const filteredMediaFilesCount = computed(() => {
   return filteredMediaFiles.value.length
+})
+
+// 判断是否需要显示分页控件（文件总数大于每页显示数量时显示）
+const showPagination = computed(() => {
+  return filteredMediaFilesCount.value > mediaStore.pagination.pageSize
 })
 const drawerSize = ref('600px')
 const drawerVisible = ref(false)
@@ -357,7 +362,7 @@ onUnmounted(() => {
 }
 
 .media-grid {
-  min-height: 285px;
+  min-height: 232px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
@@ -433,11 +438,29 @@ onUnmounted(() => {
   margin-top: 16px;
 }
 
-/* 滚动容器样式 */
+/* 滚动容器基础样式 */
 .media-grid-container {
-  max-height: calc(100vh - 478px);
+  min-height: 232px;
   overflow-y: auto;
   scroll-behavior: smooth;
+  max-height: calc(100vh - 406px); /* 默认高度，没有分页控件时使用 */
+}
+
+/* 分页控件样式 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  margin-top: 20px;
+}
+
+/* 当媒体网格容器后面跟着分页控件时，减小高度以留出分页控件空间 */
+.media-grid-container + .pagination-container {
+  margin-top: 20px;
+}
+
+.media-grid-container:not(:last-child) {
+  max-height: calc(100vh - 478px); /* 有分页控件时的高度 */
 }
 
 /* 加载更多样式 */
