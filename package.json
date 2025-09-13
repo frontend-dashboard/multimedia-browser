@@ -26,7 +26,8 @@
     "element-plus": "^2.11.2",
     "pinia": "^3.0.3",
     "vue-i18n": "^11.1.12",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vue-draggable-next": "^2.1.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",
