@@ -21,7 +21,7 @@
         </el-button>
       </div>
     </el-card>
-
+    <!-- 路径卡片 -->
     <el-card class="path-card mb-4" shadow="hover">
       <div class="controls">
         <el-input
@@ -62,9 +62,10 @@
         </div>
       </div>
     </el-card>
-
+    <!-- 媒体文件卡片 -->
     <el-card shadow="hover">
       <div :element-loading-text="t('media.loading')" v-loading="loading">
+        <!-- 空状态提示 -->
         <el-empty
           v-if="filteredMediaFiles.length === 0 && !loading"
           :description="t('media.noFilesFound')"
@@ -72,7 +73,7 @@
         >
           <div class="empty-hint">{{ t('media.selectMediaDirHint') }}</div>
         </el-empty>
-
+        <!-- 媒体文件列表 -->
         <div v-else class="media-grid" :class="viewMode">
           <el-card
             v-for="file in filteredMediaFiles"
@@ -117,7 +118,7 @@
         </div>
       </div>
     </el-card>
-
+    <!-- 文件详情抽屉 -->
     <el-drawer v-model="drawerVisible" :size="drawerSize" :before-close="handleClose">
       <template #header>
         <div class="card-header">
