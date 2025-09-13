@@ -1,6 +1,6 @@
 <template>
   <div class="settings-view">
-    <el-card class="header-card" shadow="never">
+    <el-card class="header-card" shadow="always">
       <template #header>
         <div class="card-header">
           <el-icon><Setting /></el-icon>
@@ -14,7 +14,7 @@
       </el-form>
     </el-card>
 
-    <el-card shadow="never" class="mt-4">
+    <el-card shadow="always" class="mt-4">
       <el-form>
         <el-form-item label="" prop="section-title">
           <el-divider content-position="left">
@@ -116,7 +116,7 @@
         </el-form-item>
 
         <el-form-item>
-          <el-card class="about-card">
+          <el-card class="about-card" shadow="never">
             <el-descriptions :column="1" border>
               <el-descriptions-item :label="t('settings.appName')">
                 {{ t('app.name') }}

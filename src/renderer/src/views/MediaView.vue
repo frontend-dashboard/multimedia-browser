@@ -1,6 +1,6 @@
 <template>
   <div class="media-view">
-    <el-card class="header-card mb-4" shadow="hover">
+    <el-card class="header-card mb-4" shadow="always">
       <template #header>
         <div class="card-header">
           <el-icon><Folder /></el-icon>
@@ -129,7 +129,7 @@
           </el-descriptions-item>
         </el-descriptions>
         <!-- 文件预览 -->
-        <el-card class="file-preview-section">
+        <el-card class="file-preview-section mt-4">
           <FileDisplayCard
             :preview-url="selectedFile.path"
             :title="selectedFile.name"

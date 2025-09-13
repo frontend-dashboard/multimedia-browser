@@ -1,6 +1,6 @@
 <template>
   <div class="home-view">
-    <el-card class="welcome-card" shadow="hover">
+    <el-card class="welcome-card" shadow="always">
       <template #header>
         <div class="card-header">
           <span>{{ t('app.name') }}</span>

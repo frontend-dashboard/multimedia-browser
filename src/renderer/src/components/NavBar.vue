@@ -30,8 +30,8 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
     >
       <el-menu-item index="home">{{ t('navigation.home') }}</el-menu-item>
       <el-menu-item index="media">{{ t('navigation.media') }}</el-menu-item>
-      <el-menu-item index="rpa">{{ t('navigation.rpa') }}</el-menu-item>
       <el-menu-item index="settings">{{ t('navigation.settings') }}</el-menu-item>
+      <el-menu-item index="rpa">{{ t('navigation.rpa') }}</el-menu-item>
     </el-menu>
 
     <el-button type="primary" @click="ipcHandle">{{ t('actions.sendIPC') }}</el-button>
@@ -63,6 +63,12 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--color-text);
+}
+
+/* 重置el-menu边框样式 */
+.el-menu,
+.el-menu-item {
+  border: none !important;
 }
 
 /* 响应式设计 */
