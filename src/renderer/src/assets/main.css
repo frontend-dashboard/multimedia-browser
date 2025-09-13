@@ -406,6 +406,56 @@ a:hover {
   border-color: var(--color-border) !important;
 }
 
+/* 图片查看器组件 - 确保与主题一致 */
+.el-image-viewer {
+  --el-image-viewer-bg-color: var(--color-background-soft) !important;
+  background-color: var(--color-background-soft) !important;
+}
+
+.el-image-viewer__mask {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.el-image-viewer__btn {
+  color: var(--color-text) !important;
+  background-color: var(--color-background) !important;
+  border-color: var(--color-border) !important;
+}
+
+.el-image-viewer__btn:hover {
+  background-color: var(--color-background-mute) !important;
+  border-color: var(--color-border) !important;
+}
+
+.el-image-viewer__canvas {
+  background-color: var(--color-background) !important;
+}
+
+.el-image-viewer__actions {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 深色主题下的图片查看器特定样式 */
+:root.dark-theme .el-image-viewer {
+  --el-image-viewer-bg-color: var(--color-background-soft) !important;
+  background-color: var(--color-background-soft) !important;
+}
+
+:root.dark-theme .el-image-viewer__mask {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+}
+
+:root.dark-theme .el-image-viewer__btn {
+  color: var(--color-text) !important;
+  background-color: var(--color-background) !important;
+  border-color: var(--color-border) !important;
+}
+
+:root.dark-theme .el-image-viewer__btn:hover {
+  background-color: var(--color-background-mute) !important;
+  border-color: var(--color-border) !important;
+}
+
 /* 复选框 */
 .el-checkbox__inner {
   border-color: var(--color-border) !important;

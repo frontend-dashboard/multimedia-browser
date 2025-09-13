@@ -13,6 +13,16 @@ const api = {
   // 获取视频封面
   getVideoThumbnail: (videoPath) => {
     return ipcRenderer.invoke('get-video-thumbnail', videoPath)
+  },
+  // 获取安全的文件URL（使用自定义协议）
+  getSafeFileUrl: (filePath) => {
+    try {
+      // 使用已注册的'media-file'协议创建安全的URL
+      return `media-file://${encodeURIComponent(filePath)}`
+    } catch (error) {
+      console.error('创建安全文件URL失败:', error)
+      return ''
+    }
   }
 }
 

@@ -4,11 +4,13 @@
       <!-- 图片预览 -->
       <div v-if="isImage" class="image-preview">
         <el-image
-          :src="previewUrl"
+          :src="getLocalFileUrl(previewUrl)"
           fit="contain"
-          :preview-src-list="[previewUrl]"
+          :preview-src-list="[getLocalFileUrl(previewUrl)]"
           @load="loading = false"
           @error="handleError('图片加载失败')"
+          preview-teleported
+          :z-index="3000"
         >
           <template #error>
             <div class="image-error">
@@ -23,7 +25,7 @@
       <!-- 视频预览 -->
       <div v-if="isVideo" class="video-preview">
         <video
-          :src="previewUrl"
+          :src="getLocalFileUrl(previewUrl)"
           controls
           autoplay
           muted
@@ -162,13 +164,49 @@ const handleError = (message) => {
   errorMessage.value = message
 }
 
-// 获取文档预览 URL（使用微软在线预览服务）
-const getDocumentPreviewUrl = () => {
-  if (mimeType.value === 'application/pdf') {
-    return props.previewUrl // PDF 可直接通过 URL 预览
+// 使用preload中提供的安全文件URL获取方法
+const getLocalFileUrl = (path) => {
+  try {
+    // 检查window.api是否可用
+    if (window && window.api && window.api.getSafeFileUrl) {
+      const safeUrl = window.api.getSafeFileUrl(path)
+      console.log('安全文件URL:', safeUrl)
+      return safeUrl
+    } else {
+      console.warn('window.api.getSafeFileUrl不可用，使用备用方法')
+
+      // 备用方法：处理Windows路径
+      let filePath = path
+      if (filePath.includes('\\')) {
+        filePath = filePath.replace(/\\/g, '/')
+      }
+
+      return filePath
+    }
+  } catch (error) {
+    console.error('获取安全文件URL失败:', error)
+    return path
   }
-  // Office 文档使用微软预览服务
-  return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(props.previewUrl)}`
+}
+
+// 获取文档预览 URL
+const getDocumentPreviewUrl = () => {
+  // 转换为可预览的URL格式
+  const previewUrl = getLocalFileUrl(props.previewUrl)
+
+  if (mimeType.value === 'application/pdf') {
+    return previewUrl // PDF 可直接通过 URL 预览
+  }
+
+  // 对于Office文档，如果是本地文件，我们无法直接使用微软在线预览服务
+  // 因为微软预览服务需要可公开访问的URL
+  if (previewUrl.startsWith('file://')) {
+    console.warn('本地Office文档无法通过微软预览服务预览，将尝试直接使用file://协议打开')
+    return previewUrl
+  }
+
+  // 非本地文件使用微软在线预览服务
+  return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(previewUrl)}`
 }
 
 // 监听 URL 变化，重新加载
@@ -191,7 +229,7 @@ watch(
 
 .preview-content {
   width: 100%;
-  height: 500px;
+  height: 100%;
   position: relative;
 }
 

@@ -129,13 +129,13 @@
           </el-descriptions-item>
         </el-descriptions>
         <!-- 文件预览 -->
-        <div class="file-preview-section mb-4">
+        <el-card class="file-preview-section">
           <FileDisplayCard
             :preview-url="selectedFile.path"
             :title="selectedFile.name"
             :visible="drawerVisible"
           />
-        </div>
+        </el-card>
       </div>
     </el-drawer>
   </div>
@@ -442,6 +442,7 @@ onMounted(() => {
 /* 文件详情抽屉样式 */
 .file-details-container {
   height: 100%;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 }
@@ -449,7 +450,6 @@ onMounted(() => {
 .file-preview-section {
   flex-shrink: 0;
   border-bottom: 1px solid var(--color-border);
-  padding-bottom: 16px;
 }
 
 /* 滚动容器基础样式 */
