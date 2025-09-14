@@ -20,8 +20,8 @@
     <!-- 主要内容区 -->
     <div class="editor-content">
       <!-- 工作区 -->
-      <div 
-          class="editor-canvas-container" 
+      <div
+          class="editor-canvas-container"
           @wheel.prevent="handleWheel"
         >
           <div
@@ -588,8 +588,36 @@ const handleDrop = (event) => {
 
       // 处理连接拖拽
       else if (elementData.sourceId || elementData.targetId) {
-        // 这里应该有更详细的连接逻辑
-        console.log('连接数据:', elementData)
+        // 获取放置位置的元素
+        const dropPosition = getEventPosition(event)
+        let targetElement = null
+        
+        // 查找位置对应的元素
+        for (const element of localWorkflow.elements) {
+          // 检查元素边界
+          if (dropPosition.x >= element.position.x && 
+              dropPosition.x <= element.position.x + 150 && // 假设元素宽度为150
+              dropPosition.y >= element.position.y && 
+              dropPosition.y <= element.position.y + 100) { // 假设元素高度为100
+            targetElement = element
+            break
+          }
+        }
+        
+        // 创建完整的连接数据
+        const connectionData = {
+          ...elementData,
+        }
+        
+        // 根据拖拽方向设置缺失的ID
+        if (elementData.sourceId && !elementData.targetId && targetElement) {
+          connectionData.targetId = targetElement.id
+        } else if (elementData.targetId && !elementData.sourceId && targetElement) {
+          connectionData.sourceId = targetElement.id
+        }
+        
+        // 创建连接
+        createConnection(connectionData)
       }
     } else {
       // 数据为空时，可以选择记录日志或忽略
@@ -603,6 +631,49 @@ const handleDrop = (event) => {
   // 清除临时连接
   tempConnection.value = null
   isConnecting.value = false
+}
+
+// 创建连接
+const createConnection = (connectionData) => {
+  if (props.readOnly) return
+
+  // 确保sourceId和targetId都存在
+  if (!connectionData.sourceId || !connectionData.targetId) {
+    console.error('创建连接失败：缺少源元素或目标元素ID')
+    return
+  }
+
+  // 检查源元素和目标元素是否存在
+  const sourceElement = localWorkflow.elements.find(el => el.id === connectionData.sourceId)
+  const targetElement = localWorkflow.elements.find(el => el.id === connectionData.targetId)
+
+  if (!sourceElement || !targetElement) {
+    console.error('创建连接失败：源元素或目标元素不存在')
+    return
+  }
+
+  // 检查连接是否已存在
+  const existingConnection = localWorkflow.connections.find(
+    conn => conn.sourceId === connectionData.sourceId && conn.targetId === connectionData.targetId
+  )
+
+  if (existingConnection) {
+    console.error('创建连接失败：连接已存在')
+    return
+  }
+
+  // 创建新连接
+  const newConnection = {
+    id: `connection_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    sourceId: connectionData.sourceId,
+    targetId: connectionData.targetId,
+    name: `连接_${sourceElement.name}_${targetElement.name}`,
+    selected: false
+  }
+
+  // 添加连接到工作流
+  localWorkflow.connections.push(newConnection)
+  console.log('成功创建连接:', newConnection)
 }
 
 // 处理画布点击
@@ -903,18 +974,19 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 4000px; /* 与画布相同尺寸 */
+  height: 3000px; /* 与画布相同尺寸 */
   pointer-events: visiblePainted;
   z-index: 10;
 }
 
 .connection-path {
   fill: none;
-  stroke: #909399;
+  stroke: #409eff;
   stroke-linecap: round;
   stroke-linejoin: round;
   cursor: pointer;
+  stroke-width: 2.5;
 }
 
 .connection-path-selected {

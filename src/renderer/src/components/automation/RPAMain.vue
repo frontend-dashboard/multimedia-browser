@@ -66,35 +66,35 @@
       </div>
 
       <!-- 右侧面板 - 标签页切换 -->
-    <div class="right-panel">
-      <!-- 标签页导航 -->
-      <div class="right-panel-tabs">
-        <div 
-          class="tab-item" 
-          :class="{ 'active': activeTab === 'player' }" 
-          @click="switchTab('player')"
-        >
-          播放器
+      <div class="right-panel">
+        <!-- 标签页导航 -->
+        <div class="right-panel-tabs">
+          <div
+            class="tab-item"
+            :class="{ active: activeTab === 'player' }"
+            @click="switchTab('player')"
+          >
+            播放器
+          </div>
+          <div
+            class="tab-item"
+            :class="{ active: activeTab === 'logs' }"
+            @click="switchTab('logs')"
+          >
+            日志查看
+          </div>
         </div>
-        <div 
-          class="tab-item" 
-          :class="{ 'active': activeTab === 'logs' }" 
-          @click="switchTab('logs')"
-        >
-          日志查看
+
+        <!-- 标签页内容 -->
+        <div class="right-panel-content">
+          <WorkflowPlayer
+            v-if="activeTab === 'player'"
+            ref="workflowPlayerRef"
+            :workflow="workflow"
+          />
+          <LogViewer v-else-if="activeTab === 'logs'" />
         </div>
       </div>
-      
-      <!-- 标签页内容 -->
-      <div class="right-panel-content">
-        <WorkflowPlayer 
-          v-if="activeTab === 'player'" 
-          ref="workflowPlayerRef" 
-          :workflow="workflow" 
-        />
-        <LogViewer v-else-if="activeTab === 'logs'" />
-      </div>
-    </div>
     </div>
 
     <!-- 状态栏 -->
@@ -278,12 +278,16 @@ const handleWorkflowUpdated = (updatedWorkflow) => {
   Object.assign(workflow, updatedWorkflow)
   isSaved.value = false
   lastModified.value = new Date()
+
+  console.log('工作流已更新', updatedWorkflow)
 }
 
 // 组件挂载时记录日志
 onMounted(() => {
   logger.info('RPAMain组件已挂载，工作流系统初始化完成')
-  logger.debug(`初始工作流包含${workflow.elements.length}个元件和${workflow.connections.length}个连接`)
+  logger.debug(
+    `初始工作流包含${workflow.elements.length}个元件和${workflow.connections.length}个连接`
+  )
 })
 
 // 处理主题切换
@@ -341,10 +345,10 @@ onMounted(() => {
 
   // 初始化最后修改时间
   lastModified.value = new Date()
-  
+
   // 初始化主题
   currentTheme.value = localStorage.getItem('theme') || 'light'
-  
+
   // 设置系统主题变化的监听器
   themeCleanup = setupSystemThemeListener(() => {
     if (currentTheme.value === 'system') {
@@ -356,7 +360,7 @@ onMounted(() => {
 onUnmounted(() => {
   // 移除键盘事件监听
   document.removeEventListener('keydown', handleKeyDown)
-  
+
   // 清理主题相关资源
   if (themeCleanup) {
     themeCleanup()
