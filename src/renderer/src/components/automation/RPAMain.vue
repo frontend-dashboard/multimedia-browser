@@ -12,6 +12,39 @@
         <el-button @click="clearWorkflow">清空画布</el-button>
       </div>
       <div class="toolbar-right">
+        <el-dropdown @command="handleThemeChange">
+          <el-button type="default" class="theme-switch-btn">
+            <el-icon v-if="currentTheme === 'light'">
+              <Sunny />
+            </el-icon>
+            <el-icon v-else-if="currentTheme === 'dark'">
+              <Moon />
+            </el-icon>
+            <el-icon v-else>
+              <Monitor />
+            </el-icon>
+            <span>{{ getThemeDisplayText() }}</span>
+            <el-icon class="el-icon--right">
+              <ArrowDown />
+            </el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="light">
+                <el-icon><Sunny /></el-icon>
+                <span>亮色模式</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="dark">
+                <el-icon><Moon /></el-icon>
+                <span>暗色模式</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="system">
+                <el-icon><Monitor /></el-icon>
+                <span>跟随系统</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <el-button type="success" @click="playWorkflow">播放</el-button>
       </div>
     </div>
@@ -92,6 +125,12 @@ import LogViewer from '../LogViewer.vue'
 // 导入日志工具
 import logger from '@renderer/utils/logger.js'
 
+// 导入主题工具函数
+import { saveAndApplyTheme, setupSystemThemeListener } from '@renderer/utils/themeUtils.js'
+
+// 导入Element Plus图标
+import { ArrowDown, Monitor, Moon, Sunny } from '@element-plus/icons-vue'
+
 // 工作流数据
 const workflow = reactive({
   name: '未命名流程',
@@ -140,6 +179,10 @@ const activeTab = ref('player') // player 或 logs
 // 状态信息
 const isSaved = ref(true)
 const lastModified = ref(null)
+
+// 主题相关状态
+const currentTheme = ref(localStorage.getItem('theme') || 'light')
+let themeCleanup = null
 
 // 切换标签页
 const switchTab = (tabName) => {
@@ -243,6 +286,23 @@ onMounted(() => {
   logger.debug(`初始工作流包含${workflow.elements.length}个元件和${workflow.connections.length}个连接`)
 })
 
+// 处理主题切换
+const handleThemeChange = (theme) => {
+  currentTheme.value = theme
+  saveAndApplyTheme(theme)
+  logger.info(`主题已切换为: ${getThemeDisplayText()}`)
+}
+
+// 获取主题显示文本
+const getThemeDisplayText = () => {
+  const displayTextMap = {
+    light: '亮色',
+    dark: '暗色',
+    system: '跟随系统'
+  }
+  return displayTextMap[currentTheme.value] || '亮色'
+}
+
 // 监听键盘快捷键
 const handleKeyDown = (event) => {
   // Ctrl/Cmd + S: 保存
@@ -281,11 +341,26 @@ onMounted(() => {
 
   // 初始化最后修改时间
   lastModified.value = new Date()
+  
+  // 初始化主题
+  currentTheme.value = localStorage.getItem('theme') || 'light'
+  
+  // 设置系统主题变化的监听器
+  themeCleanup = setupSystemThemeListener(() => {
+    if (currentTheme.value === 'system') {
+      logger.info('系统主题已变化，自动更新应用主题')
+    }
+  })
 })
 
 onUnmounted(() => {
   // 移除键盘事件监听
   document.removeEventListener('keydown', handleKeyDown)
+  
+  // 清理主题相关资源
+  if (themeCleanup) {
+    themeCleanup()
+  }
 })
 </script>
 
@@ -301,10 +376,18 @@ onUnmounted(() => {
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* 主题切换按钮样式 */
+.theme-switch-btn {
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* 主工具栏样式 */
 .main-toolbar {
   height: 60px;
-  background-color: #f8f9fa;
+  background-color: var(--color-background-light);
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
@@ -324,7 +407,7 @@ onUnmounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #1890ff;
+  color: var(--color-primary);
 }
 
 .app-subtitle {
@@ -348,7 +431,7 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   overflow: hidden;
-  background-color: #f0f2f5;
+  background-color: var(--color-background);
 }
 
 /* 左侧面板 - 元件库 */
@@ -356,7 +439,7 @@ onUnmounted(() => {
   width: 260px;
   height: 100%;
   flex-shrink: 0;
-  background-color: #ffffff;
+  background-color: var(--color-background-light);
   border-right: 1px solid var(--color-border);
   overflow-y: auto;
   transition: all 0.3s ease;
@@ -369,7 +452,7 @@ onUnmounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: var(--color-background-light);
   margin: 8px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -380,7 +463,7 @@ onUnmounted(() => {
   width: 380px;
   height: 100%;
   flex-shrink: 0;
-  background-color: #ffffff;
+  background-color: var(--color-background-light);
   border-left: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
@@ -391,7 +474,7 @@ onUnmounted(() => {
 .right-panel-tabs {
   display: flex;
   height: 40px;
-  background-color: #f8f8f8;
+  background-color: var(--color-background-950);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -408,12 +491,12 @@ onUnmounted(() => {
 }
 
 .tab-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--color-background-900);
   color: var(--color-text-primary);
 }
 
 .tab-item.active {
-  background-color: #ffffff;
+  background-color: var(--color-background-light);
   color: var(--color-primary);
   font-weight: 500;
   border-bottom: 2px solid var(--color-primary);
@@ -428,7 +511,7 @@ onUnmounted(() => {
 
 .rpa-statusbar {
   height: 36px;
-  background-color: #fafafa;
+  background-color: var(--color-background-950);
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;

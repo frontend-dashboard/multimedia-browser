@@ -20,9 +20,10 @@
     <!-- 主要内容区 -->
     <div class="editor-content">
       <!-- 工作区 -->
-      <div
-        class="editor-canvas-container"
+      <div 
+        class="editor-canvas-container" 
         @wheel.prevent="handleWheel"
+        @click="handleCanvasContainerClick"
       >
         <div
           class="editor-canvas"
@@ -30,7 +31,6 @@
           :style="canvasStyle"
           @dragover="handleDragOver"
           @drop="handleDrop"
-          @click="handleCanvasClick"
           @mousedown="handleCanvasMouseDown"
         >
           <!-- 工作区背景 -->
@@ -65,9 +65,7 @@
           <!-- 节点层 -->
           <div class="element-nodes">
             <!-- 调试: 显示元素数量 -->
-            <div v-if="isDebug" class="debug-info">
-              元素数量: {{ elements.length }}
-            </div>
+            <div v-if="isDebug" class="debug-info">元素数量: {{ elements.length }}</div>
 
             <!-- 渲染所有节点 -->
             <div
@@ -86,10 +84,7 @@
               @mouseleave="hoveredElementId = null"
             >
               <!-- 节点头部 - 点击可拖拽元素 -->
-              <div
-                class="node-header"
-                @mousedown.stop="handleNodeHeaderMouseDown($event, element)"
-              >
+              <div class="node-header" @mousedown.stop="handleNodeHeaderMouseDown($event, element)">
                 <el-icon class="node-icon">
                   <component :is="getIconComponent(element.icon)" />
                 </el-icon>
@@ -100,10 +95,7 @@
               </div>
 
               <!-- 节点参数 - 点击可显示属性面板 -->
-              <div
-                class="node-params"
-                @click.stop="selectElement(element)"
-              >
+              <div class="node-params" @click.stop="selectElement(element)">
                 <div v-for="param in element.params" :key="param.key" class="param-item">
                   <label class="param-label">{{ param.label }}</label>
                   <div class="param-input">
@@ -323,7 +315,10 @@ const canvasStyle = computed(() => ({
 // 只在初始化时使用props数据
 onMounted(() => {
   // 初始化时从props获取数据
-  if (props.workflow && (props.workflow.elements?.length > 0 || props.workflow.connections?.length > 0)) {
+  if (
+    props.workflow &&
+    (props.workflow.elements?.length > 0 || props.workflow.connections?.length > 0)
+  ) {
     Object.assign(localWorkflow, JSON.parse(JSON.stringify(props.workflow)))
   } else {
     initWorkflow()
@@ -349,9 +344,13 @@ onMounted(() => {
 })
 
 // 监听工作流内部变化，通知父组件
-watch(() => [localWorkflow.elements, localWorkflow.connections], () => {
-  emit('workflow-updated', { ...localWorkflow })
-}, { deep: true })
+watch(
+  () => [localWorkflow.elements, localWorkflow.connections],
+  () => {
+    emit('workflow-updated', { ...localWorkflow })
+  },
+  { deep: true }
+)
 
 // 监听选中状态变化
 watch([selectedElement, selectedConnection], () => {
@@ -438,7 +437,7 @@ const addElement = (elementData) => {
   }
 
   // 初始化参数值
-  newElement.params.forEach(param => {
+  newElement.params.forEach((param) => {
     if (!(param.key in newElement.paramValues)) {
       newElement.paramValues[param.key] = param.defaultValue || ''
     }
@@ -453,12 +452,12 @@ const removeElement = (element) => {
   if (props.readOnly) return
 
   // 先删除与该元素相关的连接
-  localWorkflow.connections = localWorkflow.connections.filter(connection => {
+  localWorkflow.connections = localWorkflow.connections.filter((connection) => {
     return connection.sourceId !== element.id && connection.targetId !== element.id
   })
 
   // 然后删除元素
-  const index = localWorkflow.elements.findIndex(e => e.id === element.id)
+  const index = localWorkflow.elements.findIndex((e) => e.id === element.id)
   if (index !== -1) {
     localWorkflow.elements.splice(index, 1)
   }
@@ -481,7 +480,10 @@ const onInputDragStart = (event, element) => {
     startPoint: getEventPosition(event)
   }
   event.dataTransfer.effectAllowed = 'copy'
-  event.dataTransfer.setData('application/json', JSON.stringify({ targetId: element.id, isInput: true }))
+  event.dataTransfer.setData(
+    'application/json',
+    JSON.stringify({ targetId: element.id, isInput: true })
+  )
 }
 
 // 处理输出连接点拖拽开始
@@ -496,7 +498,10 @@ const onOutputDragStart = (event, element) => {
     startPoint: getEventPosition(event)
   }
   event.dataTransfer.effectAllowed = 'copy'
-  event.dataTransfer.setData('application/json', JSON.stringify({ sourceId: element.id, isInput: false }))
+  event.dataTransfer.setData(
+    'application/json',
+    JSON.stringify({ sourceId: element.id, isInput: false })
+  )
 }
 
 // 获取事件位置（考虑缩放）
@@ -511,8 +516,8 @@ const getEventPosition = (event) => {
 // 获取连接路径（优化贝塞尔曲线）
 const getConnectionPath = (connection) => {
   // 找到源元素和目标元素
-  const sourceElement = localWorkflow.elements.find(el => el.id === connection.sourceId)
-  const targetElement = localWorkflow.elements.find(el => el.id === connection.targetId)
+  const sourceElement = localWorkflow.elements.find((el) => el.id === connection.sourceId)
+  const targetElement = localWorkflow.elements.find((el) => el.id === connection.targetId)
 
   if (!sourceElement || !targetElement) {
     return ''
@@ -572,7 +577,7 @@ const handleDrop = (event) => {
           ...elementData,
           position: {
             x: position.x - 75, // 元素宽度的一半
-            y: position.y - 50  // 元素高度的一半
+            y: position.y - 50 // 元素高度的一半
           }
         })
         // 选择新添加的元素
@@ -598,10 +603,14 @@ const handleDrop = (event) => {
   isConnecting.value = false
 }
 
-// 处理画布点击
-const handleCanvasClick = () => {
-  // 清除所有选中状态
-  clearSelection()
+// 处理画布容器点击
+const handleCanvasContainerClick = (event) => {
+  // 只有点击的是画布容器本身时才清除选中状态
+  // 避免点击节点或其他元素时也清除选中状态
+  if (event.target === event.currentTarget) {
+    // 清除所有选中状态
+    clearSelection()
+  }
 }
 
 // 清除选中状态
@@ -610,12 +619,12 @@ const clearSelection = () => {
   selectedConnection.value = null
 
   // 重置元素选中状态
-  localWorkflow.elements.forEach(element => {
+  localWorkflow.elements.forEach((element) => {
     element.selected = false
   })
 
   // 重置连接选中状态
-  localWorkflow.connections.forEach(connection => {
+  localWorkflow.connections.forEach((connection) => {
     connection.selected = false
   })
 }
@@ -650,9 +659,6 @@ const handleNodeHeaderMouseDown = (event, element) => {
 
   // 防止冒泡到画布事件
   event.stopPropagation()
-
-  // 先选中元素
-  selectElement(element)
 
   // 开始拖拽
   const startX = event.clientX
@@ -729,8 +735,8 @@ const handleWheel = (event) => {
 
     // 调整画布位置，使鼠标指向的点保持不变
     canvasPosition.value = {
-      x: (mouseX * scale.value - mouseX * newScale) + canvasPosition.value.x,
-      y: (mouseY * scale.value - mouseY * newScale) + canvasPosition.value.y
+      x: mouseX * scale.value - mouseX * newScale + canvasPosition.value.x,
+      y: mouseY * scale.value - mouseY * newScale + canvasPosition.value.y
     }
 
     scale.value = newScale
@@ -763,7 +769,7 @@ const centerCanvas = () => {
   let totalX = 0
   let totalY = 0
 
-  localWorkflow.elements.forEach(element => {
+  localWorkflow.elements.forEach((element) => {
     totalX += element.position.x + 75 // 75 是元素宽度的一半
     totalY += element.position.y + 50 // 50 是元素高度的一半
   })
@@ -773,8 +779,8 @@ const centerCanvas = () => {
 
   // 计算需要移动的距离
   canvasPosition.value = {
-    x: (containerWidth / 2) / scale.value - centerX,
-    y: (containerHeight / 2) / scale.value - centerY
+    x: containerWidth / 2 / scale.value - centerX,
+    y: containerHeight / 2 / scale.value - centerY
   }
 }
 
@@ -852,7 +858,7 @@ onUnmounted(() => {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background-color: #f8f8f8;
+  background-color: var(--color-background-light);
   margin-right: 0; /* 默认不预留空间 */
   transition: margin-right 0.3s ease;
 }
@@ -931,6 +937,7 @@ onUnmounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 20;
   transition: all 0.2s ease;
+  user-select: none;
 }
 
 .element-node:hover {
@@ -951,7 +958,6 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--color-border);
   border-radius: 6px 6px 0 0;
   cursor: move;
-  user-select: none;
 }
 
 .node-icon {
@@ -991,6 +997,7 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--color-text-secondary);
   margin-bottom: 4px;
+  cursor: pointer;
 }
 
 .required-mark {

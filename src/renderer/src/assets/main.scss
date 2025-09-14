@@ -1,6 +1,15 @@
 /* 主样式文件 */
 @use './base.scss';
 
+/* CSS变量定义 - 适配Element Plus主题系统 */
+:root {
+  /* 明亮模式变量 */
+  --color-background-soft: #f5f7fa;
+  --color-border: #e4e7ed;
+  
+  /* 暗黑模式变量会由Element Plus自动处理 */
+}
+
 code {
   font-weight: 600;
   padding: 3px 5px;
