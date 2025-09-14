@@ -571,6 +571,7 @@ defineExpose({
 
 <style scoped>
 .vue-flow-editor {
+  position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -611,7 +612,7 @@ defineExpose({
   top: 50px;
   right: 10px;
   width: 300px;
-  background-color: var(--color-background-900);
+  background-color: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 12px;
