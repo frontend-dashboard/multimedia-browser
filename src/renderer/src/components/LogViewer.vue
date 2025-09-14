@@ -10,14 +10,19 @@
           <el-option label="警告" value="warn"></el-option>
           <el-option label="错误" value="error"></el-option>
         </el-select>
-        <el-input v-model="searchText" placeholder="搜索日志" size="small" class="search-input"></el-input>
+        <el-input
+          v-model="searchText"
+          placeholder="搜索日志"
+          size="small"
+          class="search-input"
+        ></el-input>
         <el-button size="small" @click="clearLogs">清空</el-button>
         <el-button size="small" type="primary" @click="saveLogs">导出</el-button>
         <el-button size="small" @click="refreshLogs">刷新</el-button>
       </div>
     </div>
 
-    <div class="log-content" ref="logContentRef">
+    <div ref="logContentRef" class="log-content">
       <div v-if="filteredLogs.length === 0" class="no-logs">
         {{ loading ? '加载中...' : '暂无日志' }}
       </div>
@@ -53,21 +58,22 @@ let unsubscribe = null
 // 过滤后的日志
 const filteredLogs = computed(() => {
   let filtered = [...logs.value]
-  
+
   // 按级别过滤
   if (filterLevel.value) {
-    filtered = filtered.filter(log => log.level === filterLevel.value)
+    filtered = filtered.filter((log) => log.level === filterLevel.value)
   }
-  
+
   // 按文本搜索
   if (searchText.value) {
     const searchLower = searchText.value.toLowerCase()
-    filtered = filtered.filter(log => 
-      log.message.toLowerCase().includes(searchLower) ||
-      (log.details && JSON.stringify(log.details).toLowerCase().includes(searchLower))
+    filtered = filtered.filter(
+      (log) =>
+        log.message.toLowerCase().includes(searchLower) ||
+        (log.details && JSON.stringify(log.details).toLowerCase().includes(searchLower))
     )
   }
-  
+
   // 按时间倒序排列
   return filtered.reverse()
 })
@@ -82,7 +88,7 @@ const loadLogs = () => {
     console.error('加载日志失败:', error)
   } finally {
     loading.value = false
-    
+
     // 自动滚动到底部
     nextTick(() => {
       if (logContentRef.value) {
@@ -120,19 +126,21 @@ const saveLogs = async () => {
 // 监听日志变化
 const handleLogUpdate = (newLog) => {
   logs.value.push(newLog)
-  
+
   // 如果日志数量过多，自动清理
   if (logs.value.length > 2000) {
     logs.value = logs.value.slice(-1500)
   }
-  
+
   // 自动滚动到底部
   nextTick(() => {
     if (logContentRef.value) {
       // 检查是否需要自动滚动到底部
-      const shouldAutoScroll = !logContentRef.value.scrollTop || 
-                              (logContentRef.value.scrollTop === logContentRef.value.scrollHeight - logContentRef.value.clientHeight)
-      
+      const shouldAutoScroll =
+        !logContentRef.value.scrollTop ||
+        logContentRef.value.scrollTop ===
+          logContentRef.value.scrollHeight - logContentRef.value.clientHeight
+
       if (shouldAutoScroll) {
         logContentRef.value.scrollTop = logContentRef.value.scrollHeight
       }
@@ -143,10 +151,10 @@ const handleLogUpdate = (newLog) => {
 // 生命周期
 onMounted(() => {
   loadLogs()
-  
+
   // 订阅日志更新
   unsubscribe = logger.subscribeToLogs(handleLogUpdate)
-  
+
   logger.info('日志查看器已初始化')
 })
 
@@ -155,7 +163,7 @@ onUnmounted(() => {
   if (typeof unsubscribe === 'function') {
     unsubscribe()
   }
-  
+
   logger.info('日志查看器已关闭')
 })
 

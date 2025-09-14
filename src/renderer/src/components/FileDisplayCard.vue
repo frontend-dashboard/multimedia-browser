@@ -263,7 +263,6 @@ watch(
   white-space: nowrap;
 }
 
-
 .image-error .el-icon {
   font-size: 48px;
   margin-bottom: 16px;

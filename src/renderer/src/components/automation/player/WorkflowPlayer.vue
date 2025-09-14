@@ -5,8 +5,8 @@
       <div class="control-group">
         <el-button
           :type="playState === 'stopped' || playState === 'paused' ? 'primary' : 'default'"
-          @click="togglePlayPause"
           :disabled="!canPlay"
+          @click="togglePlayPause"
         >
           <el-icon>
             <component :is="playState === 'playing' ? VideoPause : VideoPlay" />
@@ -14,14 +14,14 @@
           {{ playState === 'playing' ? '暂停' : '播放' }}
         </el-button>
 
-        <el-button type="danger" @click="stopPlayback" :disabled="playState === 'stopped'">
+        <el-button type="danger" :disabled="playState === 'stopped'" @click="stopPlayback">
           <el-icon><Stopwatch /></el-icon>
           停止
         </el-button>
 
         <el-button
-          @click="stepForward"
           :disabled="playState !== 'paused' && playState !== 'stopped'"
+          @click="stepForward"
         >
           <el-icon><Right /></el-icon>
           单步执行
@@ -51,7 +51,7 @@
         </span>
       </div>
 
-      <div class="status-info" v-if="currentElement">
+      <div v-if="currentElement" class="status-info">
         <span class="status-label">当前执行：</span>
         <span class="status-value">{{ currentElement.name }}</span>
       </div>
@@ -74,7 +74,7 @@
         <el-button size="small" @click="clearLog">清空</el-button>
       </div>
 
-      <div class="log-content" ref="logContentRef">
+      <div ref="logContentRef" class="log-content">
         <div
           v-for="(log, index) in logs"
           :key="index"
@@ -175,7 +175,7 @@ const formatTime = (ms) => {
 // 添加日志 - 同时发送到全局日志系统和组件内部日志
 const addLog = (level, message, details = null) => {
   const timestamp = new Date().toLocaleTimeString()
-  
+
   // 添加到组件内部日志（用于界面显示）
   logs.value.push({
     timestamp,
@@ -183,7 +183,7 @@ const addLog = (level, message, details = null) => {
     message,
     details
   })
-  
+
   // 发送到全局日志系统
   switch (level) {
     case 'debug':
@@ -268,63 +268,72 @@ const executeElementAction = async (element) => {
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
   switch (element.type) {
-    case 'BROWSER_OPEN':
+    case 'BROWSER_OPEN': {
       const url = element.paramValues?.url || 'https://www.example.com'
       currentBrowserUrl.value = url
       showBrowserPreview.value = true
       addLog('info', `正在打开浏览器：${url}`)
       await delay(2000 / playbackSpeed.value)
       break
+    }
 
-    case 'BROWSER_CLOSE':
+    case 'BROWSER_CLOSE': {
       showBrowserPreview.value = false
       addLog('info', '正在关闭浏览器')
       await delay(1000 / playbackSpeed.value)
       break
+    }
 
-    case 'CLICK_ELEMENT':
+    case 'CLICK_ELEMENT': {
       const selector = element.paramValues?.selector || 'unknown'
       addLog('info', `正在点击元素：${selector}`)
       await delay(1500 / playbackSpeed.value)
       break
+    }
 
-    case 'INPUT_TEXT':
+    case 'INPUT_TEXT': {
       const inputSelector = element.paramValues?.selector || 'unknown'
       const text = element.paramValues?.text || ''
       addLog('info', `正在输入文本到 ${inputSelector}：${text}`)
       await delay(2000 / playbackSpeed.value)
       break
+    }
 
-    case 'EXTRACT_DATA':
+    case 'EXTRACT_DATA': {
       const extractSelector = element.paramValues?.selector || 'unknown'
       const extractType = element.paramValues?.extractType || 'text'
       const variableName = element.paramValues?.variableName || 'extractedData'
       addLog('info', `正在从 ${extractSelector} 提取 ${extractType} 数据到变量 ${variableName}`)
       await delay(1500 / playbackSpeed.value)
       break
+    }
 
-    case 'WAIT':
+    case 'WAIT': {
       const waitSeconds = element.paramValues?.seconds || 2
       addLog('info', `等待 ${waitSeconds} 秒`)
       await delay((waitSeconds * 1000) / playbackSpeed.value)
       break
+    }
 
-    case 'IF_CONDITION':
+    case 'IF_CONDITION': {
       const condition = element.paramValues?.condition || 'true'
       addLog('info', `条件判断：${condition}`)
       await delay(1000 / playbackSpeed.value)
       break
+    }
 
-    case 'SAVE_FILE':
+    case 'SAVE_FILE': {
       const filePath = element.paramValues?.filePath || 'output.txt'
       const format = element.paramValues?.format || 'txt'
       addLog('info', `保存文件：${filePath} (格式：${format})`)
       await delay(1500 / playbackSpeed.value)
       break
+    }
 
-    default:
+    default: {
       addLog('warn', `未知元件类型：${element.type}`)
       await delay(1000 / playbackSpeed.value)
+    }
   }
 }
 

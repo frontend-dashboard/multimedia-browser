@@ -20,6 +20,7 @@
     <!-- Vue Flow 工作区 -->
     <div class="vue-flow-container">
       <VueFlow
+        ref="vueFlowRef"
         v-model="elements"
         :connections="connections"
         :nodes-draggable="true"
@@ -29,6 +30,7 @@
         :fit-view="false"
         :min-zoom="0.5"
         :max-zoom="2"
+        class="vue-flow-workspace"
         @node-drag-stop="handleNodeDragStop"
         @node-drag-start="handleNodeDragStart"
         @connection-success="handleConnectionSuccess"
@@ -36,19 +38,15 @@
         @node-mouseleave="handleNodeMouseLeave"
         @connect="handleConnect"
         @zoom="handleZoom"
-        ref="vueFlowRef"
-        class="vue-flow-workspace"
         @drop="handleDrop"
         @dragover="handleDragOver"
       >
         <!-- 基础控制按钮 -->
-        <Controls 
-          position="top-right"
-        />
+        <Controls position="top-right" />
 
         <!-- 自定义节点 -->
         <template #node-custom-node="{ data }">
-          <div 
+          <div
             class="custom-node"
             :class="{
               'custom-node-selected': data.selected,
@@ -60,16 +58,12 @@
                 <component :is="getIconComponent(data.icon)" />
               </el-icon>
               <span class="node-name">{{ data.name }}</span>
-              <el-icon 
-                class="node-remove" 
-                @click.stop="removeElement(data.id)"
-                title="删除节点"
-              >
+              <el-icon class="node-remove" title="删除节点" @click.stop="removeElement(data.id)">
                 <Close />
               </el-icon>
             </div>
-            
-            <div class="node-params" v-if="data.params && data.params.length > 0">
+
+            <div v-if="data.params && data.params.length > 0" class="node-params">
               <div v-for="param in data.params.slice(0, 2)" :key="param.key" class="param-item">
                 <label class="param-label">{{ param.label }}</label>
                 <div class="param-value">{{ getParamDisplayValue(data.paramValues, param) }}</div>
@@ -84,11 +78,11 @@
     </div>
 
     <!-- 属性面板 -->
-    <div class="editor-properties" v-if="selectedNode">
+    <div v-if="selectedNode" class="editor-properties">
       <div class="properties-header">
         <h3>属性面板</h3>
       </div>
-      
+
       <div class="element-properties">
         <h4>{{ selectedNode.data.name }}</h4>
         <el-divider />
@@ -103,23 +97,26 @@
         <div class="property-group">
           <h5>位置</h5>
           <div class="position-inputs">
-            <el-input-number 
-              v-model="selectedNode.position.x" 
-              label="X" 
-              :min="0" 
+            <el-input-number
+              v-model="selectedNode.position.x"
+              label="X"
+              :min="0"
               @change="handleNodePositionChange"
             />
-            <el-input-number 
-              v-model="selectedNode.position.y" 
-              label="Y" 
-              :min="0" 
+            <el-input-number
+              v-model="selectedNode.position.y"
+              label="Y"
+              :min="0"
               @change="handleNodePositionChange"
             />
           </div>
         </div>
 
         <!-- 节点参数 -->
-        <div v-if="selectedNode.data.params && selectedNode.data.params.length > 0" class="property-group">
+        <div
+          v-if="selectedNode.data.params && selectedNode.data.params.length > 0"
+          class="property-group"
+        >
           <h5>节点参数</h5>
           <div v-for="param in selectedNode.data.params" :key="param.key" class="param-item">
             <label class="param-label">
@@ -169,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 // 导入 VueFlow 相关组件
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
@@ -207,89 +204,150 @@ const snapToGrid = ref(true)
 const currentZoom = ref(1)
 
 // 监听工作流数据变化，同步到 Vue Flow
-watch(() => props.workflow, (newWorkflow) => {
-  if (newWorkflow) {
-    // 将工作流元素转换为 Vue Flow 节点格式
-    elements.value = newWorkflow.elements.map(el => ({
-      id: el.id,
-      type: 'custom-node',
-      position: { x: el.position.x, y: el.position.y },
-      data: {
-        ...el,
-        // Vue Flow 要求数据中包含必要的属性
-        selected: el.selected || false,
-        paramValues: el.paramValues || {}
-      },
-      selected: el.selected || false
-    }))
-    
-    // 将工作流连接转换为 Vue Flow 连接格式
-    connections.value = newWorkflow.connections.map(conn => ({
-      id: conn.id || `conn_${conn.sourceId}_${conn.targetId}`,
-      source: conn.sourceId,
-      target: conn.targetId,
-      sourceHandle: conn.sourceHandle || 'right',
-      targetHandle: conn.targetHandle || 'left',
-      selected: conn.selected || false
-    }))
-  }
-}, { immediate: true, deep: true })
+watch(
+  () => props.workflow,
+  (newWorkflow) => {
+    if (newWorkflow) {
+      // 将工作流元素转换为 Vue Flow 节点格式
+      elements.value = newWorkflow.elements.map((el) => ({
+        id: el.id,
+        type: 'custom-node',
+        position: { x: el.position.x, y: el.position.y },
+        data: {
+          ...el,
+          // Vue Flow 要求数据中包含必要的属性
+          selected: el.selected || false,
+          paramValues: el.paramValues || {}
+        },
+        selected: el.selected || false
+      }))
+
+      // 将工作流连接转换为 Vue Flow 连接格式
+      connections.value = newWorkflow.connections.map((conn) => ({
+        id: conn.id || `conn_${conn.sourceId}_${conn.targetId}`,
+        source: conn.sourceId,
+        target: conn.targetId,
+        sourceHandle: conn.sourceHandle || 'right',
+        targetHandle: conn.targetHandle || 'left',
+        selected: conn.selected || false
+      }))
+    }
+  },
+  { immediate: true, deep: true }
+)
 
 // 监听元素和连接变化，通知父组件
-watch([elements, connections], () => {
-  // 构建工作流数据
-  const updatedWorkflow = {
-    ...props.workflow,
-    elements: elements.value.map(node => ({
-      id: node.id,
-      name: node.data.name,
-      icon: node.data.icon,
-      position: node.position,
-      params: node.data.params || [],
-      paramValues: node.data.paramValues || {},
-      selected: node.selected
-    })),
-    connections: connections.value.map(conn => ({
-      id: conn.id,
-      sourceId: conn.source,
-      targetId: conn.target,
-      selected: conn.selected
-    }))
-  }
-  
-  emit('workflow-updated', updatedWorkflow)
-}, { deep: true })
+watch(
+  [elements, connections],
+  () => {
+    // 构建工作流数据
+    const updatedWorkflow = {
+      ...props.workflow,
+      elements: elements.value.map((node) => ({
+        id: node.id,
+        name: node.data.name,
+        icon: node.data.icon,
+        position: node.position,
+        params: node.data.params || [],
+        paramValues: node.data.paramValues || {},
+        selected: node.selected
+      })),
+      connections: connections.value.map((conn) => ({
+        id: conn.id,
+        sourceId: conn.source,
+        targetId: conn.target,
+        selected: conn.selected
+      }))
+    }
+
+    emit('workflow-updated', updatedWorkflow)
+  },
+  { deep: true }
+)
 
 // 处理节点点击
 const handleNodeClick = (event, node) => {
-  // 添加更详细的安全检查和调试信息
-  console.log('handleNodeClick called with:', { eventType: event?.type, hasNode: !!node });
-  
-  if (!node) {
-    console.warn('handleNodeClick called without a node parameter', {
-      eventType: event?.type,
-      target: event?.target?.tagName,
-      currentTarget: event?.currentTarget?.tagName,
-      caller: new Error().stack?.split('\n')[2] // 尝试获取调用者信息
-    });
-    return;
+  try {
+    console.log('handleNodeClick called with:', { eventType: event?.type, hasNode: !!node })
+
+    // 添加多层安全检查
+    if (!event) {
+      console.warn('handleNodeClick called without an event parameter')
+      return
+    }
+
+    if (!node) {
+      console.warn('handleNodeClick called without a node parameter', {
+        eventType: event.type,
+        target: event.target?.tagName,
+        currentTarget: event.currentTarget?.tagName,
+        caller: new Error().stack?.split('\n')[2] // 尝试获取调用者信息
+      })
+      return
+    }
+
+    if (!node.data) {
+      console.warn('handleNodeClick called with a node that has no data property', {
+        nodeId: node.id
+      })
+      return
+    }
+
+    // 清除之前的选中状态
+    if (selectedNode.value && selectedNode.value.data) {
+      selectedNode.value.data.selected = false
+    }
+
+    // 设置新的选中状态
+    node.data.selected = true
+    selectedNode.value = node
+  } catch (error) {
+    console.error('Error in handleNodeClick:', error)
   }
-  
-  // 清除之前的选中状态
-  if (selectedNode.value) {
-    // 在新版本中，我们更新数据而不是直接设置selected属性
-    selectedNode.value.data.selected = false
-  }
-  
-  // 设置新的选中状态
-  node.data.selected = true
-  selectedNode.value = node
 }
 
-// 监听Vue Flow的节点点击事件（替代模板中的@node-click）
-flowInstance.onNodeClick((event, node) => {
-  handleNodeClick(event, node);
-});
+// 使用更健壮的方式监听Vue Flow的节点点击事件
+// 首先移除任何可能存在的旧监听器
+// 然后添加新的监听器
+onMounted(() => {
+  // 确保flowInstance已经初始化
+  if (flowInstance && flowInstance.onNodeClick) {
+    console.log('Setting up node click listener')
+    // 注意：VueFlow API可能会有变化，这里使用try-catch确保兼容性
+    try {
+      // 尝试使用现代API方式 - 处理可能的参数格式变化
+      flowInstance.onNodeClick((...args) => {
+        console.log('Node click event received via flowInstance', {
+          argsCount: args.length,
+          args: args
+        })
+
+        // 处理可能的参数格式变化
+        let event, node
+        if (args.length === 1) {
+          // 可能是VueFlow新版本的API，参数是单个对象
+          const payload = args[0]
+          event = payload.event || payload
+          node = payload.node
+        } else if (args.length >= 2) {
+          // 传统API格式
+          event = args[0]
+          node = args[1]
+        }
+
+        // 只有当node存在时才调用handleNodeClick，避免不必要的警告
+        if (node) {
+          handleNodeClick(event, node)
+        } else {
+          console.log('Skipping handleNodeClick call due to missing node parameter')
+        }
+      })
+    } catch (error) {
+      console.warn('Failed to set up node click listener with modern API:', error)
+      // 尝试使用备选方案 - 监听底层DOM事件（如果需要）
+    }
+  }
+})
 
 // 处理节点拖动
 const handleNodeDragStart = () => {
@@ -311,7 +369,7 @@ const handleNodeUpdate = () => {
   // 触发工作流更新事件
   emit('workflow-updated', {
     ...props.workflow,
-    elements: elements.value.map(node => ({
+    elements: elements.value.map((node) => ({
       id: node.id,
       name: node.data.name,
       icon: node.data.icon,
@@ -320,7 +378,7 @@ const handleNodeUpdate = () => {
       paramValues: node.data.paramValues || {},
       selected: node.selected
     })),
-    connections: connections.value.map(conn => ({
+    connections: connections.value.map((conn) => ({
       id: conn.id,
       sourceId: conn.source,
       targetId: conn.target,
@@ -344,10 +402,10 @@ const handleConnectionSuccess = (params) => {
 const handleConnect = (connection) => {
   // 生成唯一的连接 ID
   const connectionId = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  
+
   return {
     ...connection,
-    id: connectionId,
+    id: connectionId
   }
 }
 
@@ -408,18 +466,18 @@ const handleDrop = (event) => {
   try {
     // 获取拖拽数据
     const dragData = JSON.parse(event.dataTransfer.getData('application/json'))
-    
+
     if (dragData.type === 'element' && dragData.elementData) {
       // 获取相对于画布的位置
       const { offsetLeft, offsetTop } = event.currentTarget
       const x = event.clientX - offsetLeft
       const y = event.clientY - offsetTop
-      
+
       // 转换为网格对齐的位置
       const gridSize = 20
       const snappedX = Math.round(x / gridSize) * gridSize
       const snappedY = Math.round(y / gridSize) * gridSize
-      
+
       // 创建新节点
       const newNode = {
         id: dragData.elementData.id,
@@ -435,7 +493,7 @@ const handleDrop = (event) => {
         },
         selected: false
       }
-      
+
       // 添加新节点到画布
       elements.value.push(newNode)
     }
@@ -451,13 +509,13 @@ const handleDragOver = (event) => {
 // 移除元素
 const removeElement = (nodeId) => {
   // 移除节点
-  elements.value = elements.value.filter(node => node.id !== nodeId)
-  
+  elements.value = elements.value.filter((node) => node.id !== nodeId)
+
   // 移除与该节点相关的所有连接
   connections.value = connections.value.filter(
-    conn => conn.source !== nodeId && conn.target !== nodeId
+    (conn) => conn.source !== nodeId && conn.target !== nodeId
   )
-  
+
   // 清除选中状态
   if (selectedNode.value && selectedNode.value.id === nodeId) {
     selectedNode.value = null
@@ -470,12 +528,12 @@ const getParamDisplayValue = (paramValues, param) => {
   if (value === undefined || value === null) {
     return '未设置'
   }
-  
+
   // 对于长字符串进行截断显示
   if (typeof value === 'string' && value.length > 10) {
     return value.substring(0, 10) + '...'
   }
-  
+
   return value.toString()
 }
 

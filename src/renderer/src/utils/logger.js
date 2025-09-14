@@ -62,15 +62,15 @@ const createLogEntry = (level, message, details = null) => {
     message,
     details
   }
-  
+
   // 添加到应用内日志存储
   appLogs.push(logEntry)
-  
+
   // 限制日志数量
   if (appLogs.length > MAX_LOGS) {
     appLogs.shift()
   }
-  
+
   return logEntry
 }
 
@@ -79,7 +79,7 @@ const createLogEntry = (level, message, details = null) => {
  * @param {Object} logEntry - 日志条目
  */
 const notifySubscribers = (logEntry) => {
-  logSubscribers.forEach(subscriber => {
+  logSubscribers.forEach((subscriber) => {
     try {
       subscriber(logEntry)
     } catch (error) {
@@ -98,10 +98,10 @@ const log = (level, message, details = null) => {
   if (!shouldLog(level)) {
     return
   }
-  
+
   // 创建日志条目
   const logEntry = createLogEntry(level, message, details)
-  
+
   // 控制台输出
   switch (level) {
     case LOG_LEVELS.DEBUG:
@@ -133,7 +133,7 @@ const log = (level, message, details = null) => {
       }
       break
   }
-  
+
   // 通知订阅者
   notifySubscribers(logEntry)
 }
@@ -190,17 +190,17 @@ export const clearLogs = () => {
  */
 export const getLogs = (options = {}) => {
   let filteredLogs = [...appLogs]
-  
+
   // 按级别过滤
   if (options.level) {
-    filteredLogs = filteredLogs.filter(log => log.level === options.level)
+    filteredLogs = filteredLogs.filter((log) => log.level === options.level)
   }
-  
+
   // 限制数量
   if (options.limit && options.limit > 0) {
     filteredLogs = filteredLogs.slice(-options.limit)
   }
-  
+
   return filteredLogs
 }
 
@@ -212,7 +212,7 @@ export const getLogs = (options = {}) => {
 export const subscribeToLogs = (callback) => {
   if (typeof callback === 'function') {
     logSubscribers.push(callback)
-    
+
     // 返回取消订阅函数
     return () => {
       const index = logSubscribers.indexOf(callback)
@@ -221,7 +221,7 @@ export const subscribeToLogs = (callback) => {
       }
     }
   }
-  
+
   console.error('日志订阅回调必须是一个函数')
   return () => {}
 }
@@ -235,7 +235,7 @@ export const saveLogsToFile = async () => {
     const logsToSave = JSON.stringify(appLogs, null, 2)
     const blob = new Blob([logsToSave], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
-    
+
     const a = document.createElement('a')
     a.href = url
     a.download = `app-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
@@ -243,7 +243,7 @@ export const saveLogsToFile = async () => {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    
+
     info('日志已保存到文件')
   } catch (err) {
     error('保存日志文件失败', err)

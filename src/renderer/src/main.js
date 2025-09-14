@@ -16,25 +16,25 @@ import logger, { setLogLevel, LOG_LEVELS } from './utils/logger.js'
 
 // 捕获ResizeObserver循环错误
 if (window.ResizeObserver) {
-  const originalResizeObserver = window.ResizeObserver;
+  const originalResizeObserver = window.ResizeObserver
   window.ResizeObserver = class ResizeObserver extends originalResizeObserver {
     constructor(callback) {
       super((entries, observer) => {
         // 使用requestAnimationFrame来防止循环错误
         window.requestAnimationFrame(() => {
           try {
-            callback(entries, observer);
+            callback(entries, observer)
           } catch (error) {
             if (error.message && error.message.includes('ResizeObserver loop')) {
-              console.warn('ResizeObserver循环错误已捕获，不影响功能');
+              console.warn('ResizeObserver循环错误已捕获，不影响功能')
             } else {
-              console.error('ResizeObserver错误:', error);
+              console.error('ResizeObserver错误:', error)
             }
           }
-        });
-      });
+        })
+      })
     }
-  };
+  }
 }
 
 const app = createApp(App)

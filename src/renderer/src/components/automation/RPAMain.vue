@@ -57,13 +57,13 @@
       </div>
 
       <!-- 中间工作区 -->
-        <div class="center-panel">
-          <VueFlowEditor
-            ref="vueFlowEditorRef"
-            :workflow="workflow"
-            @workflow-updated="handleWorkflowUpdated"
-          />
-        </div>
+      <div class="center-panel">
+        <VueFlowEditor
+          ref="vueFlowEditorRef"
+          :workflow="workflow"
+          @workflow-updated="handleWorkflowUpdated"
+        />
+      </div>
 
       <!-- 右侧面板 - 标签页切换 -->
       <div class="right-panel">
@@ -116,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import ElementPanel from './elements/ElementPanel.vue'
 import VueFlowEditor from './editor/VueFlowEditor.vue'
 import WorkflowPlayer from './player/WorkflowPlayer.vue'
@@ -272,7 +272,7 @@ const handleWorkflowUpdated = (updatedWorkflow) => {
     Object.assign(workflow, { ...updatedWorkflow })
     isSaved.value = false
     lastModified.value = new Date()
-    
+
     console.log('工作流已更新', updatedWorkflow)
   }
 }

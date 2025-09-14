@@ -198,7 +198,7 @@ const allElements = [
     icon: 'Refresh',
     category: 'browser'
   },
-  {    
+  {
     type: 'BROWSER_NAVIGATE',
     name: '导航到URL',
     description: '在当前窗口导航到指定URL',
@@ -228,14 +228,14 @@ const allElements = [
     icon: 'Select',
     category: 'interaction'
   },
-  {    
+  {
     type: 'SCROLL_PAGE',
     name: '滚动页面',
     description: '滚动页面到指定位置',
     icon: 'RefreshRight',
     category: 'interaction'
   },
-  {    
+  {
     type: 'HOVER_ELEMENT',
     name: '悬停元素',
     description: '鼠标悬停在指定元素上',
@@ -251,7 +251,7 @@ const allElements = [
     icon: 'DataAnalysis',
     category: 'data'
   },
-  {    
+  {
     type: 'SAVE_DATA',
     name: '保存数据',
     description: '将数据保存到变量或文件',
@@ -265,7 +265,7 @@ const allElements = [
     icon: 'Operation',
     category: 'data'
   },
-  {    
+  {
     type: 'COMPARE_DATA',
     name: '比较数据',
     description: '比较两个数据值',
@@ -281,7 +281,7 @@ const allElements = [
     icon: 'Clock',
     category: 'logic'
   },
-  {    
+  {
     type: 'CONDITION_IF',
     name: '条件判断',
     description: '根据条件执行不同操作',

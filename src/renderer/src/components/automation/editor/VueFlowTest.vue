@@ -4,7 +4,7 @@
       <h2>Vue Flow 功能测试</h2>
       <p>此组件用于测试 @vue-flow/core 的基本功能</p>
     </div>
-    
+
     <div class="test-toolbar">
       <el-button @click="addNode('basic')">添加基础节点</el-button>
       <el-button @click="addNode('advanced')">添加高级节点</el-button>
@@ -12,10 +12,11 @@
       <el-button @click="centerView">居中视图</el-button>
       <el-switch v-model="snapToGrid" active-text="网格对齐" inactive-text="自由定位" />
     </div>
-    
+
     <div class="test-content">
       <div class="vue-flow-wrapper">
         <VueFlow
+          ref="vueFlowRef"
           v-model="elements"
           :connections="connections"
           :nodes-draggable="true"
@@ -28,35 +29,39 @@
           @connection-success="handleConnectionSuccess"
           @node-click="handleNodeClick"
           @connect="handleConnect"
-          ref="vueFlowRef"
         >
           <!-- 基础控制按钮 -->
           <Controls />
-          
+
           <!-- 自定义节点 -->
           <template #node-basic="{ data }">
             <BasicNode :data="data" :selected="data.selected" />
           </template>
-          
+
           <template #node-advanced="{ data }">
             <AdvancedNode :data="data" :selected="data.selected" />
           </template>
         </VueFlow>
       </div>
-      
+
       <div class="test-info">
         <h3>节点信息</h3>
         <div v-if="selectedNode" class="node-details">
           <p><strong>ID:</strong> {{ selectedNode.id }}</p>
           <p><strong>类型:</strong> {{ selectedNode.type }}</p>
-          <p><strong>位置:</strong> X: {{ Math.round(selectedNode.position.x) }}, Y: {{ Math.round(selectedNode.position.y) }}</p>
+          <p>
+            <strong>位置:</strong> X: {{ Math.round(selectedNode.position.x) }}, Y:
+            {{ Math.round(selectedNode.position.y) }}
+          </p>
           <p v-if="selectedNode.data.name"><strong>名称:</strong> {{ selectedNode.data.name }}</p>
-          <p v-if="selectedNode.data.description"><strong>描述:</strong> {{ selectedNode.data.description }}</p>
+          <p v-if="selectedNode.data.description">
+            <strong>描述:</strong> {{ selectedNode.data.description }}
+          </p>
         </div>
         <div v-else class="no-selection">
           <p>未选中任何节点</p>
         </div>
-        
+
         <h3>统计信息</h3>
         <div class="stats">
           <p>节点数量: {{ elements.length }}</p>
@@ -64,7 +69,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="test-footer">
       <p>提示: 点击节点可选中，拖拽节点可移动位置，拖拽节点两端的连接点可创建连接</p>
     </div>
@@ -83,19 +88,27 @@ import '@vue-flow/core/dist/style.css'
 // 基础节点组件
 const BasicNode = (props) => {
   const { data, selected } = props
-  
+
   return (
-    <div 
-      class={`basic-node ${selected ? 'selected' : ''}`}
-    >
+    <div class={`basic-node ${selected ? 'selected' : ''}`}>
       <div class="node-header">
-        <el-icon class="node-icon"><ChromeFilled /></el-icon>
+        <el-icon class="node-icon">
+          <ChromeFilled />
+        </el-icon>
         <span class="node-name">{data.name || '基础节点'}</span>
       </div>
       <div class="node-content">
         <div class="node-handles">
-          <div class="handle input-handle" data-handle-type="target" data-handle-position="left"></div>
-          <div class="handle output-handle" data-handle-type="source" data-handle-position="right"></div>
+          <div
+            class="handle input-handle"
+            data-handle-type="target"
+            data-handle-position="left"
+          ></div>
+          <div
+            class="handle output-handle"
+            data-handle-type="source"
+            data-handle-position="right"
+          ></div>
         </div>
       </div>
     </div>
@@ -105,13 +118,13 @@ const BasicNode = (props) => {
 // 高级节点组件
 const AdvancedNode = (props) => {
   const { data, selected } = props
-  
+
   return (
-    <div 
-      class={`advanced-node ${selected ? 'selected' : ''}`}
-    >
+    <div class={`advanced-node ${selected ? 'selected' : ''}`}>
       <div class="node-header">
-        <el-icon class="node-icon"><DataAnalysis /></el-icon>
+        <el-icon class="node-icon">
+          <DataAnalysis />
+        </el-icon>
         <span class="node-name">{data.name || '高级节点'}</span>
       </div>
       <div class="node-content">
@@ -127,8 +140,16 @@ const AdvancedNode = (props) => {
           </div>
         )}
         <div class="node-handles">
-          <div class="handle input-handle" data-handle-type="target" data-handle-position="left"></div>
-          <div class="handle output-handle" data-handle-type="source" data-handle-position="right"></div>
+          <div
+            class="handle input-handle"
+            data-handle-type="target"
+            data-handle-position="left"
+          ></div>
+          <div
+            class="handle output-handle"
+            data-handle-type="source"
+            data-handle-position="right"
+          ></div>
         </div>
       </div>
     </div>
@@ -189,7 +210,7 @@ const createSampleNodes = () => {
       }
     }
   ]
-  
+
   // 创建一些示例连接
   connections.value = [
     {
@@ -214,9 +235,9 @@ const addNode = (type) => {
   const nodeId = `node-${Date.now()}-${nodeCounter++}`
   const x = 100 + Math.random() * 500
   const y = 100 + Math.random() * 300
-  
+
   let nodeData = {}
-  
+
   if (type === 'basic') {
     nodeData = {
       id: nodeId,
@@ -243,7 +264,7 @@ const addNode = (type) => {
       }
     }
   }
-  
+
   elements.value.push(nodeData)
 }
 
@@ -278,7 +299,7 @@ const handleNodeClick = (event, node) => {
   if (selectedNode.value) {
     selectedNode.value.data.selected = false
   }
-  
+
   // 设置新的选中状态
   node.data.selected = true
   selectedNode.value = node
@@ -288,10 +309,10 @@ const handleNodeClick = (event, node) => {
 const handleConnect = (connection) => {
   // 生成唯一的连接 ID
   const connectionId = `connection-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  
+
   return {
     ...connection,
-    id: connectionId,
+    id: connectionId
   }
 }
 </script>
@@ -302,7 +323,8 @@ const handleConnect = (connection) => {
   display: flex;
   flex-direction: column;
   background-color: var(--color-background-light);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .test-header {
@@ -535,19 +557,19 @@ const handleConnect = (connection) => {
   .test-content {
     flex-direction: column;
   }
-  
+
   .test-info {
     width: 100%;
     height: 200px;
     border-left: none;
     border-top: 1px solid var(--color-border);
   }
-  
+
   .test-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .test-toolbar .el-switch {
     margin-left: 0;
     align-self: flex-start;

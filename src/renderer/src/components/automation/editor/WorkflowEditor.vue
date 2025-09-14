@@ -20,24 +20,21 @@
     <!-- 主要内容区 -->
     <div class="editor-content">
       <!-- 工作区 -->
-      <div
-          class="editor-canvas-container"
-          @wheel.prevent="handleWheel"
+      <div class="editor-canvas-container" @wheel.prevent="handleWheel">
+        <div
+          ref="canvasRef"
+          class="editor-canvas"
+          :style="canvasStyle"
+          @dragover="handleDragOver"
+          @drop="handleDrop"
+          @mousedown="handleCanvasMouseDown"
+          @click="handleCanvasClick"
         >
-          <div
-            class="editor-canvas"
-            ref="canvasRef"
-            :style="canvasStyle"
-            @dragover="handleDragOver"
-            @drop="handleDrop"
-            @mousedown="handleCanvasMouseDown"
-            @click="handleCanvasClick"
-          >
           <!-- 工作区背景 -->
           <div class="canvas-grid"></div>
 
           <!-- 连接线层 -->
-          <svg class="connection-layer" ref="connectionLayerRef">
+          <svg ref="connectionLayerRef" class="connection-layer">
             <!-- 渲染所有连接线 -->
             <g class="connections-group">
               <path
@@ -46,10 +43,10 @@
                 :d="getConnectionPath(connection)"
                 class="connection-path"
                 :class="{ 'connection-path-selected': connection.selected }"
-                @click.stop="selectConnection(connection)"
                 :stroke-width="connection.selected ? 3 : 2"
                 :data-source-id="connection.sourceId"
                 :data-target-id="connection.targetId"
+                @click.stop="selectConnection(connection)"
               />
             </g>
 
@@ -136,13 +133,13 @@
               <div class="connection-points" @click.stop="clearSelection">
                 <div
                   class="connection-point input-point"
-                  @dragstart="onInputDragStart($event, element)"
                   title="输入连接点"
+                  @dragstart="onInputDragStart($event, element)"
                 ></div>
                 <div
                   class="connection-point output-point"
-                  @dragstart="onOutputDragStart($event, element)"
                   title="输出连接点"
+                  @dragstart="onOutputDragStart($event, element)"
                 ></div>
               </div>
             </div>
@@ -591,31 +588,34 @@ const handleDrop = (event) => {
         // 获取放置位置的元素
         const dropPosition = getEventPosition(event)
         let targetElement = null
-        
+
         // 查找位置对应的元素
         for (const element of localWorkflow.elements) {
           // 检查元素边界
-          if (dropPosition.x >= element.position.x && 
-              dropPosition.x <= element.position.x + 150 && // 假设元素宽度为150
-              dropPosition.y >= element.position.y && 
-              dropPosition.y <= element.position.y + 100) { // 假设元素高度为100
+          if (
+            dropPosition.x >= element.position.x &&
+            dropPosition.x <= element.position.x + 150 && // 假设元素宽度为150
+            dropPosition.y >= element.position.y &&
+            dropPosition.y <= element.position.y + 100
+          ) {
+            // 假设元素高度为100
             targetElement = element
             break
           }
         }
-        
+
         // 创建完整的连接数据
         const connectionData = {
-          ...elementData,
+          ...elementData
         }
-        
+
         // 根据拖拽方向设置缺失的ID
         if (elementData.sourceId && !elementData.targetId && targetElement) {
           connectionData.targetId = targetElement.id
         } else if (elementData.targetId && !elementData.sourceId && targetElement) {
           connectionData.sourceId = targetElement.id
         }
-        
+
         // 创建连接
         createConnection(connectionData)
       }
@@ -644,8 +644,8 @@ const createConnection = (connectionData) => {
   }
 
   // 检查源元素和目标元素是否存在
-  const sourceElement = localWorkflow.elements.find(el => el.id === connectionData.sourceId)
-  const targetElement = localWorkflow.elements.find(el => el.id === connectionData.targetId)
+  const sourceElement = localWorkflow.elements.find((el) => el.id === connectionData.sourceId)
+  const targetElement = localWorkflow.elements.find((el) => el.id === connectionData.targetId)
 
   if (!sourceElement || !targetElement) {
     console.error('创建连接失败：源元素或目标元素不存在')
@@ -654,7 +654,7 @@ const createConnection = (connectionData) => {
 
   // 检查连接是否已存在
   const existingConnection = localWorkflow.connections.find(
-    conn => conn.sourceId === connectionData.sourceId && conn.targetId === connectionData.targetId
+    (conn) => conn.sourceId === connectionData.sourceId && conn.targetId === connectionData.targetId
   )
 
   if (existingConnection) {

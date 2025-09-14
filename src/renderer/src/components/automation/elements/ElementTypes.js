@@ -7,8 +7,20 @@ const ElementTypes = {
     description: '打开指定URL的浏览器窗口',
     icon: 'Browser',
     params: [
-      { key: 'url', label: 'URL地址', type: 'string', required: true, defaultValue: 'https://www.example.com' },
-      { key: 'browserType', label: '浏览器类型', type: 'select', options: ['chrome', 'firefox', 'edge'], defaultValue: 'chrome' }
+      {
+        key: 'url',
+        label: 'URL地址',
+        type: 'string',
+        required: true,
+        defaultValue: 'https://www.example.com'
+      },
+      {
+        key: 'browserType',
+        label: '浏览器类型',
+        type: 'select',
+        options: ['chrome', 'firefox', 'edge'],
+        defaultValue: 'chrome'
+      }
     ]
   },
 
@@ -53,9 +65,21 @@ const ElementTypes = {
     icon: 'DataAnalysis',
     params: [
       { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' },
-      { key: 'extractType', label: '提取类型', type: 'select', options: ['text', 'attribute', 'html'], defaultValue: 'text' },
+      {
+        key: 'extractType',
+        label: '提取类型',
+        type: 'select',
+        options: ['text', 'attribute', 'html'],
+        defaultValue: 'text'
+      },
       { key: 'attributeName', label: '属性名', type: 'string', defaultValue: 'href' },
-      { key: 'variableName', label: '变量名', type: 'string', required: true, defaultValue: 'extractedData' }
+      {
+        key: 'variableName',
+        label: '变量名',
+        type: 'string',
+        required: true,
+        defaultValue: 'extractedData'
+      }
     ]
   },
 
@@ -65,9 +89,7 @@ const ElementTypes = {
     name: '等待',
     description: '暂停执行指定的时间',
     icon: 'Clock',
-    params: [
-      { key: 'seconds', label: '等待秒数', type: 'number', required: true, defaultValue: 2 }
-    ]
+    params: [{ key: 'seconds', label: '等待秒数', type: 'number', required: true, defaultValue: 2 }]
   },
 
   IF_CONDITION: {
@@ -91,7 +113,13 @@ const ElementTypes = {
     params: [
       { key: 'data', label: '数据', type: 'string', required: true, defaultValue: '' },
       { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
-      { key: 'format', label: '文件格式', type: 'select', options: ['txt', 'json', 'csv'], defaultValue: 'txt' }
+      {
+        key: 'format',
+        label: '文件格式',
+        type: 'select',
+        options: ['txt', 'json', 'csv'],
+        defaultValue: 'txt'
+      }
     ]
   }
 }
