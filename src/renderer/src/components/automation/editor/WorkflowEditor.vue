@@ -36,48 +36,48 @@
             class="element-nodes"
             @end="onElementDragEnd"
           >
-          <template #item="{ element }">
+          <template #item="{ element: item }">
             <div
               class="element-node"
-              :class="{ 'element-node-selected': element.selected }"
+              :class="{ 'element-node-selected': item.selected }"
               :style="{
-                left: element.position.x + 'px',
-                top: element.position.y + 'px'
+                left: item.position.x + 'px',
+                top: item.position.y + 'px'
               }"
-              @click.stop="selectElement(element)"
+              @click.stop="selectElement(item)"
               @mousedown.stop="onElementMouseDown"
             >
               <!-- 节点头部 -->
               <div class="node-header">
                 <el-icon class="node-icon">
-                  <component :is="getIconComponent(element.icon)" />
+                  <component :is="getIconComponent(item.icon)" />
                 </el-icon>
-                <span class="node-name">{{ element.name }}</span>
-                <el-icon class="node-remove" @click.stop="removeElement(element)">
+                <span class="node-name">{{ item.name }}</span>
+                <el-icon class="node-remove" @click.stop="removeElement(item)">
                   <Close />
                 </el-icon>
               </div>
 
               <!-- 节点参数 -->
               <div class="node-params">
-                <div v-for="param in element.params" :key="param.key" class="param-item">
+                <div v-for="param in item.params" :key="param.key" class="param-item">
                   <label class="param-label">{{ param.label }}</label>
                   <div class="param-input">
                     <el-input
                       v-if="param.type === 'string'"
-                      v-model="element.paramValues[param.key]"
+                      v-model="item.paramValues[param.key]"
                       placeholder="请输入"
                       size="small"
                     />
                     <el-input-number
                       v-else-if="param.type === 'number'"
-                      v-model="element.paramValues[param.key]"
+                      v-model="item.paramValues[param.key]"
                       :min="0"
                       size="small"
                     />
                     <el-select
                       v-else-if="param.type === 'select'"
-                      v-model="element.paramValues[param.key]"
+                      v-model="item.paramValues[param.key]"
                       placeholder="请选择"
                       size="small"
                     >
@@ -90,7 +90,7 @@
                     </el-select>
                     <el-switch
                       v-else-if="param.type === 'boolean'"
-                      v-model="element.paramValues[param.key]"
+                      v-model="item.paramValues[param.key]"
                     />
                   </div>
                 </div>
@@ -100,12 +100,12 @@
               <div class="connection-points">
                 <div
                   class="connection-point input-point"
-                  @dragstart="onInputDragStart($event, element)"
+                  @dragstart="onInputDragStart($event, item)"
                   title="输入连接点"
                 ></div>
                 <div
                   class="connection-point output-point"
-                  @dragstart="onOutputDragStart($event, element)"
+                  @dragstart="onOutputDragStart($event, item)"
                   title="输出连接点"
                 ></div>
               </div>
@@ -115,7 +115,7 @@
       </div>
 
       <!-- 属性面板 -->
-      <div class="editor-properties">
+      <div v-if="selectedElement || selectedConnection" class="editor-properties">
         <div class="properties-header">
           <h3>属性面板</h3>
         </div>
@@ -181,8 +181,14 @@
           </div>
         </div>
 
-        <div v-else class="no-selection">
-          <p>请选择一个元件或连接线</p>
+        <!-- 连接线属性 -->
+        <div v-else-if="selectedConnection" class="connection-properties">
+          <h4>连接线属性</h4>
+          <el-divider />
+          <div class="property-group">
+            <h5>连接信息</h5>
+            <el-input v-model="selectedConnection.id" placeholder="连接ID" disabled />
+          </div>
         </div>
       </div>
     </div>
@@ -226,13 +232,18 @@ watch(() => props.workflow, (newWorkflow) => {
 // 计算属性，提供给draggable组件使用
 const elements = computed({
   get() {
-    return localWorkflow.value.elements
+    console.log('elements get:', localWorkflow.value?.elements || [])
+    return localWorkflow.value?.elements || []
   },
   set(newElements) {
     localWorkflow.value.elements = newElements
     emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
   }
 })
+
+// 调试：检查props和localWorkflow的初始状态
+console.log('Initial props.workflow:', props.workflow)
+console.log('Initial localWorkflow:', localWorkflow.value)
 
 // 保存工作流
 const saveWorkflow = () => {
