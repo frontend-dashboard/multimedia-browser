@@ -20,11 +20,11 @@
     <!-- 主要内容区 -->
     <div class="editor-content">
       <!-- 工作区 -->
-      <div 
+      <div
         class="editor-canvas-container"
         @wheel.prevent="handleWheel"
       >
-        <div 
+        <div
           class="editor-canvas"
           ref="canvasRef"
           :style="canvasStyle"
@@ -70,7 +70,7 @@
             </div>
 
             <!-- 渲染所有节点 -->
-            <div 
+            <div
               v-for="element in elements"
               :key="element.id"
               class="element-node"
@@ -82,13 +82,14 @@
                 left: element.position.x + 'px',
                 top: element.position.y + 'px'
               }"
-              @click.stop="selectElement(element)"
-              @mousedown.stop="onElementMouseDown($event, element)"
               @mouseenter="hoveredElementId = element.id"
               @mouseleave="hoveredElementId = null"
             >
-              <!-- 节点头部 -->
-              <div class="node-header">
+              <!-- 节点头部 - 点击可拖拽元素 -->
+              <div
+                class="node-header"
+                @mousedown.stop="handleNodeHeaderMouseDown($event, element)"
+              >
                 <el-icon class="node-icon">
                   <component :is="getIconComponent(element.icon)" />
                 </el-icon>
@@ -98,8 +99,11 @@
                 </el-icon>
               </div>
 
-              <!-- 节点参数 -->
-              <div class="node-params">
+              <!-- 节点参数 - 点击可显示属性面板 -->
+              <div
+                class="node-params"
+                @click.stop="selectElement(element)"
+              >
                 <div v-for="param in element.params" :key="param.key" class="param-item">
                   <label class="param-label">{{ param.label }}</label>
                   <div class="param-input">
@@ -324,7 +328,7 @@ onMounted(() => {
   } else {
     initWorkflow()
   }
-  
+
   // 添加全局鼠标移动事件，用于更新临时连接线
   const handleMouseMove = (event) => {
     if (isConnecting.value && tempConnection.value) {
@@ -335,9 +339,9 @@ onMounted(() => {
       }
     }
   }
-  
+
   document.addEventListener('mousemove', handleMouseMove)
-  
+
   // 清理函数
   onUnmounted(() => {
     document.removeEventListener('mousemove', handleMouseMove)
@@ -447,7 +451,7 @@ const addElement = (elementData) => {
 // 删除元素
 const removeElement = (element) => {
   if (props.readOnly) return
-  
+
   // 先删除与该元素相关的连接
   localWorkflow.connections = localWorkflow.connections.filter(connection => {
     return connection.sourceId !== element.id && connection.targetId !== element.id
@@ -468,7 +472,7 @@ const removeElement = (element) => {
 // 处理输入连接点拖拽开始
 const onInputDragStart = (event, element) => {
   if (props.readOnly) return
-  
+
   isConnecting.value = true
   tempConnection.value = {
     sourceId: null,
@@ -483,7 +487,7 @@ const onInputDragStart = (event, element) => {
 // 处理输出连接点拖拽开始
 const onOutputDragStart = (event, element) => {
   if (props.readOnly) return
-  
+
   isConnecting.value = true
   tempConnection.value = {
     sourceId: element.id,
@@ -517,7 +521,7 @@ const getConnectionPath = (connection) => {
   // 计算连接点位置（考虑元素中心点）
   const nodeWidth = 150
   const nodeHeight = 100
-  
+
   const sourceX = sourceElement.position.x + nodeWidth // 输出点在元素右侧
   const sourceY = sourceElement.position.y + nodeHeight / 2 // 输出点在元素中间
   const targetX = targetElement.position.x // 输入点在元素左侧
@@ -556,29 +560,37 @@ const handleDrop = (event) => {
   // 检查是否是从外部拖入的元素
   try {
     const data = event.dataTransfer.getData('application/json')
-    const elementData = JSON.parse(data)
-    
-    // 处理元素拖拽
-    if (elementData.type) {
-      const position = getEventPosition(event)
-      const newElement = addElement({
-        ...elementData,
-        position: {
-          x: position.x - 75, // 元素宽度的一半
-          y: position.y - 50  // 元素高度的一半
-        }
-      })
-      // 选择新添加的元素
-      selectElement(newElement)
-    }
-    
-    // 处理连接拖拽
-    else if (elementData.sourceId || elementData.targetId) {
-      // 这里应该有更详细的连接逻辑
-      console.log('连接数据:', elementData)
+
+    // 检查数据是否存在且不为空
+    if (data && data.trim()) {
+      const elementData = JSON.parse(data)
+
+      // 处理元素拖拽
+      if (elementData.type) {
+        const position = getEventPosition(event)
+        const newElement = addElement({
+          ...elementData,
+          position: {
+            x: position.x - 75, // 元素宽度的一半
+            y: position.y - 50  // 元素高度的一半
+          }
+        })
+        // 选择新添加的元素
+        selectElement(newElement)
+      }
+
+      // 处理连接拖拽
+      else if (elementData.sourceId || elementData.targetId) {
+        // 这里应该有更详细的连接逻辑
+        console.log('连接数据:', elementData)
+      }
+    } else {
+      // 数据为空时，可以选择记录日志或忽略
+      console.log('未找到有效的JSON数据进行拖拽')
     }
   } catch (error) {
     console.error('处理拖拽数据错误:', error)
+    // 可以添加用户友好的错误提示
   }
 
   // 清除临时连接
@@ -616,7 +628,7 @@ const selectElement = (element) => {
   // 设置新的选中状态
   element.selected = true
   selectedElement.value = element
-  
+
   // 调试信息
   console.log('选中的元素:', element)
   console.log('selectedElement值:', selectedElement.value)
@@ -632,36 +644,37 @@ const selectConnection = (connection) => {
   selectedConnection.value = connection
 }
 
-// 处理元素拖拽（直接实现拖拽逻辑，不依赖第三方库）
-const onElementMouseDown = (event, element) => {
+// 处理节点头部鼠标按下事件 - 用于拖拽元素
+const handleNodeHeaderMouseDown = (event, element) => {
   if (props.readOnly) return
-  
-  // 防止冒泡到画布点击事件
+
+  // 防止冒泡到画布事件
   event.stopPropagation()
-  
-  // 如果已经选中该元素，则开始拖拽
-  if (element.selected) {
-    const startX = event.clientX
-    const startY = event.clientY
-    const startElementX = element.position.x
-    const startElementY = element.position.y
-    
-    const handleMouseMove = (e) => {
-      const dx = (e.clientX - startX) / scale.value
-      const dy = (e.clientY - startY) / scale.value
-      
-      element.position.x = startElementX + dx
-      element.position.y = startElementY + dy
-    }
-    
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-    
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
+
+  // 先选中元素
+  selectElement(element)
+
+  // 开始拖拽
+  const startX = event.clientX
+  const startY = event.clientY
+  const startElementX = element.position.x
+  const startElementY = element.position.y
+
+  const handleMouseMove = (e) => {
+    const dx = (e.clientX - startX) / scale.value
+    const dy = (e.clientY - startY) / scale.value
+
+    element.position.x = startElementX + dx
+    element.position.y = startElementY + dy
   }
+
+  const handleMouseUp = () => {
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+  }
+
+  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseup', handleMouseUp)
 }
 
 // 画布拖拽开始
@@ -677,25 +690,25 @@ const handleCanvasMouseDown = (event) => {
       x: canvasPosition.value.x,
       y: canvasPosition.value.y
     }
-    
+
     const handleMouseMove = (e) => {
       if (isPanning.value) {
         const dx = e.clientX - panStart.value.x
         const dy = e.clientY - panStart.value.y
-        
+
         canvasPosition.value = {
           x: initialCanvasPosition.value.x + dx,
           y: initialCanvasPosition.value.y + dy
         }
       }
     }
-    
+
     const handleMouseUp = () => {
       isPanning.value = false
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-    
+
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
   }
@@ -704,22 +717,22 @@ const handleCanvasMouseDown = (event) => {
 // 缩放功能（鼠标滚轮）
 const handleWheel = (event) => {
   event.preventDefault()
-  
+
   const delta = event.deltaY > 0 ? -0.1 : 0.1
   const newScale = Math.max(0.5, Math.min(2, scale.value + delta))
-  
+
   if (newScale !== scale.value) {
     // 计算鼠标在画布上的位置
     const rect = canvasRef.value.getBoundingClientRect()
     const mouseX = (event.clientX - rect.left) / scale.value
     const mouseY = (event.clientY - rect.top) / scale.value
-    
+
     // 调整画布位置，使鼠标指向的点保持不变
     canvasPosition.value = {
       x: (mouseX * scale.value - mouseX * newScale) + canvasPosition.value.x,
       y: (mouseY * scale.value - mouseY * newScale) + canvasPosition.value.y
     }
-    
+
     scale.value = newScale
   }
 }
@@ -741,23 +754,23 @@ const resetZoom = () => {
 // 居中画布
 const centerCanvas = () => {
   if (!canvasRef.value || localWorkflow.elements.length === 0) return
-  
+
   const canvasContainer = canvasRef.value.parentElement
   const containerWidth = canvasContainer.clientWidth
   const containerHeight = canvasContainer.clientHeight
-  
+
   // 计算所有元素的中心点
   let totalX = 0
   let totalY = 0
-  
+
   localWorkflow.elements.forEach(element => {
     totalX += element.position.x + 75 // 75 是元素宽度的一半
     totalY += element.position.y + 50 // 50 是元素高度的一半
   })
-  
+
   const centerX = totalX / localWorkflow.elements.length
   const centerY = totalY / localWorkflow.elements.length
-  
+
   // 计算需要移动的距离
   canvasPosition.value = {
     x: (containerWidth / 2) / scale.value - centerX,
@@ -917,7 +930,6 @@ onUnmounted(() => {
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 20;
-  cursor: move;
   transition: all 0.2s ease;
 }
 
@@ -938,6 +950,8 @@ onUnmounted(() => {
   background-color: var(--color-background-soft);
   border-bottom: 1px solid var(--color-border);
   border-radius: 6px 6px 0 0;
+  cursor: move;
+  user-select: none;
 }
 
 .node-icon {
@@ -962,6 +976,7 @@ onUnmounted(() => {
 }
 
 .node-params {
+  cursor: pointer;
   padding: 12px;
   max-height: 200px;
   overflow-y: auto;
