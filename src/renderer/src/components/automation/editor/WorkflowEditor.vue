@@ -21,18 +21,18 @@
     <div class="editor-content">
       <!-- 工作区 -->
       <div 
-        class="editor-canvas-container" 
-        @wheel.prevent="handleWheel"
-        @click="handleCanvasContainerClick"
-      >
-        <div
-          class="editor-canvas"
-          ref="canvasRef"
-          :style="canvasStyle"
-          @dragover="handleDragOver"
-          @drop="handleDrop"
-          @mousedown="handleCanvasMouseDown"
+          class="editor-canvas-container" 
+          @wheel.prevent="handleWheel"
         >
+          <div
+            class="editor-canvas"
+            ref="canvasRef"
+            :style="canvasStyle"
+            @dragover="handleDragOver"
+            @drop="handleDrop"
+            @mousedown="handleCanvasMouseDown"
+            @click="handleCanvasClick"
+          >
           <!-- 工作区背景 -->
           <div class="canvas-grid"></div>
 
@@ -63,7 +63,7 @@
           </svg>
 
           <!-- 节点层 -->
-          <div class="element-nodes">
+          <div class="element-nodes" @click="handleNodesContainerClick">
             <!-- 调试: 显示元素数量 -->
             <div v-if="isDebug" class="debug-info">元素数量: {{ elements.length }}</div>
 
@@ -133,7 +133,7 @@
               </div>
 
               <!-- 连接点 -->
-              <div class="connection-points">
+              <div class="connection-points" @click.stop="clearSelection">
                 <div
                   class="connection-point input-point"
                   @dragstart="onInputDragStart($event, element)"
@@ -305,8 +305,10 @@ const hoveredElementId = ref(null)
 // 调试模式
 const isDebug = ref(false)
 
-// 画布样式 - 动态计算缩放和位置
+// 画布样式 - 动态计算缩放和位置，并设置画布大小以支持连线功能
 const canvasStyle = computed(() => ({
+  width: '4000px',
+  height: '3000px',
   transform: `scale(${scale.value}) translate(${canvasPosition.value.x}px, ${canvasPosition.value.y}px)`,
   transformOrigin: '0 0',
   transition: isPanning.value ? 'none' : 'transform 0.2s ease'
@@ -603,12 +605,20 @@ const handleDrop = (event) => {
   isConnecting.value = false
 }
 
-// 处理画布容器点击
-const handleCanvasContainerClick = (event) => {
-  // 只有点击的是画布容器本身时才清除选中状态
+// 处理画布点击
+const handleCanvasClick = (event) => {
+  // 只有点击的是画布本身时才清除选中状态
   // 避免点击节点或其他元素时也清除选中状态
   if (event.target === event.currentTarget) {
     // 清除所有选中状态
+    clearSelection()
+  }
+}
+
+// 处理节点容器点击
+const handleNodesContainerClick = (event) => {
+  // 只有当直接点击节点容器背景时才触发
+  if (event.target === event.currentTarget) {
     clearSelection()
   }
 }
@@ -986,6 +996,7 @@ onUnmounted(() => {
   padding: 12px;
   max-height: 200px;
   overflow-y: auto;
+  background-color: var(--color-background);
 }
 
 .param-item {

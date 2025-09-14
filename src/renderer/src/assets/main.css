@@ -3,9 +3,25 @@
 @use './base.scss';
 /* CSS变量定义 - 适配Element Plus主题系统 */
 :root {
-  /* 明亮模式变量 */
+  /* 明亮模式变量 - 与Element Plus默认主题保持一致 */
+  --color-primary: #409eff;
+  --color-primary-light: #66b1ff;
+  --color-primary-dark: #3a8ee6;
+  --color-success: #67c23a;
+  --color-warning: #e6a23c;
+  --color-danger: #f56c6c;
+  --color-background: #ffffff;
   --color-background-soft: #f5f7fa;
+  --color-background-mute: #f8f9fa;
+  --color-text: #303133;
+  --color-text-primary: #303133;
+  --color-text-secondary: #606266;
+  --color-text-placeholder: #909399;
+  --color-text-disabled: #c0c4cc;
   --color-border: #e4e7ed;
+  --color-border-light: #ebeef5;
+  --color-border-lighter: #f2f6fc;
+  --color-background-hover: #f0f2f5;
   /* 暗黑模式变量会由Element Plus自动处理 */
 }
 
