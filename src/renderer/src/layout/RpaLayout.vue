@@ -39,7 +39,6 @@ const cachedViews = computed(() => {
 }
 
 .main-content {
-  height: calc(100vh - 68px);
   overflow: auto;
 }
 </style>

@@ -1,11 +1,5 @@
 <template>
   <div class="rpa-view">
-    <div class="rpa-view-header">
-      <div class="rpa-view-header-title">网页自动化 RPA 工具</div>
-      <div class="rpa-view-header-subtitle">基于 Electron 和 Vue 3 的网页自动化解决方案</div>
-    </div>
-
-    <!-- 主要功能区域 -->
     <div class="rpa-view-content">
       <RPAMain />
     </div>
