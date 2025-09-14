@@ -154,8 +154,8 @@
         </div>
       </div>
 
-      <!-- 属性面板 -->
-      <div class="editor-properties">
+      <!-- 属性面板 - 仅在选中元素或连接线时显示 -->
+      <div v-if="selectedElement || selectedConnection" class="editor-properties">
         <div class="properties-header">
           <h3>属性面板</h3>
         </div>
@@ -230,11 +230,6 @@
             <el-input v-model="selectedConnection.id" placeholder="连接ID" disabled />
             <el-input v-model="selectedConnection.name" placeholder="连接名称" />
           </div>
-        </div>
-        
-        <!-- 无选中内容时显示 -->
-        <div v-else class="no-selection">
-          <p>请选择一个元件或连接线</p>
         </div>
       </div>
     </div>
@@ -839,13 +834,19 @@ onUnmounted(() => {
   position: relative;
 }
 
-/* 画布容器 */
+/* 画布容器 - 选中元素时留出属性面板空间，未选中时自动扩展 */
 .editor-canvas-container {
   flex: 1;
   position: relative;
   overflow: hidden;
   background-color: #f8f8f8;
-  margin-right: 300px; /* 为属性面板留出空间 */
+  margin-right: 0; /* 默认不预留空间 */
+  transition: margin-right 0.3s ease;
+}
+
+/* 当存在选中元素或连接线时，为属性面板留出空间 */
+.editor-content:has(.editor-properties) .editor-canvas-container {
+  margin-right: 300px;
 }
 
 /* 画布本身 */
