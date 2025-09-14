@@ -12,6 +12,13 @@
         <el-icon><Refresh /></el-icon> 重置
       </el-button>
       <div class="toolbar-separator"></div>
+      <el-button size="small" @click="layoutGraph('TB')">
+        <el-icon><Monitor /></el-icon> 垂直布局
+      </el-button>
+      <el-button size="small" @click="layoutGraph('LR')">
+        <el-icon><ArrowDown /></el-icon> 水平布局
+      </el-button>
+      <div class="toolbar-separator"></div>
       <el-button size="small" @click="centerCanvas">
         <el-icon><FullScreen /></el-icon> 居中
       </el-button>
@@ -41,6 +48,9 @@
         @drop="handleDrop"
         @dragover="handleDragOver"
       >
+        <!-- 背景网格 -->
+        <Background gap="20" stroke="var(--color-border)" stroke-width="1" class="vue-flow-background" />
+        
         <!-- 基础控制按钮 -->
         <Controls position="top-right" />
 
@@ -50,7 +60,8 @@
             class="custom-node"
             :class="{
               'custom-node-selected': data.selected,
-              'custom-node-hover': data.id === hoveredNodeId
+              'custom-node-hover': data.id === hoveredNodeId,
+              'custom-node-focused': data.id === focusedNodeId
             }"
           >
             <div class="node-header">
@@ -58,9 +69,11 @@
                 <component :is="getIconComponent(data.icon)" />
               </el-icon>
               <span class="node-name">{{ data.name }}</span>
-              <el-icon class="node-remove" title="删除节点" @click.stop="removeElement(data.id)">
-                <Close />
-              </el-icon>
+              <div class="node-actions">
+                <el-icon class="node-action node-remove" title="删除节点" @click.stop="removeElement(data.id)">
+                  <Close />
+                </el-icon>
+              </div>
             </div>
 
             <div v-if="data.params && data.params.length > 0" class="node-params">
@@ -166,10 +179,11 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 // 导入 VueFlow 相关组件
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
+import { Background } from '@vue-flow/background'
 import { ZoomIn, ZoomOut, Refresh, FullScreen, Close } from '@element-plus/icons-vue'
 // 导入图标工具函数
 import { getIconComponent } from '../utils/iconUtils.js'
@@ -199,6 +213,7 @@ const elements = ref([])
 const connections = ref([])
 const selectedNode = ref(null)
 const hoveredNodeId = ref(null)
+const focusedNodeId = ref(null)  // 用于存储当前焦点节点ID
 const connectionMode = ref('loose')
 const snapToGrid = ref(true)
 const currentZoom = ref(1)
@@ -227,8 +242,8 @@ watch(
         id: conn.id || `conn_${conn.sourceId}_${conn.targetId}`,
         source: conn.sourceId,
         target: conn.targetId,
-        sourceHandle: conn.sourceHandle || 'right',
-        targetHandle: conn.targetHandle || 'left',
+        sourceHandle: conn.sourceHandle || 'bottom',
+        targetHandle: conn.targetHandle || 'top',
         selected: conn.selected || false
       }))
     }
@@ -301,6 +316,9 @@ const handleNodeClick = (event, node) => {
     // 设置新的选中状态
     node.data.selected = true
     selectedNode.value = node
+    
+    // 设置焦点节点
+    focusedNodeId.value = node.id
   } catch (error) {
     console.error('Error in handleNodeClick:', error)
   }
@@ -346,6 +364,18 @@ onMounted(() => {
       console.warn('Failed to set up node click listener with modern API:', error)
       // 尝试使用备选方案 - 监听底层DOM事件（如果需要）
     }
+  }
+  
+  // 监听画布点击事件，用于清除焦点状态
+  const canvasElement = document.querySelector('.vue-flow__viewport')
+  if (canvasElement) {
+    canvasElement.addEventListener('click', (event) => {
+      // 只有当点击的是画布本身而不是节点时才清除焦点
+      if (event.target.classList.contains('vue-flow__viewport') || 
+          event.target.classList.contains('vue-flow__background')) {
+        focusedNodeId.value = null
+      }
+    })
   }
 })
 
@@ -458,6 +488,118 @@ const centerCanvas = () => {
   // 在新版本中使用vueFlowRef的fitView方法来居中画布
   if (vueFlowRef.value) {
     vueFlowRef.value.fitView()
+  }
+}
+
+// 简单布局算法，参考Vue Flow官网示例
+const layout = (nodes, edges, direction) => {
+  // 复制节点数组以避免直接修改原始数据
+  const newNodes = [...nodes]
+  
+  // 如果没有节点，直接返回
+  if (newNodes.length === 0) {
+    return newNodes
+  }
+  
+  // 节点间距
+  const nodeGap = 150
+  // 层级间距
+  const levelGap = 180
+  
+  // 构建节点映射
+  const nodeMap = new Map(newNodes.map(node => [node.id, node]))
+  
+  // 找出所有根节点（没有入边的节点）
+  const rootNodes = newNodes.filter(node => 
+    !edges.some(edge => edge.target === node.id)
+  )
+  
+  // 计算每个节点的层级
+  const nodeLevels = new Map()
+  
+  // BFS计算层级
+  const calculateLevels = () => {
+    const queue = [...rootNodes]
+    
+    // 设置根节点层级为0
+    rootNodes.forEach(node => nodeLevels.set(node.id, 0))
+    
+    while (queue.length > 0) {
+      const current = queue.shift()
+      const currentLevel = nodeLevels.get(current.id)
+      const nextLevel = currentLevel + 1
+      
+      // 找到当前节点的所有子节点
+      const childEdges = edges.filter(edge => edge.source === current.id)
+      
+      childEdges.forEach(edge => {
+        const childNode = nodeMap.get(edge.target)
+        if (childNode && !nodeLevels.has(childNode.id)) {
+          nodeLevels.set(childNode.id, nextLevel)
+          queue.push(childNode)
+        }
+      })
+    }
+    
+    // 如果没有根节点（环形图），默认将所有节点放在同一层
+    if (nodeLevels.size === 0) {
+      newNodes.forEach(node => nodeLevels.set(node.id, 0))
+    }
+  }
+  
+  calculateLevels()
+  
+  // 按层级分组节点
+  const levelGroups = new Map()
+  nodeLevels.forEach((level, nodeId) => {
+    if (!levelGroups.has(level)) {
+      levelGroups.set(level, [])
+    }
+    levelGroups.get(level).push(nodeMap.get(nodeId))
+  })
+  
+  // 计算每个层级的节点位置
+  const levelKeys = Array.from(levelGroups.keys()).sort((a, b) => a - b)
+  
+  levelKeys.forEach(level => {
+    const levelNodes = levelGroups.get(level)
+    const levelCount = levelNodes.length
+    const levelOffset = (levelCount - 1) * nodeGap / 2
+    
+    levelNodes.forEach((node, index) => {
+      if (direction === 'TB') {
+        // 垂直布局 (top to bottom)
+        node.position.x = 200 + level * levelGap
+        node.position.y = 100 + index * nodeGap - levelOffset
+      } else {
+        // 水平布局 (left to right)
+        node.position.x = 100 + index * nodeGap - levelOffset
+        node.position.y = 200 + level * levelGap
+      }
+    })
+  })
+  
+  return newNodes
+}
+
+// 执行布局
+const layoutGraph = async (direction) => {
+  try {
+    // 执行布局算法
+    const newNodes = layout(elements.value, connections.value, direction)
+    
+    // 更新节点位置
+    elements.value = newNodes
+    
+    // 使用nextTick确保DOM更新后再调整视图
+    await nextTick()
+    
+    // 调整视图以适应所有节点
+    if (vueFlowRef.value) {
+      vueFlowRef.value.fitView()
+    }
+  } catch (error) {
+    console.error('执行布局时出错:', error)
   }
 }
 
@@ -684,32 +826,101 @@ defineExpose({
   background-color: var(--color-background-800);
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  overflow: hidden;
   cursor: grab;
   transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
+/* 自定义节点基础样式 */
+.custom-node {
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background-800);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  min-width: 180px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 连接点样式 */
+.handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background-color: var(--color-primary);
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: crosshair;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.handle-top {
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.handle-bottom {
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.handle:hover,
+.custom-node:hover .handle {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* 节点状态样式 */
 .custom-node:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
 .custom-node-selected {
   border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  background-color: rgba(59, 130, 246, 0.05);
 }
 
+.custom-node-focused {
+  box-shadow: 0 0 0 2px var(--color-primary), 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* 节点头部样式 */
 .node-header {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background-color: var(--color-background-700);
   border-bottom: 1px solid var(--color-border);
+  border-radius: 8px 8px 0 0;
 }
 
 .node-icon {
   margin-right: 8px;
   color: var(--color-primary);
+  font-size: 16px;
 }
 
 .node-name {
@@ -720,37 +931,92 @@ defineExpose({
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 2px 0;
 }
 
-.node-remove {
+.node-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.node-action {
   cursor: pointer;
   color: var(--color-text-secondary);
-  transition: color 0.2s;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.custom-node:hover .node-action {
+  opacity: 1;
+}
+
+.node-action:hover {
+  background-color: var(--color-background-600);
+  color: var(--color-text-primary);
 }
 
 .node-remove:hover {
   color: #f56c6c;
+  background-color: rgba(245, 108, 108, 0.1);
 }
 
+/* 节点参数样式 */
 .node-params {
-  padding: 8px 12px;
+  padding: 10px 12px;
+  background-color: var(--color-background-800);
 }
 
 .param-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 6px;
+  padding: 2px 0;
+}
+
+.param-item:last-child {
+  margin-bottom: 0;
+}
+
+.param-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 
 .param-value {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   word-break: break-all;
+  text-align: right;
 }
 
 .param-more {
   font-size: 11px;
   color: var(--color-text-tertiary);
   text-align: center;
-  margin-top: 4px;
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dotted var(--color-border);
+}
+
+/* 响应式节点 */
+@media (max-width: 768px) {
+  .custom-node {
+    min-width: 140px;
+  }
+  
+  .node-header {
+    padding: 8px 10px;
+  }
+  
+  .node-params {
+    padding: 8px 10px;
+  }
 }
 
 /* 连接线样式 */
