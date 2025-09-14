@@ -57,13 +57,13 @@
       </div>
 
       <!-- 中间工作区 -->
-      <div class="center-panel">
-        <WorkflowEditor
-          ref="workflowEditorRef"
-          :workflow="workflow"
-          @workflow-updated="handleWorkflowUpdated"
-        />
-      </div>
+        <div class="center-panel">
+          <VueFlowEditor
+            ref="vueFlowEditorRef"
+            :workflow="workflow"
+            @workflow-updated="handleWorkflowUpdated"
+          />
+        </div>
 
       <!-- 右侧面板 - 标签页切换 -->
       <div class="right-panel">
@@ -118,7 +118,7 @@
 <script setup>
 import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import ElementPanel from './elements/ElementPanel.vue'
-import WorkflowEditor from './editor/WorkflowEditor.vue'
+import VueFlowEditor from './editor/VueFlowEditor.vue'
 import WorkflowPlayer from './player/WorkflowPlayer.vue'
 import LogViewer from '../LogViewer.vue'
 
@@ -170,7 +170,7 @@ const workflow = reactive({
 })
 
 // 组件引用
-const workflowEditorRef = ref(null)
+const vueFlowEditorRef = ref(null)
 const workflowPlayerRef = ref(null)
 
 // 标签页状态
@@ -195,28 +195,20 @@ const formatDate = (date) => {
   return date.toLocaleString()
 }
 
-// 监听工作流变化
-watch(
-  () => ({ ...workflow }),
-  () => {
-    isSaved.value = false
-    lastModified.value = new Date()
-  },
-  { deep: true }
-)
+// 移除导致递归更新的深度监听器
 
 // 保存工作流
 const saveWorkflow = () => {
-  if (workflowEditorRef.value && workflowEditorRef.value.saveWorkflow) {
-    workflowEditorRef.value.saveWorkflow()
+  if (vueFlowEditorRef.value && vueFlowEditorRef.value.saveWorkflow) {
+    vueFlowEditorRef.value.saveWorkflow()
     isSaved.value = true
   }
 }
 
 // 加载工作流
 const loadWorkflow = () => {
-  if (workflowEditorRef.value && workflowEditorRef.value.loadWorkflow) {
-    workflowEditorRef.value.loadWorkflow()
+  if (vueFlowEditorRef.value && vueFlowEditorRef.value.loadWorkflow) {
+    vueFlowEditorRef.value.loadWorkflow()
     isSaved.value = true
   }
 }
@@ -248,8 +240,8 @@ const newWorkflow = () => {
   lastModified.value = new Date()
 
   // 通知子组件重置状态
-  if (workflowEditorRef.value && workflowEditorRef.value.resetWorkflow) {
-    workflowEditorRef.value.resetWorkflow()
+  if (vueFlowEditorRef.value && vueFlowEditorRef.value.resetWorkflow) {
+    vueFlowEditorRef.value.resetWorkflow()
   }
 }
 
@@ -267,19 +259,22 @@ const clearWorkflow = () => {
   lastModified.value = new Date()
 
   // 通知子组件更新状态
-  if (workflowEditorRef.value && workflowEditorRef.value.onWorkflowCleared) {
-    workflowEditorRef.value.onWorkflowCleared()
+  if (vueFlowEditorRef.value && vueFlowEditorRef.value.onWorkflowCleared) {
+    vueFlowEditorRef.value.onWorkflowCleared()
   }
 }
 
-// 处理工作流更新事件
+// 处理工作流更新事件 - 使用展开运算符创建新对象，避免直接修改导致的递归更新
 const handleWorkflowUpdated = (updatedWorkflow) => {
-  // 更新工作流数据
-  Object.assign(workflow, updatedWorkflow)
-  isSaved.value = false
-  lastModified.value = new Date()
-
-  console.log('工作流已更新', updatedWorkflow)
+  // 避免递归更新错误 - 确保只在有实际变化时才更新
+  if (JSON.stringify(workflow) !== JSON.stringify(updatedWorkflow)) {
+    // 创建新的对象引用而不是直接修改原对象
+    Object.assign(workflow, { ...updatedWorkflow })
+    isSaved.value = false
+    lastModified.value = new Date()
+    
+    console.log('工作流已更新', updatedWorkflow)
+  }
 }
 
 // 组件挂载时记录日志
