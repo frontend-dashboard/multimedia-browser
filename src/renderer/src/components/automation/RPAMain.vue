@@ -4,7 +4,6 @@
     <div class="main-toolbar">
       <div class="toolbar-left">
         <h1 class="app-title">网页自动化RPA工具</h1>
-        <span class="app-subtitle">基于Electron和Vue 3的网页自动化解决方案</span>
       </div>
       <div class="toolbar-center">
         <el-button type="primary" @click="newWorkflow">新建流程</el-button>

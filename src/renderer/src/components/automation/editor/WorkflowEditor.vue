@@ -3,7 +3,7 @@
     <!-- 主要内容区（包含工作区和属性面板） -->
     <div class="editor-content">
       <!-- 工作区 -->
-      <div class="editor-canvas" ref="canvasRef">
+      <div class="editor-canvas" ref="canvasRef" @dragover="handleDragOver" @drop="handleDrop" @click="handleCanvasClick">
         <!-- 工作区背景 -->
         <div class="canvas-grid"></div>
 
@@ -29,12 +29,13 @@
         </svg>
 
         <!-- 元件节点 -->
-        <draggable
-          v-model="workflow.elements"
-          :group="{ name: 'elements', pull: false, put: true }"
-          item-key="id"
-          class="element-nodes"
-        >
+          <draggable
+            :list="elements"
+            :group="{ name: 'elements', pull: false, put: true }"
+            item-key="id"
+            class="element-nodes"
+            @end="onElementDragEnd"
+          >
           <template #item="{ element }">
             <div
               class="element-node"
@@ -189,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { VueDraggableNext as draggable } from 'vue-draggable-next'
 import { Close } from '@element-plus/icons-vue'
 import {
@@ -203,42 +204,91 @@ import {
   Download
 } from '@element-plus/icons-vue'
 
-// 工作流数据
-const workflow = ref({
-  name: '未命名流程',
-  description: '',
-  elements: [
-    {
-      id: '1',
-      name: '浏览器打开',
-      icon: 'ChromeFilled',
-      position: { x: 50, y: 100 },
-      params: [
-        { key: 'url', label: '网址', type: 'string', defaultValue: 'https://www.example.com' }
-      ],
-      paramValues: { url: 'https://www.example.com' },
-      selected: false
-    },
-    {
-      id: '2',
-      name: '等待',
-      icon: 'Clock',
-      position: { x: 300, y: 100 },
-      params: [{ key: 'seconds', label: '等待时间(秒)', type: 'string', defaultValue: '2' }],
-      paramValues: { seconds: '2' },
-      selected: false
-    },
-    {
-      id: '3',
-      name: '数据处理',
-      icon: 'DataAnalysis',
-      position: { x: 550, y: 100 },
-      params: [{ key: 'operation', label: '操作类型', type: 'string', defaultValue: '提取' }],
-      paramValues: { operation: '提取' },
-      selected: false
+// 定义props，接收workflow数据
+const props = defineProps({
+  workflow: {
+    type: Object,
+    required: true
+  }
+})
+
+// 定义事件
+const emit = defineEmits(['workflow-updated'])
+
+// 创建本地深拷贝，避免直接修改props
+const localWorkflow = ref(JSON.parse(JSON.stringify(props.workflow)))
+
+// 监听props变化
+watch(() => props.workflow, (newWorkflow) => {
+  localWorkflow.value = JSON.parse(JSON.stringify(newWorkflow))
+}, { deep: true })
+
+// 计算属性，提供给draggable组件使用
+const elements = computed({
+  get() {
+    return localWorkflow.value.elements
+  },
+  set(newElements) {
+    localWorkflow.value.elements = newElements
+    emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
+  }
+})
+
+// 保存工作流
+const saveWorkflow = () => {
+  try {
+    // 将工作流数据保存到本地存储
+    const workflowData = JSON.parse(JSON.stringify(localWorkflow.value))
+    console.log('workflowData', workflowData)
+    localStorage.setItem('savedWorkflow', JSON.stringify(workflowData))
+    // 触发事件通知父组件
+    emit('workflow-updated', workflowData)
+    console.log('工作流保存成功')
+  } catch (error) {
+    console.error('保存工作流失败:', error)
+    alert('保存工作流失败，请重试')
+  }
+}
+
+// 加载工作流
+const loadWorkflow = () => {
+  try {
+    // 从本地存储加载工作流数据
+    const savedWorkflow = localStorage.getItem('savedWorkflow')
+    if (savedWorkflow) {
+      const parsedWorkflow = JSON.parse(savedWorkflow)
+      // 触发事件通知父组件更新工作流
+      emit('workflow-updated', parsedWorkflow)
+      console.log('工作流加载成功')
+    } else {
+      alert('没有找到已保存的工作流')
     }
-  ],
-  connections: []
+  } catch (error) {
+    console.error('加载工作流失败:', error)
+    alert('加载工作流失败，请重试')
+  }
+}
+
+// 清空画布回调
+const onWorkflowCleared = () => {
+  // 清空选中状态
+  selectedElement.value = null
+  selectedConnection.value = null
+  tempConnection.value = null
+  console.log('画布已清空')
+}
+
+// 元件拖拽结束处理
+const onElementDragEnd = () => {
+  // 触发更新事件，让父组件知道工作流已更改
+  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
+}
+
+// 暴露方法给父组件
+defineExpose({
+  saveWorkflow,
+  loadWorkflow,
+  onWorkflowCleared
 })
 
 // 画布引用
@@ -253,7 +303,7 @@ const selectedConnection = ref(null)
 const tempConnection = ref(null)
 
 // 根据分类获取元件
-const connections = computed(() => workflow.value.connections)
+const connections = computed(() => localWorkflow.value.connections)
 
 // 获取图标组件
 const getIconComponent = (iconName) => {
@@ -274,37 +324,58 @@ const getIconComponent = (iconName) => {
 
 // 选择元件
 const selectElement = (element) => {
-  // 取消其他元素的选中状态
-  workflow.value.elements.forEach((el) => (el.selected = false))
-  workflow.value.connections.forEach((conn) => (conn.selected = false))
+  // 更新本地工作流
+  localWorkflow.value.elements = localWorkflow.value.elements.map(el => ({
+    ...el,
+    selected: el.id === element.id
+  }))
 
-  // 设置当前元素为选中状态
-  element.selected = true
+  localWorkflow.value.connections = localWorkflow.value.connections.map(conn => ({
+    ...conn,
+    selected: false
+  }))
+
+  // 触发事件通知父组件更新工作流
+  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
+
+  // 更新本地选中状态
   selectedElement.value = element
   selectedConnection.value = null
 }
 
 // 选择连接
 const selectConnection = (connection) => {
-  // 取消其他元素的选中状态
-  workflow.value.elements.forEach((el) => (el.selected = false))
-  workflow.value.connections.forEach((conn) => (conn.selected = false))
+  // 更新本地工作流
+  localWorkflow.value.elements = localWorkflow.value.elements.map(el => ({
+    ...el,
+    selected: false
+  }))
 
-  // 设置当前连接为选中状态
-  connection.selected = true
+  localWorkflow.value.connections = localWorkflow.value.connections.map(conn => ({
+    ...conn,
+    selected: conn.id === connection.id
+  }))
+
+  // 触发事件通知父组件更新工作流
+  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
+
+  // 更新本地选中状态
   selectedConnection.value = connection
   selectedElement.value = null
 }
 
 // 移除元件
 const removeElement = (element) => {
-  // 移除相关的连接
-  workflow.value.connections = workflow.value.connections.filter(
+  // 创建新的连接数组，移除与当前元素相关的连接
+  localWorkflow.value.connections = localWorkflow.value.connections.filter(
     (conn) => conn.sourceId !== element.id && conn.targetId !== element.id
   )
 
-  // 移除元件
-  workflow.value.elements = workflow.value.elements.filter((el) => el.id !== element.id)
+  // 创建新的元素数组，移除当前元素
+  localWorkflow.value.elements = localWorkflow.value.elements.filter((el) => el.id !== element.id)
+
+  // 触发事件通知父组件更新工作流
+  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
 
   // 清除选中状态
   if (selectedElement.value === element) {
@@ -351,8 +422,8 @@ const onElementMouseDown = (event) => {
 
 // 获取连接路径
 const getConnectionPath = (connection) => {
-  const sourceElement = workflow.value.elements.find((el) => el.id === connection.sourceId)
-  const targetElement = workflow.value.elements.find((el) => el.id === connection.targetId)
+  const sourceElement = localWorkflow.value.elements.find((el) => el.id === connection.sourceId)
+  const targetElement = localWorkflow.value.elements.find((el) => el.id === connection.targetId)
 
   if (!sourceElement || !targetElement) {
     return ''
@@ -423,7 +494,13 @@ const handleDrop = (event) => {
         })
       }
 
-      workflow.value.elements.push(newElement)
+      // 添加新元件到本地工作流
+      localWorkflow.value.elements = [...localWorkflow.value.elements, newElement]
+
+      // 触发事件通知父组件更新工作流
+      emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
+
+      // 选择新添加的元素
       selectElement(newElement)
     }
   } catch (error) {
@@ -433,31 +510,44 @@ const handleDrop = (event) => {
 
 // 处理画布点击
 const handleCanvasClick = () => {
-  // 取消所有选中状态
-  workflow.value.elements.forEach((el) => (el.selected = false))
-  workflow.value.connections.forEach((conn) => (conn.selected = false))
+  // 更新本地工作流
+  localWorkflow.value.elements = localWorkflow.value.elements.map(el => ({
+    ...el,
+    selected: false
+  }))
+
+  localWorkflow.value.connections = localWorkflow.value.connections.map(conn => ({
+    ...conn,
+    selected: false
+  }))
+
+  // 触发事件通知父组件更新工作流
+  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
+
+  // 更新本地选中状态
   selectedElement.value = null
   selectedConnection.value = null
 }
 
 // 生命周期钩子
-onMounted(() => {
-  // 监听画布事件
-  if (canvasRef.value) {
-    canvasRef.value.addEventListener('dragover', handleDragOver)
-    canvasRef.value.addEventListener('drop', handleDrop)
-    canvasRef.value.addEventListener('click', handleCanvasClick)
-  }
-})
-
-onUnmounted(() => {
-  // 移除事件监听
-  if (canvasRef.value) {
-    canvasRef.value.removeEventListener('dragover', handleDragOver)
-    canvasRef.value.removeEventListener('drop', handleDrop)
-    canvasRef.value.removeEventListener('click', handleCanvasClick)
-  }
-})
+// 不需要在mounted和unmounted中添加事件监听器，因为已经在模板中直接绑定了
+// onMounted(() => {
+//   // 监听画布事件
+//   if (canvasRef.value) {
+//     canvasRef.value.addEventListener('dragover', handleDragOver)
+//     canvasRef.value.addEventListener('drop', handleDrop)
+//     canvasRef.value.addEventListener('click', handleCanvasClick)
+//   }
+// })
+//
+// onUnmounted(() => {
+//   // 移除事件监听
+//   if (canvasRef.value) {
+//     canvasRef.value.removeEventListener('dragover', handleDragOver)
+//     canvasRef.value.removeEventListener('drop', handleDrop)
+//     canvasRef.value.removeEventListener('click', handleCanvasClick)
+//   }
+// })
 </script>
 
 <style scoped>
