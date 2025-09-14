@@ -32,10 +32,36 @@
         />
       </div>
 
-      <!-- 右侧播放器和属性面板 -->
-      <div class="right-panel">
-        <WorkflowPlayer ref="workflowPlayerRef" :workflow="workflow" />
+      <!-- 右侧面板 - 标签页切换 -->
+    <div class="right-panel">
+      <!-- 标签页导航 -->
+      <div class="right-panel-tabs">
+        <div 
+          class="tab-item" 
+          :class="{ 'active': activeTab === 'player' }" 
+          @click="switchTab('player')"
+        >
+          播放器
+        </div>
+        <div 
+          class="tab-item" 
+          :class="{ 'active': activeTab === 'logs' }" 
+          @click="switchTab('logs')"
+        >
+          日志查看
+        </div>
       </div>
+      
+      <!-- 标签页内容 -->
+      <div class="right-panel-content">
+        <WorkflowPlayer 
+          v-if="activeTab === 'player'" 
+          ref="workflowPlayerRef" 
+          :workflow="workflow" 
+        />
+        <LogViewer v-else-if="activeTab === 'logs'" />
+      </div>
+    </div>
     </div>
 
     <!-- 状态栏 -->
@@ -61,6 +87,10 @@ import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import ElementPanel from './elements/ElementPanel.vue'
 import WorkflowEditor from './editor/WorkflowEditor.vue'
 import WorkflowPlayer from './player/WorkflowPlayer.vue'
+import LogViewer from '../LogViewer.vue'
+
+// 导入日志工具
+import logger from '@renderer/utils/logger.js'
 
 // 工作流数据
 const workflow = reactive({
@@ -104,9 +134,18 @@ const workflow = reactive({
 const workflowEditorRef = ref(null)
 const workflowPlayerRef = ref(null)
 
+// 标签页状态
+const activeTab = ref('player') // player 或 logs
+
 // 状态信息
 const isSaved = ref(true)
 const lastModified = ref(null)
+
+// 切换标签页
+const switchTab = (tabName) => {
+  activeTab.value = tabName
+  logger.info(`切换到${tabName === 'player' ? '播放器' : '日志查看器'}标签页`)
+}
 
 // 格式化日期
 const formatDate = (date) => {
@@ -198,6 +237,12 @@ const handleWorkflowUpdated = (updatedWorkflow) => {
   lastModified.value = new Date()
 }
 
+// 组件挂载时记录日志
+onMounted(() => {
+  logger.info('RPAMain组件已挂载，工作流系统初始化完成')
+  logger.debug(`初始工作流包含${workflow.elements.length}个元件和${workflow.connections.length}个连接`)
+})
+
 // 监听键盘快捷键
 const handleKeyDown = (event) => {
   // Ctrl/Cmd + S: 保存
@@ -245,6 +290,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 主容器样式 */
 .rpa-main {
   height: 100vh;
   display: flex;
@@ -297,6 +343,7 @@ onUnmounted(() => {
   align-items: center;
 }
 
+/* 主要布局区域 */
 .rpa-layout {
   flex: 1;
   display: flex;
@@ -304,6 +351,7 @@ onUnmounted(() => {
   background-color: #f0f2f5;
 }
 
+/* 左侧面板 - 元件库 */
 .left-panel {
   width: 260px;
   height: 100%;
@@ -314,6 +362,7 @@ onUnmounted(() => {
   transition: all 0.3s ease;
 }
 
+/* 中间工作区面板 - 核心编辑区域 */
 .center-panel {
   flex: 1;
   height: 100%;
@@ -326,6 +375,7 @@ onUnmounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+/* 右侧面板 - 播放器和日志 */
 .right-panel {
   width: 380px;
   height: 100%;
@@ -334,8 +384,46 @@ onUnmounted(() => {
   border-left: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
   transition: all 0.3s ease;
+}
+
+.right-panel-tabs {
+  display: flex;
+  height: 40px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.tab-item:hover {
+  background-color: #f0f0f0;
+  color: var(--color-text-primary);
+}
+
+.tab-item.active {
+  background-color: #ffffff;
+  color: var(--color-primary);
+  font-weight: 500;
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.right-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .rpa-statusbar {
@@ -360,13 +448,15 @@ onUnmounted(() => {
   margin-right: 0;
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 根据不同屏幕尺寸优化布局 */
+/* 大屏幕优化 */
 @media (max-width: 1400px) {
   .right-panel {
     width: 340px;
   }
 }
 
+/* 中等屏幕优化 */
 @media (max-width: 1200px) {
   .left-panel {
     width: 240px;
@@ -376,6 +466,7 @@ onUnmounted(() => {
     width: 300px;
   }
 
+  /* 减少中间面板边距，增加可用空间 */
   .center-panel {
     margin: 6px;
   }
@@ -389,6 +480,7 @@ onUnmounted(() => {
   }
 }
 
+/* 小屏幕优化 */
 @media (max-width: 1024px) {
   .main-toolbar {
     padding: 0 16px;
@@ -408,7 +500,9 @@ onUnmounted(() => {
   }
 }
 
+/* 平板/移动端优化 */
 @media (max-width: 768px) {
+  /* 工具栏调整为垂直排列 */
   .main-toolbar {
     flex-wrap: wrap;
     height: auto;
@@ -423,16 +517,19 @@ onUnmounted(() => {
     justify-content: center;
   }
 
+  /* 布局改为垂直方向，方便移动设备操作 */
   .rpa-layout {
     flex-direction: column;
   }
 
+  /* 左右面板调整为固定高度，可滚动 */
   .left-panel,
   .right-panel {
     width: 100%;
     height: 280px;
   }
 
+  /* 中间面板(工作区)调整为无间距、无圆角，增加可用空间 */
   .center-panel {
     margin: 0;
     border-radius: 0;
@@ -440,6 +537,7 @@ onUnmounted(() => {
     flex: 2;
   }
 
+  /* 状态栏调整为自适应高度 */
   .rpa-statusbar {
     padding: 0 16px;
     flex-wrap: wrap;

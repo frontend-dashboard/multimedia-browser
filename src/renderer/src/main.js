@@ -11,6 +11,9 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import * as ElIcons from '@element-plus/icons-vue'
 import i18n from './i18n'
 
+// 导入日志工具
+import logger, { setLogLevel, LOG_LEVELS } from './utils/logger.js'
+
 const app = createApp(App)
 const pinia = createPinia()
 
@@ -25,9 +28,26 @@ import { initializeTheme } from './utils/themeUtils.js'
 // 初始化Element Plus主题
 initializeTheme()
 
+// 设置日志级别 - 开发环境可以设置为DEBUG，生产环境设置为INFO
+if (import.meta.env.DEV) {
+  setLogLevel(LOG_LEVELS.DEBUG)
+  logger.debug('应用启动 - 开发模式')
+} else {
+  setLogLevel(LOG_LEVELS.INFO)
+  logger.info('应用启动 - 生产模式')
+}
+
+// 挂载日志工具到Vue实例，便于全局访问
+app.config.globalProperties.$logger = logger
+
+// 全局提供日志工具
+app.provide('logger', logger)
+
 app.use(router)
 app.use(pinia)
 app.use(ElementPlus)
 app.use(i18n)
 
+// 应用挂载
 app.mount('#app')
+logger.info('应用挂载完成')

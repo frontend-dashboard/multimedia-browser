@@ -1,83 +1,123 @@
 <template>
   <div class="workflow-editor">
-    <!-- 主要内容区（包含工作区和属性面板） -->
+    <!-- 工具栏 -->
+    <div class="editor-toolbar">
+      <el-button size="small" @click="zoomIn">
+        <el-icon><ZoomIn /></el-icon> 放大
+      </el-button>
+      <el-button size="small" @click="zoomOut">
+        <el-icon><ZoomOut /></el-icon> 缩小
+      </el-button>
+      <el-button size="small" @click="resetZoom">
+        <el-icon><Refresh /></el-icon> 重置
+      </el-button>
+      <div class="toolbar-separator"></div>
+      <el-button size="small" @click="centerCanvas">
+        <el-icon><FullScreen /></el-icon> 居中
+      </el-button>
+    </div>
+
+    <!-- 主要内容区 -->
     <div class="editor-content">
       <!-- 工作区 -->
-      <div class="editor-canvas" ref="canvasRef" @dragover="handleDragOver" @drop="handleDrop" @click="handleCanvasClick">
-        <!-- 工作区背景 -->
-        <div class="canvas-grid"></div>
+      <div 
+        class="editor-canvas-container"
+        @wheel.prevent="handleWheel"
+      >
+        <div 
+          class="editor-canvas"
+          ref="canvasRef"
+          :style="canvasStyle"
+          @dragover="handleDragOver"
+          @drop="handleDrop"
+          @click="handleCanvasClick"
+          @mousedown="handleCanvasMouseDown"
+        >
+          <!-- 工作区背景 -->
+          <div class="canvas-grid"></div>
 
-        <!-- 连接线 -->
-        <svg class="connection-layer" ref="connectionLayerRef">
-          <path
-            v-for="connection in connections"
-            :key="connection.id"
-            :d="getConnectionPath(connection)"
-            class="connection-path"
-            :class="{ 'connection-path-selected': connection.selected }"
-            @click="selectConnection(connection)"
-            :stroke-width="connection.selected ? 3 : 2"
-          />
+          <!-- 连接线层 -->
+          <svg class="connection-layer" ref="connectionLayerRef">
+            <!-- 渲染所有连接线 -->
+            <g class="connections-group">
+              <path
+                v-for="connection in connections"
+                :key="connection.id"
+                :d="getConnectionPath(connection)"
+                class="connection-path"
+                :class="{ 'connection-path-selected': connection.selected }"
+                @click.stop="selectConnection(connection)"
+                :stroke-width="connection.selected ? 3 : 2"
+                :data-source-id="connection.sourceId"
+                :data-target-id="connection.targetId"
+              />
+            </g>
 
-          <!-- 临时连接线（拖拽时） -->
-          <path
-            v-if="tempConnection"
-            :d="getTempConnectionPath()"
-            class="temp-connection-path"
-            stroke-width="2"
-          />
-        </svg>
+            <!-- 临时连接线（拖拽时） -->
+            <path
+              v-if="tempConnection"
+              :d="getTempConnectionPath()"
+              class="temp-connection-path"
+              stroke-width="2"
+            />
+          </svg>
 
-        <!-- 元件节点 -->
-          <draggable
-            :list="elements"
-            :group="{ name: 'elements', pull: false, put: true }"
-            item-key="id"
-            class="element-nodes"
-            @end="onElementDragEnd"
-          >
-          <template #item="{ element: item }">
-            <div
+          <!-- 节点层 -->
+          <div class="element-nodes">
+            <!-- 调试: 显示元素数量 -->
+            <div v-if="isDebug" class="debug-info">
+              元素数量: {{ elements.length }}
+            </div>
+
+            <!-- 渲染所有节点 -->
+            <div 
+              v-for="element in elements"
+              :key="element.id"
               class="element-node"
-              :class="{ 'element-node-selected': item.selected }"
-              :style="{
-                left: item.position.x + 'px',
-                top: item.position.y + 'px'
+              :class="{
+                'element-node-selected': element.selected,
+                'element-node-hover': hoveredElementId === element.id
               }"
-              @click.stop="selectElement(item)"
-              @mousedown.stop="onElementMouseDown"
+              :style="{
+                left: element.position.x + 'px',
+                top: element.position.y + 'px'
+              }"
+              @click.stop="selectElement(element)"
+              @mousedown.stop="onElementMouseDown($event, element)"
+              @mouseenter="hoveredElementId = element.id"
+              @mouseleave="hoveredElementId = null"
             >
               <!-- 节点头部 -->
               <div class="node-header">
                 <el-icon class="node-icon">
-                  <component :is="getIconComponent(item.icon)" />
+                  <component :is="getIconComponent(element.icon)" />
                 </el-icon>
-                <span class="node-name">{{ item.name }}</span>
-                <el-icon class="node-remove" @click.stop="removeElement(item)">
+                <span class="node-name">{{ element.name }}</span>
+                <el-icon class="node-remove" @click.stop="removeElement(element)">
                   <Close />
                 </el-icon>
               </div>
 
               <!-- 节点参数 -->
               <div class="node-params">
-                <div v-for="param in item.params" :key="param.key" class="param-item">
+                <div v-for="param in element.params" :key="param.key" class="param-item">
                   <label class="param-label">{{ param.label }}</label>
                   <div class="param-input">
                     <el-input
                       v-if="param.type === 'string'"
-                      v-model="item.paramValues[param.key]"
+                      v-model="element.paramValues[param.key]"
                       placeholder="请输入"
                       size="small"
                     />
                     <el-input-number
                       v-else-if="param.type === 'number'"
-                      v-model="item.paramValues[param.key]"
+                      v-model="element.paramValues[param.key]"
                       :min="0"
                       size="small"
                     />
                     <el-select
                       v-else-if="param.type === 'select'"
-                      v-model="item.paramValues[param.key]"
+                      v-model="element.paramValues[param.key]"
                       placeholder="请选择"
                       size="small"
                     >
@@ -90,7 +130,7 @@
                     </el-select>
                     <el-switch
                       v-else-if="param.type === 'boolean'"
-                      v-model="item.paramValues[param.key]"
+                      v-model="element.paramValues[param.key]"
                     />
                   </div>
                 </div>
@@ -100,22 +140,22 @@
               <div class="connection-points">
                 <div
                   class="connection-point input-point"
-                  @dragstart="onInputDragStart($event, item)"
+                  @dragstart="onInputDragStart($event, element)"
                   title="输入连接点"
                 ></div>
                 <div
                   class="connection-point output-point"
-                  @dragstart="onOutputDragStart($event, item)"
+                  @dragstart="onOutputDragStart($event, element)"
                   title="输出连接点"
                 ></div>
               </div>
             </div>
-          </template>
-        </draggable>
+          </div>
+        </div>
       </div>
 
       <!-- 属性面板 -->
-      <div v-if="selectedElement || selectedConnection" class="editor-properties">
+      <div class="editor-properties">
         <div class="properties-header">
           <h3>属性面板</h3>
         </div>
@@ -188,7 +228,13 @@
           <div class="property-group">
             <h5>连接信息</h5>
             <el-input v-model="selectedConnection.id" placeholder="连接ID" disabled />
+            <el-input v-model="selectedConnection.name" placeholder="连接名称" />
           </div>
+        </div>
+        
+        <!-- 无选中内容时显示 -->
+        <div v-else class="no-selection">
+          <p>请选择一个元件或连接线</p>
         </div>
       </div>
     </div>
@@ -196,9 +242,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { VueDraggableNext as draggable } from 'vue-draggable-next'
-import { Close } from '@element-plus/icons-vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
+import { Close, ZoomIn, ZoomOut, Refresh, FullScreen } from '@element-plus/icons-vue'
 import {
   ChromeFilled,
   Close as CloseIcon,
@@ -210,53 +255,139 @@ import {
   Download
 } from '@element-plus/icons-vue'
 
-// 定义props，接收workflow数据
+// 导入日志工具
+import logger from '@renderer/utils/logger.js'
+
+// Props
 const props = defineProps({
   workflow: {
     type: Object,
-    required: true
+    default: () => ({})
+  },
+  readOnly: {
+    type: Boolean,
+    default: false
   }
 })
 
-// 定义事件
-const emit = defineEmits(['workflow-updated'])
+// Emits
+const emit = defineEmits(['workflow-updated', 'selection-changed'])
 
-// 创建本地深拷贝，避免直接修改props
-const localWorkflow = ref(JSON.parse(JSON.stringify(props.workflow)))
+// 响应式数据 - 使用reactive创建本地工作流对象
+const localWorkflow = reactive({
+  elements: props.workflow.elements || [],
+  connections: props.workflow.connections || []
+})
 
-// 监听props变化
-watch(() => props.workflow, (newWorkflow) => {
-  localWorkflow.value = JSON.parse(JSON.stringify(newWorkflow))
+// 确保elements和connections数组存在
+if (!localWorkflow.elements) {
+  localWorkflow.elements = []
+}
+if (!localWorkflow.connections) {
+  localWorkflow.connections = []
+}
+
+// 计算属性
+const elements = computed(() => localWorkflow.elements || [])
+const connections = computed(() => localWorkflow.connections || [])
+
+// 画布状态
+const canvasRef = ref(null)
+const connectionLayerRef = ref(null)
+
+// 缩放和位置 - 重构核心功能
+const scale = ref(1)
+const canvasPosition = ref({ x: 0, y: 0 })
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0 })
+const initialCanvasPosition = ref({ x: 0, y: 0 })
+
+// 拖拽状态
+const tempConnection = ref(null)
+const isConnecting = ref(false)
+
+// 选中状态
+const selectedElement = ref(null)
+const selectedConnection = ref(null)
+const hoveredElementId = ref(null)
+
+// 调试模式
+const isDebug = ref(false)
+
+// 画布样式 - 动态计算缩放和位置
+const canvasStyle = computed(() => ({
+  transform: `scale(${scale.value}) translate(${canvasPosition.value.x}px, ${canvasPosition.value.y}px)`,
+  transformOrigin: '0 0',
+  transition: isPanning.value ? 'none' : 'transform 0.2s ease'
+}))
+
+// 只在初始化时使用props数据
+onMounted(() => {
+  // 初始化时从props获取数据
+  if (props.workflow && (props.workflow.elements?.length > 0 || props.workflow.connections?.length > 0)) {
+    Object.assign(localWorkflow, JSON.parse(JSON.stringify(props.workflow)))
+  } else {
+    initWorkflow()
+  }
+  
+  // 添加全局鼠标移动事件，用于更新临时连接线
+  const handleMouseMove = (event) => {
+    if (isConnecting.value && tempConnection.value) {
+      const rect = canvasRef.value.getBoundingClientRect()
+      tempConnection.value.currentPoint = {
+        x: (event.clientX - rect.left) / scale.value,
+        y: (event.clientY - rect.top) / scale.value
+      }
+    }
+  }
+  
+  document.addEventListener('mousemove', handleMouseMove)
+  
+  // 清理函数
+  onUnmounted(() => {
+    document.removeEventListener('mousemove', handleMouseMove)
+  })
+})
+
+// 监听工作流内部变化，通知父组件
+watch(() => [localWorkflow.elements, localWorkflow.connections], () => {
+  emit('workflow-updated', { ...localWorkflow })
 }, { deep: true })
 
-// 计算属性，提供给draggable组件使用
-const elements = computed({
-  get() {
-    console.log('elements get:', localWorkflow.value?.elements || [])
-    return localWorkflow.value?.elements || []
-  },
-  set(newElements) {
-    localWorkflow.value.elements = newElements
-    emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
-  }
+// 监听选中状态变化
+watch([selectedElement, selectedConnection], () => {
+  emit('selection-changed', {
+    element: selectedElement.value,
+    connection: selectedConnection.value
+  })
 })
 
-// 调试：检查props和localWorkflow的初始状态
-console.log('Initial props.workflow:', props.workflow)
-console.log('Initial localWorkflow:', localWorkflow.value)
+// 获取图标组件
+const getIconComponent = (iconName) => {
+  const iconMap = {
+    browser: ChromeFilled,
+    click: Pointer,
+    input: Edit,
+    wait: Clock,
+    data: DataAnalysis,
+    sort: Sort,
+    download: Download,
+    close: CloseIcon
+  }
+  return iconMap[iconName] || ChromeFilled
+}
 
 // 保存工作流
 const saveWorkflow = () => {
   try {
     // 将工作流数据保存到本地存储
-    const workflowData = JSON.parse(JSON.stringify(localWorkflow.value))
-    console.log('workflowData', workflowData)
+    const workflowData = JSON.parse(JSON.stringify(localWorkflow))
     localStorage.setItem('savedWorkflow', JSON.stringify(workflowData))
     // 触发事件通知父组件
     emit('workflow-updated', workflowData)
-    console.log('工作流保存成功')
+    logger.info('工作流保存成功')
   } catch (error) {
-    console.error('保存工作流失败:', error)
+    logger.error('保存工作流失败:', error)
     alert('保存工作流失败，请重试')
   }
 }
@@ -268,125 +399,70 @@ const loadWorkflow = () => {
     const savedWorkflow = localStorage.getItem('savedWorkflow')
     if (savedWorkflow) {
       const parsedWorkflow = JSON.parse(savedWorkflow)
-      // 触发事件通知父组件更新工作流
-      emit('workflow-updated', parsedWorkflow)
-      console.log('工作流加载成功')
+      // 更新本地工作流
+      Object.assign(localWorkflow, parsedWorkflow)
+      logger.info('工作流加载成功')
     } else {
       alert('没有找到已保存的工作流')
     }
   } catch (error) {
-    console.error('加载工作流失败:', error)
+    logger.error('加载工作流失败:', error)
     alert('加载工作流失败，请重试')
   }
 }
 
-// 清空画布回调
+// 清空画布
 const onWorkflowCleared = () => {
+  // 清空本地工作流
+  localWorkflow.elements = []
+  localWorkflow.connections = []
   // 清空选中状态
   selectedElement.value = null
   selectedConnection.value = null
   tempConnection.value = null
   console.log('画布已清空')
+  // 触发事件通知父组件
+  emit('workflow-updated', { ...localWorkflow })
 }
 
-// 元件拖拽结束处理
-const onElementDragEnd = () => {
-  // 触发更新事件，让父组件知道工作流已更改
-  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
-}
-
-// 暴露方法给父组件
-defineExpose({
-  saveWorkflow,
-  loadWorkflow,
-  onWorkflowCleared
-})
-
-// 画布引用
-const canvasRef = ref(null)
-const connectionLayerRef = ref(null)
-
-// 选中的元素和连接
-const selectedElement = ref(null)
-const selectedConnection = ref(null)
-
-// 临时连接（拖拽中）
-const tempConnection = ref(null)
-
-// 根据分类获取元件
-const connections = computed(() => localWorkflow.value.connections)
-
-// 获取图标组件
-const getIconComponent = (iconName) => {
-  const iconMap = {
-    ChromeFilled,
-    Browser: ChromeFilled,
-    Close: CloseIcon,
-    Pointer,
-    Edit,
-    DataAnalysis,
-    Clock,
-    Sort,
-    Download
+// 添加元素
+const addElement = (elementData) => {
+  const newElement = {
+    id: `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name: elementData.name,
+    type: elementData.type,
+    icon: elementData.icon,
+    position: elementData.position || { x: 100, y: 100 },
+    params: elementData.params || [],
+    paramValues: elementData.paramValues || {},
+    selected: false
   }
 
-  return iconMap[iconName] || 'el-icon-menu'
+  // 初始化参数值
+  newElement.params.forEach(param => {
+    if (!(param.key in newElement.paramValues)) {
+      newElement.paramValues[param.key] = param.defaultValue || ''
+    }
+  })
+
+  localWorkflow.elements.push(newElement)
+  return newElement
 }
 
-// 选择元件
-const selectElement = (element) => {
-  // 更新本地工作流
-  localWorkflow.value.elements = localWorkflow.value.elements.map(el => ({
-    ...el,
-    selected: el.id === element.id
-  }))
-
-  localWorkflow.value.connections = localWorkflow.value.connections.map(conn => ({
-    ...conn,
-    selected: false
-  }))
-
-  // 触发事件通知父组件更新工作流
-  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
-
-  // 更新本地选中状态
-  selectedElement.value = element
-  selectedConnection.value = null
-}
-
-// 选择连接
-const selectConnection = (connection) => {
-  // 更新本地工作流
-  localWorkflow.value.elements = localWorkflow.value.elements.map(el => ({
-    ...el,
-    selected: false
-  }))
-
-  localWorkflow.value.connections = localWorkflow.value.connections.map(conn => ({
-    ...conn,
-    selected: conn.id === connection.id
-  }))
-
-  // 触发事件通知父组件更新工作流
-  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
-
-  // 更新本地选中状态
-  selectedConnection.value = connection
-  selectedElement.value = null
-}
-
-// 移除元件
+// 删除元素
 const removeElement = (element) => {
-  // 创建新的连接数组，移除与当前元素相关的连接
-  localWorkflow.value.connections = localWorkflow.value.connections.filter(
-    (conn) => conn.sourceId !== element.id && conn.targetId !== element.id
-  )
+  if (props.readOnly) return
+  
+  // 先删除与该元素相关的连接
+  localWorkflow.connections = localWorkflow.connections.filter(connection => {
+    return connection.sourceId !== element.id && connection.targetId !== element.id
+  })
 
-  // 创建新的元素数组，移除当前元素
-  localWorkflow.value.elements = localWorkflow.value.elements.filter((el) => el.id !== element.id)
-
-  // 触发事件通知父组件更新工作流
-  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
+  // 然后删除元素
+  const index = localWorkflow.elements.findIndex(e => e.id === element.id)
+  if (index !== -1) {
+    localWorkflow.elements.splice(index, 1)
+  }
 
   // 清除选中状态
   if (selectedElement.value === element) {
@@ -395,64 +471,66 @@ const removeElement = (element) => {
 }
 
 // 处理输入连接点拖拽开始
-const onInputDragStart = (event, targetElement) => {
-  event.dataTransfer.effectAllowed = 'connect'
-  event.dataTransfer.setData(
-    'application/json',
-    JSON.stringify({
-      type: 'input-connection',
-      targetId: targetElement.id
-    })
-  )
+const onInputDragStart = (event, element) => {
+  if (props.readOnly) return
+  
+  isConnecting.value = true
+  tempConnection.value = {
+    sourceId: null,
+    targetId: element.id,
+    isInput: true,
+    startPoint: getEventPosition(event)
+  }
+  event.dataTransfer.effectAllowed = 'copy'
+  event.dataTransfer.setData('application/json', JSON.stringify({ targetId: element.id, isInput: true }))
 }
 
 // 处理输出连接点拖拽开始
-const onOutputDragStart = (event, sourceElement) => {
-  event.dataTransfer.effectAllowed = 'connect'
-  event.dataTransfer.setData(
-    'application/json',
-    JSON.stringify({
-      type: 'output-connection',
-      sourceId: sourceElement.id,
-      sourcePosition: {
-        x: event.clientX,
-        y: event.clientY
-      }
-    })
-  )
+const onOutputDragStart = (event, element) => {
+  if (props.readOnly) return
+  
+  isConnecting.value = true
+  tempConnection.value = {
+    sourceId: element.id,
+    targetId: null,
+    isInput: false,
+    startPoint: getEventPosition(event)
+  }
+  event.dataTransfer.effectAllowed = 'copy'
+  event.dataTransfer.setData('application/json', JSON.stringify({ sourceId: element.id, isInput: false }))
 }
 
-// 处理元件鼠标按下
-const onElementMouseDown = (event) => {
-  if (event.button === 0) {
-    // 左键
-    // 允许在元素上开始拖拽
-    event.stopPropagation()
+// 获取事件位置（考虑缩放）
+const getEventPosition = (event) => {
+  const rect = canvasRef.value.getBoundingClientRect()
+  return {
+    x: (event.clientX - rect.left) / scale.value,
+    y: (event.clientY - rect.top) / scale.value
   }
 }
 
-// 获取连接路径
+// 获取连接路径（优化贝塞尔曲线）
 const getConnectionPath = (connection) => {
-  const sourceElement = localWorkflow.value.elements.find((el) => el.id === connection.sourceId)
-  const targetElement = localWorkflow.value.elements.find((el) => el.id === connection.targetId)
+  // 找到源元素和目标元素
+  const sourceElement = localWorkflow.elements.find(el => el.id === connection.sourceId)
+  const targetElement = localWorkflow.elements.find(el => el.id === connection.targetId)
 
   if (!sourceElement || !targetElement) {
     return ''
   }
 
-  // 计算连接点坐标
-  const sourceX = sourceElement.position.x + 200
-  const sourceY = sourceElement.position.y + 50
-  const targetX = targetElement.position.x
-  const targetY = targetElement.position.y + 50
+  // 计算连接点位置（考虑元素中心点）
+  const nodeWidth = 150
+  const nodeHeight = 100
+  
+  const sourceX = sourceElement.position.x + nodeWidth // 输出点在元素右侧
+  const sourceY = sourceElement.position.y + nodeHeight / 2 // 输出点在元素中间
+  const targetX = targetElement.position.x // 输入点在元素左侧
+  const targetY = targetElement.position.y + nodeHeight / 2 // 输入点在元素中间
 
-  // 创建贝塞尔曲线
-  const controlPoint1X = sourceX + 50
-  const controlPoint1Y = sourceY
-  const controlPoint2X = targetX - 50
-  const controlPoint2Y = targetY
-
-  return `M ${sourceX} ${sourceY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${targetX} ${targetY}`
+  // 贝塞尔曲线 - 优化连接线的平滑度
+  const controlPointDistance = Math.max(50, Math.abs(sourceX - targetX) / 2)
+  return `M ${sourceX} ${sourceY} C ${sourceX + controlPointDistance} ${sourceY}, ${targetX - controlPointDistance} ${targetY}, ${targetX} ${targetY}`
 }
 
 // 获取临时连接路径
@@ -461,17 +539,14 @@ const getTempConnectionPath = () => {
     return ''
   }
 
-  const { sourcePosition, targetPosition } = tempConnection.value
+  const { startPoint, currentPoint } = tempConnection.value
+  if (!currentPoint) {
+    return ''
+  }
 
-  const controlPoint1X = sourcePosition.x + 50
-  const controlPoint1Y = sourcePosition.y
-  const controlPoint2X = targetPosition.x - 50
-  const controlPoint2Y = targetPosition.y
-
-  return `M ${sourcePosition.x} ${sourcePosition.y} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${targetPosition.x} ${targetPosition.y}`
+  const controlPointDistance = Math.max(50, Math.abs(startPoint.x - currentPoint.x) / 2)
+  return `M ${startPoint.x} ${startPoint.y} C ${startPoint.x + controlPointDistance} ${startPoint.y}, ${currentPoint.x - controlPointDistance} ${currentPoint.y}, ${currentPoint.x} ${currentPoint.y}`
 }
-
-
 
 // 处理拖拽悬停
 const handleDragOver = (event) => {
@@ -483,85 +558,272 @@ const handleDragOver = (event) => {
 const handleDrop = (event) => {
   event.preventDefault()
 
+  // 检查是否是从外部拖入的元素
   try {
-    const data = JSON.parse(event.dataTransfer.getData('application/json'))
-    const canvasRect = canvasRef.value.getBoundingClientRect()
-
-    if (data.type === 'element') {
-      // 从元件面板拖拽新元件到工作区
-      const newElement = {
-        ...data.elementData,
+    const data = event.dataTransfer.getData('application/json')
+    const elementData = JSON.parse(data)
+    
+    // 处理元素拖拽
+    if (elementData.type) {
+      const position = getEventPosition(event)
+      const newElement = addElement({
+        ...elementData,
         position: {
-          x: event.clientX - canvasRect.left,
-          y: event.clientY - canvasRect.top
-        },
-        paramValues: {}
-      }
-
-      // 初始化参数值
-      if (newElement.params) {
-        newElement.params.forEach((param) => {
-          newElement.paramValues[param.key] = param.defaultValue
-        })
-      }
-
-      // 添加新元件到本地工作流
-      localWorkflow.value.elements = [...localWorkflow.value.elements, newElement]
-
-      // 触发事件通知父组件更新工作流
-      emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
-
+          x: position.x - 75, // 元素宽度的一半
+          y: position.y - 50  // 元素高度的一半
+        }
+      })
       // 选择新添加的元素
       selectElement(newElement)
     }
+    
+    // 处理连接拖拽
+    else if (elementData.sourceId || elementData.targetId) {
+      // 这里应该有更详细的连接逻辑
+      console.log('连接数据:', elementData)
+    }
   } catch (error) {
-    console.error('处理拖拽放置失败:', error)
+    console.error('处理拖拽数据错误:', error)
   }
+
+  // 清除临时连接
+  tempConnection.value = null
+  isConnecting.value = false
 }
 
 // 处理画布点击
 const handleCanvasClick = () => {
-  // 更新本地工作流
-  localWorkflow.value.elements = localWorkflow.value.elements.map(el => ({
-    ...el,
-    selected: false
-  }))
-
-  localWorkflow.value.connections = localWorkflow.value.connections.map(conn => ({
-    ...conn,
-    selected: false
-  }))
-
-  // 触发事件通知父组件更新工作流
-  emit('workflow-updated', JSON.parse(JSON.stringify(localWorkflow.value)))
-
-  // 更新本地选中状态
-  selectedElement.value = null
-  selectedConnection.value = null
+  // 清除所有选中状态
+  clearSelection()
 }
 
-// 生命周期钩子
-// 不需要在mounted和unmounted中添加事件监听器，因为已经在模板中直接绑定了
-// onMounted(() => {
-//   // 监听画布事件
-//   if (canvasRef.value) {
-//     canvasRef.value.addEventListener('dragover', handleDragOver)
-//     canvasRef.value.addEventListener('drop', handleDrop)
-//     canvasRef.value.addEventListener('click', handleCanvasClick)
-//   }
-// })
-//
-// onUnmounted(() => {
-//   // 移除事件监听
-//   if (canvasRef.value) {
-//     canvasRef.value.removeEventListener('dragover', handleDragOver)
-//     canvasRef.value.removeEventListener('drop', handleDrop)
-//     canvasRef.value.removeEventListener('click', handleCanvasClick)
-//   }
-// })
+// 清除选中状态
+const clearSelection = () => {
+  selectedElement.value = null
+  selectedConnection.value = null
+
+  // 重置元素选中状态
+  localWorkflow.elements.forEach(element => {
+    element.selected = false
+  })
+
+  // 重置连接选中状态
+  localWorkflow.connections.forEach(connection => {
+    connection.selected = false
+  })
+}
+
+// 选择元素
+const selectElement = (element) => {
+  // 清除之前的选中状态
+  clearSelection()
+
+  // 设置新的选中状态
+  element.selected = true
+  selectedElement.value = element
+  
+  // 调试信息
+  console.log('选中的元素:', element)
+  console.log('selectedElement值:', selectedElement.value)
+}
+
+// 选择连接
+const selectConnection = (connection) => {
+  // 清除之前的选中状态
+  clearSelection()
+
+  // 设置新的选中状态
+  connection.selected = true
+  selectedConnection.value = connection
+}
+
+// 处理元素拖拽（直接实现拖拽逻辑，不依赖第三方库）
+const onElementMouseDown = (event, element) => {
+  if (props.readOnly) return
+  
+  // 防止冒泡到画布点击事件
+  event.stopPropagation()
+  
+  // 如果已经选中该元素，则开始拖拽
+  if (element.selected) {
+    const startX = event.clientX
+    const startY = event.clientY
+    const startElementX = element.position.x
+    const startElementY = element.position.y
+    
+    const handleMouseMove = (e) => {
+      const dx = (e.clientX - startX) / scale.value
+      const dy = (e.clientY - startY) / scale.value
+      
+      element.position.x = startElementX + dx
+      element.position.y = startElementY + dy
+    }
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+    
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+}
+
+// 画布拖拽开始
+const handleCanvasMouseDown = (event) => {
+  // 只有在没有选中任何元素或连接且点击的是画布背景时才允许拖拽
+  if (!selectedElement.value && !selectedConnection.value && event.target === canvasRef.value) {
+    isPanning.value = true
+    panStart.value = {
+      x: event.clientX,
+      y: event.clientY
+    }
+    initialCanvasPosition.value = {
+      x: canvasPosition.value.x,
+      y: canvasPosition.value.y
+    }
+    
+    const handleMouseMove = (e) => {
+      if (isPanning.value) {
+        const dx = e.clientX - panStart.value.x
+        const dy = e.clientY - panStart.value.y
+        
+        canvasPosition.value = {
+          x: initialCanvasPosition.value.x + dx,
+          y: initialCanvasPosition.value.y + dy
+        }
+      }
+    }
+    
+    const handleMouseUp = () => {
+      isPanning.value = false
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+    
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+}
+
+// 缩放功能（鼠标滚轮）
+const handleWheel = (event) => {
+  event.preventDefault()
+  
+  const delta = event.deltaY > 0 ? -0.1 : 0.1
+  const newScale = Math.max(0.5, Math.min(2, scale.value + delta))
+  
+  if (newScale !== scale.value) {
+    // 计算鼠标在画布上的位置
+    const rect = canvasRef.value.getBoundingClientRect()
+    const mouseX = (event.clientX - rect.left) / scale.value
+    const mouseY = (event.clientY - rect.top) / scale.value
+    
+    // 调整画布位置，使鼠标指向的点保持不变
+    canvasPosition.value = {
+      x: (mouseX * scale.value - mouseX * newScale) + canvasPosition.value.x,
+      y: (mouseY * scale.value - mouseY * newScale) + canvasPosition.value.y
+    }
+    
+    scale.value = newScale
+  }
+}
+
+// 工具栏缩放功能
+const zoomIn = () => {
+  scale.value = Math.min(2, scale.value + 0.1)
+}
+
+const zoomOut = () => {
+  scale.value = Math.max(0.5, scale.value - 0.1)
+}
+
+const resetZoom = () => {
+  scale.value = 1
+  canvasPosition.value = { x: 0, y: 0 }
+}
+
+// 居中画布
+const centerCanvas = () => {
+  if (!canvasRef.value || localWorkflow.elements.length === 0) return
+  
+  const canvasContainer = canvasRef.value.parentElement
+  const containerWidth = canvasContainer.clientWidth
+  const containerHeight = canvasContainer.clientHeight
+  
+  // 计算所有元素的中心点
+  let totalX = 0
+  let totalY = 0
+  
+  localWorkflow.elements.forEach(element => {
+    totalX += element.position.x + 75 // 75 是元素宽度的一半
+    totalY += element.position.y + 50 // 50 是元素高度的一半
+  })
+  
+  const centerX = totalX / localWorkflow.elements.length
+  const centerY = totalY / localWorkflow.elements.length
+  
+  // 计算需要移动的距离
+  canvasPosition.value = {
+    x: (containerWidth / 2) / scale.value - centerX,
+    y: (containerHeight / 2) / scale.value - centerY
+  }
+}
+
+// 初始化工作流
+const initWorkflow = () => {
+  if (!localWorkflow.elements.length) {
+    // 添加一些示例元素
+    addElement({
+      name: '浏览器打开',
+      type: 'browser',
+      icon: 'browser',
+      params: [
+        {
+          key: 'url',
+          label: 'URL地址',
+          type: 'string',
+          required: true,
+          defaultValue: 'https://www.example.com'
+        }
+      ]
+    })
+
+    addElement({
+      name: '点击操作',
+      type: 'click',
+      icon: 'click',
+      params: [
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: '#button'
+        }
+      ]
+    })
+  }
+}
+
+// 暴露方法给父组件
+defineExpose({
+  saveWorkflow,
+  loadWorkflow,
+  onWorkflowCleared,
+  addElement
+})
+
+// 生命周期钩子 - 已在上文统一处理
+onUnmounted(() => {
+  // 清理所有事件监听器
+  isPanning.value = false
+  isConnecting.value = false
+})
 </script>
 
 <style scoped>
+/* 编辑器主容器 */
 .workflow-editor {
   height: 100%;
   display: flex;
@@ -569,20 +831,30 @@ const handleCanvasClick = () => {
   background-color: var(--color-background);
 }
 
+/* 内容区域布局 */
 .editor-content {
   flex: 1;
   display: flex;
   overflow: hidden;
+  position: relative;
 }
 
-
-
-.editor-canvas {
+/* 画布容器 */
+.editor-canvas-container {
   flex: 1;
   position: relative;
-  overflow: auto;
+  overflow: hidden;
+  background-color: #f8f8f8;
+  margin-right: 300px; /* 为属性面板留出空间 */
+}
+
+/* 画布本身 */
+.editor-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
   background-color: #fafafa;
-  min-height: 0; /* 确保flex子元素可以收缩 */
 }
 
 .canvas-grid {
@@ -743,6 +1015,11 @@ const handleCanvasClick = () => {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
 }
 
 .properties-header {

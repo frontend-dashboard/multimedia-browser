@@ -113,6 +113,9 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { VideoPlay, VideoPause, Stopwatch, Right } from '@element-plus/icons-vue'
 
+// 导入日志工具
+import logger from '@renderer/utils/logger.js'
+
 // Props
 const props = defineProps({
   workflow: {
@@ -169,15 +172,36 @@ const formatTime = (ms) => {
   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-// 添加日志
+// 添加日志 - 同时发送到全局日志系统和组件内部日志
 const addLog = (level, message, details = null) => {
   const timestamp = new Date().toLocaleTimeString()
+  
+  // 添加到组件内部日志（用于界面显示）
   logs.value.push({
     timestamp,
     level,
     message,
     details
   })
+  
+  // 发送到全局日志系统
+  switch (level) {
+    case 'debug':
+      logger.debug(message, details)
+      break
+    case 'info':
+      logger.info(message, details)
+      break
+    case 'success':
+      logger.info(message, details) // 使用info级别，因为logger没有success级别
+      break
+    case 'warn':
+      logger.warn(message, details)
+      break
+    case 'error':
+      logger.error(message, details)
+      break
+  }
 
   // 自动滚动到底部
   nextTick(() => {
