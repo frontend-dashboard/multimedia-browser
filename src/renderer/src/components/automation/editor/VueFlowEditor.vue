@@ -39,6 +39,8 @@
         :max-zoom="2"
         class="vue-flow-workspace"
         @connect="handleConnect"
+        @drop="handleDrop"
+        @dragover="handleDragOver"
       >
         <!-- 背景网格 -->
         <Background
@@ -637,8 +639,10 @@ const layoutGraph = async (direction) => {
 // 处理拖拽元素到画布
 const handleDrop = (event) => {
   try {
+    console.log('handleDrop called')
     // 获取拖拽数据
     const dragData = JSON.parse(event.dataTransfer.getData('application/json'))
+    console.log('dragData:', dragData)
 
     if (dragData.type === 'element' && dragData.elementData) {
       // 获取相对于画布的位置
@@ -676,6 +680,7 @@ const handleDrop = (event) => {
 }
 
 const handleDragOver = (event) => {
+  console.log('handleDragOver called')
   event.preventDefault() // 允许放置
 }
 
