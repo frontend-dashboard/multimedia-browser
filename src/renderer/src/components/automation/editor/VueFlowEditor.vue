@@ -194,6 +194,8 @@
         </div>
       </div>
     </div>
+
+    <InteractionControls />
   </div>
 </template>
 
@@ -207,6 +209,8 @@ import { MiniMap } from '@vue-flow/minimap'
 import { ZoomIn, ZoomOut, Refresh, FullScreen, Close } from '@element-plus/icons-vue'
 // 导入图标工具函数
 import { getIconComponent } from '../utils/iconUtils.js'
+
+import InteractionControls from './InteractionControls.vue'
 
 // 导入所需的样式
 import '@vue-flow/core/dist/style.css'
