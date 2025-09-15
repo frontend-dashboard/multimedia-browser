@@ -239,7 +239,7 @@ watch(
       elements.value = newWorkflow.elements.map((el) => ({
         id: el.id,
         type: 'custom-node',
-        position: { x: el.position.x, y: el.position.y },
+        position: { x: el.position?.x || 0, y: el.position?.y || 0 },
         data: {
           ...el,
           // Vue Flow 要求数据中包含必要的属性

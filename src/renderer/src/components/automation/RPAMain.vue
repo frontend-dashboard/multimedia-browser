@@ -3,7 +3,7 @@
     <!-- 主工具栏 -->
     <div class="main-toolbar">
       <div class="toolbar-left">
-        <h1 class="app-title">网页自动化RPA工具</h1>
+        <h1 class="app-title">RPA网页自动化工具</h1>
       </div>
       <div class="toolbar-center">
         <el-button type="primary" @click="newWorkflow">新建流程</el-button>
