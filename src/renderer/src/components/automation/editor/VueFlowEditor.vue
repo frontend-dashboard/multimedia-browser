@@ -49,10 +49,12 @@
         @dragover="handleDragOver"
       >
         <!-- 背景网格 -->
-        <Background gap="20" stroke="var(--color-border)" stroke-width="1" class="vue-flow-background" />
-        
-        <!-- 基础控制按钮 -->
-        <Controls position="top-right" />
+        <Background
+          gap="20"
+          stroke="var(--color-border)"
+          stroke-width="1"
+          class="vue-flow-background"
+        />
 
         <!-- 自定义节点 -->
         <template #node-custom-node="{ data }">
@@ -70,7 +72,11 @@
               </el-icon>
               <span class="node-name">{{ data.name }}</span>
               <div class="node-actions">
-                <el-icon class="node-action node-remove" title="删除节点" @click.stop="removeElement(data.id)">
+                <el-icon
+                  class="node-action node-remove"
+                  title="删除节点"
+                  @click.stop="removeElement(data.id)"
+                >
                   <Close />
                 </el-icon>
               </div>
@@ -87,6 +93,8 @@
             </div>
           </div>
         </template>
+
+        <MiniMap :node-stroke-color="nodeStroke" :node-color="nodeColor" />
       </VueFlow>
     </div>
 
@@ -182,8 +190,8 @@
 import { ref, watch, onMounted, nextTick } from 'vue'
 // 导入 VueFlow 相关组件
 import { VueFlow, useVueFlow } from '@vue-flow/core'
-import { Controls } from '@vue-flow/controls'
 import { Background } from '@vue-flow/background'
+import { MiniMap } from '@vue-flow/minimap'
 import { ZoomIn, ZoomOut, Refresh, FullScreen, Close } from '@element-plus/icons-vue'
 // 导入图标工具函数
 import { getIconComponent } from '../utils/iconUtils.js'
@@ -213,10 +221,14 @@ const elements = ref([])
 const connections = ref([])
 const selectedNode = ref(null)
 const hoveredNodeId = ref(null)
-const focusedNodeId = ref(null)  // 用于存储当前焦点节点ID
+const focusedNodeId = ref(null) // 用于存储当前焦点节点ID
 const connectionMode = ref('loose')
 const snapToGrid = ref(true)
 const currentZoom = ref(1)
+
+// MiniMap 配置
+const nodeStroke = '#3b82f6' // 节点描边颜色
+const nodeColor = '#e2e8f0' // 节点填充颜色
 
 // 监听工作流数据变化，同步到 Vue Flow
 watch(
@@ -316,7 +328,7 @@ const handleNodeClick = (event, node) => {
     // 设置新的选中状态
     node.data.selected = true
     selectedNode.value = node
-    
+
     // 设置焦点节点
     focusedNodeId.value = node.id
   } catch (error) {
@@ -365,14 +377,16 @@ onMounted(() => {
       // 尝试使用备选方案 - 监听底层DOM事件（如果需要）
     }
   }
-  
+
   // 监听画布点击事件，用于清除焦点状态
   const canvasElement = document.querySelector('.vue-flow__viewport')
   if (canvasElement) {
     canvasElement.addEventListener('click', (event) => {
       // 只有当点击的是画布本身而不是节点时才清除焦点
-      if (event.target.classList.contains('vue-flow__viewport') || 
-          event.target.classList.contains('vue-flow__background')) {
+      if (
+        event.target.classList.contains('vue-flow__viewport') ||
+        event.target.classList.contains('vue-flow__background')
+      ) {
         focusedNodeId.value = null
       }
     })
@@ -459,8 +473,11 @@ const zoomIn = () => {
   if (flowInstance.zoom) {
     flowInstance.zoom(1.2)
   } else if (vueFlowRef.value && vueFlowRef.value.zoomTo) {
-    // 备选方案：使用vueFlowRef的zoomTo方法
-    vueFlowRef.value.zoomTo(flowInstance.viewport.zoom * 1.2)
+    // 备选方案：使用我们自己维护的currentZoom变量，避免NaN错误
+    const newZoomLevel = currentZoom.value * 1.2
+    if (!isNaN(newZoomLevel)) {
+      vueFlowRef.value.zoomTo(newZoomLevel)
+    }
   }
 }
 
@@ -469,8 +486,11 @@ const zoomOut = () => {
   if (flowInstance.zoom) {
     flowInstance.zoom(0.8)
   } else if (vueFlowRef.value && vueFlowRef.value.zoomTo) {
-    // 备选方案：使用vueFlowRef的zoomTo方法
-    vueFlowRef.value.zoomTo(flowInstance.viewport.zoom * 0.8)
+    // 备选方案：使用我们自己维护的currentZoom变量，避免NaN错误
+    const newZoomLevel = currentZoom.value * 0.8
+    if (!isNaN(newZoomLevel)) {
+      vueFlowRef.value.zoomTo(newZoomLevel)
+    }
   }
 }
 
@@ -495,44 +515,42 @@ const centerCanvas = () => {
 const layout = (nodes, edges, direction) => {
   // 复制节点数组以避免直接修改原始数据
   const newNodes = [...nodes]
-  
+
   // 如果没有节点，直接返回
   if (newNodes.length === 0) {
     return newNodes
   }
-  
+
   // 节点间距
   const nodeGap = 150
   // 层级间距
   const levelGap = 180
-  
+
   // 构建节点映射
-  const nodeMap = new Map(newNodes.map(node => [node.id, node]))
-  
+  const nodeMap = new Map(newNodes.map((node) => [node.id, node]))
+
   // 找出所有根节点（没有入边的节点）
-  const rootNodes = newNodes.filter(node => 
-    !edges.some(edge => edge.target === node.id)
-  )
-  
+  const rootNodes = newNodes.filter((node) => !edges.some((edge) => edge.target === node.id))
+
   // 计算每个节点的层级
   const nodeLevels = new Map()
-  
+
   // BFS计算层级
   const calculateLevels = () => {
     const queue = [...rootNodes]
-    
+
     // 设置根节点层级为0
-    rootNodes.forEach(node => nodeLevels.set(node.id, 0))
-    
+    rootNodes.forEach((node) => nodeLevels.set(node.id, 0))
+
     while (queue.length > 0) {
       const current = queue.shift()
       const currentLevel = nodeLevels.get(current.id)
       const nextLevel = currentLevel + 1
-      
+
       // 找到当前节点的所有子节点
-      const childEdges = edges.filter(edge => edge.source === current.id)
-      
-      childEdges.forEach(edge => {
+      const childEdges = edges.filter((edge) => edge.source === current.id)
+
+      childEdges.forEach((edge) => {
         const childNode = nodeMap.get(edge.target)
         if (childNode && !nodeLevels.has(childNode.id)) {
           nodeLevels.set(childNode.id, nextLevel)
@@ -540,15 +558,15 @@ const layout = (nodes, edges, direction) => {
         }
       })
     }
-    
+
     // 如果没有根节点（环形图），默认将所有节点放在同一层
     if (nodeLevels.size === 0) {
-      newNodes.forEach(node => nodeLevels.set(node.id, 0))
+      newNodes.forEach((node) => nodeLevels.set(node.id, 0))
     }
   }
-  
+
   calculateLevels()
-  
+
   // 按层级分组节点
   const levelGroups = new Map()
   nodeLevels.forEach((level, nodeId) => {
@@ -557,15 +575,15 @@ const layout = (nodes, edges, direction) => {
     }
     levelGroups.get(level).push(nodeMap.get(nodeId))
   })
-  
+
   // 计算每个层级的节点位置
   const levelKeys = Array.from(levelGroups.keys()).sort((a, b) => a - b)
-  
-  levelKeys.forEach(level => {
+
+  levelKeys.forEach((level) => {
     const levelNodes = levelGroups.get(level)
     const levelCount = levelNodes.length
-    const levelOffset = (levelCount - 1) * nodeGap / 2
-    
+    const levelOffset = ((levelCount - 1) * nodeGap) / 2
+
     levelNodes.forEach((node, index) => {
       if (direction === 'TB') {
         // 垂直布局 (top to bottom)
@@ -578,7 +596,7 @@ const layout = (nodes, edges, direction) => {
       }
     })
   })
-  
+
   return newNodes
 }
 
@@ -587,13 +605,13 @@ const layoutGraph = async (direction) => {
   try {
     // 执行布局算法
     const newNodes = layout(elements.value, connections.value, direction)
-    
+
     // 更新节点位置
     elements.value = newNodes
-    
+
     // 使用nextTick确保DOM更新后再调整视图
     await nextTick()
-    
+
     // 调整视图以适应所有节点
     if (vueFlowRef.value) {
       vueFlowRef.value.fitView()
@@ -805,13 +823,6 @@ defineExpose({
   margin-bottom: 12px;
 }
 
-.param-label {
-  display: block;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  margin-bottom: 4px;
-}
-
 .required-mark {
   color: #f56c6c;
 }
@@ -904,7 +915,9 @@ defineExpose({
 }
 
 .custom-node-focused {
-  box-shadow: 0 0 0 2px var(--color-primary), 0 4px 12px rgba(59, 130, 246, 0.2);
+  box-shadow:
+    0 0 0 2px var(--color-primary),
+    0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 /* 节点头部样式 */
@@ -986,6 +999,8 @@ defineExpose({
   font-weight: 500;
   white-space: nowrap;
   margin-right: 8px;
+  margin-bottom: 4px;
+  cursor: grab;
 }
 
 .param-value {
@@ -1009,11 +1024,11 @@ defineExpose({
   .custom-node {
     min-width: 140px;
   }
-  
+
   .node-header {
     padding: 8px 10px;
   }
-  
+
   .node-params {
     padding: 8px 10px;
   }

@@ -45,7 +45,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-button type="success" @click="playWorkflow">播放</el-button>
+        <el-button type="success" @click="playWorkflow">运行</el-button>
       </div>
     </div>
 
@@ -66,7 +66,7 @@
       </div>
 
       <!-- 右侧面板 - 标签页切换 -->
-      <div class="right-panel">
+      <div class="right-panel" :style="{ display: 'none' }">
         <!-- 标签页导航 -->
         <div class="right-panel-tabs">
           <div
