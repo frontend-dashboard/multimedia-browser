@@ -9,7 +9,7 @@
         <el-icon><ZoomOut /></el-icon> 缩小
       </el-button>
       <el-button size="small" @click="resetZoom">
-        <el-icon><Refresh /></el-icon> 重置
+        <el-icon><Refresh /></el-icon> 重置大小
       </el-button>
       <div class="toolbar-separator"></div>
       <el-button size="small" @click="layoutGraph('TB')">
@@ -38,7 +38,6 @@
         :min-zoom="0.5"
         :max-zoom="2"
         class="vue-flow-workspace"
-        @connect="handleConnect"
         @drop="handleDrop"
         @dragover="handleDragOver"
       >
@@ -226,6 +225,10 @@ const {
   onNodeDragStop,
   onNodeDragStart,
   addEdges,
+  addNodes,
+  dimensions,
+  toObject,
+  fromObject,
   onNodeClick,
   onConnectionSuccess,
   onNodeMouseEnter,
@@ -291,26 +294,53 @@ onConnect((params) => {
 
 // 导出工作流数据的方法，供父组件在保存时调用
 const exportWorkflowData = () => {
-  return {
-    ...props.workflow,
-    elements: elements.value.map((node) => ({
-      id: node.id,
-      name: node.data.name,
-      icon: node.data.icon,
-      position: node.position,
-      params: node.data.params || [],
-      paramValues: node.data.paramValues || {},
-      selected: node.selected
-    })),
-    edges: edges.value.map((conn) => ({
-      id: conn.id,
-      source: conn.source,
-      target: conn.target,
-      sourceHandle: conn.sourceHandle,
-      targetHandle: conn.targetHandle,
-      type: conn.type || 'smoothstep',
-      selected: conn.selected
-    }))
+  // 使用 Vue Flow 提供的 toObject 方法获取工作流数据
+  if (toObject) {
+    const flowData = toObject()
+    return {
+      ...props.workflow,
+      elements: flowData.nodes.map((node) => ({
+        id: node.id,
+        name: node.data.name,
+        icon: node.data.icon,
+        position: node.position,
+        params: node.data.params || [],
+        paramValues: node.data.paramValues || {},
+        selected: node.selected
+      })),
+      edges: flowData.edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        sourceHandle: edge.sourceHandle,
+        targetHandle: edge.targetHandle,
+        type: edge.type || 'smoothstep',
+        selected: edge.selected
+      }))
+    }
+  } else {
+    // 降级方案：使用当前实现
+    return {
+      ...props.workflow,
+      elements: elements.value.map((node) => ({
+        id: node.id,
+        name: node.data.name,
+        icon: node.data.icon,
+        position: node.position,
+        params: node.data.params || [],
+        paramValues: node.data.paramValues || {},
+        selected: node.selected
+      })),
+      edges: edges.value.map((conn) => ({
+        id: conn.id,
+        source: conn.source,
+        target: conn.target,
+        sourceHandle: conn.sourceHandle,
+        targetHandle: conn.targetHandle,
+        type: conn.type || 'smoothstep',
+        selected: conn.selected
+      }))
+    }
   }
 }
 
@@ -456,8 +486,39 @@ const handleNodeDragStart = () => {
   // 节点拖动开始时的处理逻辑
 }
 
-const handleNodeDragStop = () => {
-  // 节点拖动结束时的处理逻辑 - 不再自动通知父组件
+const handleNodeDragStop = (event) => {
+  try {
+    // 确保事件和节点存在
+    if (event && event.node) {
+      // 先记录节点的基本位置信息（来自事件对象）
+      const nodePosition = event.node.position
+      console.log('节点位置信息 (来自事件对象):', nodePosition)
+      
+      // 尝试使用 dimensions API 但增加错误处理和日志记录
+      if (dimensions) {
+        try {
+          // 记录 dimensions 对象的结构以便调试
+          console.log('dimensions 对象结构:', {
+            hasValue: dimensions.value !== undefined,
+            valueType: typeof dimensions.value,
+            isObject: dimensions.value && typeof dimensions.value === 'object',
+            hasGetNodeRect: dimensions.value && typeof dimensions.value.getNodeRect === 'function'
+          })
+          
+          // 只有当 getNodeRect 方法存在时才调用
+          if (dimensions.value && typeof dimensions.value.getNodeRect === 'function') {
+            const nodeDimensions = dimensions.value.getNodeRect(event.node.id)
+            console.log('节点尺寸信息 (来自 dimensions API):', nodeDimensions)
+          }
+        } catch (dimensionsError) {
+          console.warn('使用 dimensions API 时出错，但不影响功能:', dimensionsError)
+        }
+      }
+    }
+    // 节点拖动结束时的处理逻辑 - 不再自动通知父组件
+  } catch (error) {
+    console.error('Error in handleNodeDragStop:', error)
+  }
 }
 
 // 处理节点位置变化
@@ -490,18 +551,6 @@ const handleEdgeSuccess = (params) => {
     })
   } catch (error) {
     console.error('Error in handleEdgeSuccess:', error)
-  }
-}
-
-// 处理连接创建
-const handleConnect = (connection) => {
-  const connectionId = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  return {
-    ...connection,
-    id: connectionId,
-    // 绑定连接点ID（与自定义节点的Handle ID匹配）
-    sourceHandle: `${connection.source}-right`,
-    targetHandle: `${connection.target}-left`
   }
 }
 
@@ -700,8 +749,13 @@ const handleDrop = (event) => {
         selected: false
       }
 
-      // 添加新节点到画布
-      elements.value.push(newNode)
+      // 使用 Vue Flow 提供的 addNodes 方法添加新节点
+      if (addNodes) {
+        addNodes([newNode])
+      } else {
+        // 降级方案：直接添加到元素数组
+        elements.value.push(newNode)
+      }
     }
   } catch (error) {
     console.error('拖拽元素到画布时出错:', error)
@@ -744,15 +798,22 @@ const getParamDisplayValue = (paramValues, param) => {
 
 // 暴露方法给父组件
 const resetWorkflow = () => {
-  elements.value = []
-  edges.value = []
+  // 使用 Vue Flow 提供的 fromObject 方法重置数据
+  if (fromObject) {
+    fromObject({
+      nodes: [],
+      edges: []
+    })
+  } else {
+    // 降级方案：直接清空数组
+    elements.value = []
+    edges.value = []
+  }
   selectedNode.value = null
 }
 
 const onWorkflowCleared = () => {
-  elements.value = []
-  edges.value = []
-  selectedNode.value = null
+  resetWorkflow()
 }
 
 const saveWorkflow = () => {

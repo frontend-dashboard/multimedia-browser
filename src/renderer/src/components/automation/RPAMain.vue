@@ -57,12 +57,9 @@
       </div>
 
       <!-- 中间工作区 -->
-        <div class="center-panel">
-          <VueFlowEditor
-            ref="vueFlowEditorRef"
-            :workflow="workflow"
-          />
-        </div>
+      <div class="center-panel">
+        <VueFlowEditor ref="vueFlowEditorRef" :workflow="workflow" />
+      </div>
 
       <!-- 右侧面板 - 标签页切换 -->
       <div class="right-panel" :style="{ display: 'none' }">
