@@ -147,6 +147,22 @@ app.whenReady().then(() => {
                     timeout: timeout
                   })
                   
+                  // 监听页面关闭事件，检查是否需要自动关闭浏览器
+                  page.on('close', async () => {
+                    try {
+                      // 获取所有页面
+                      const pages = await instance.context.pages()
+                      // 如果没有页面了，自动关闭浏览器
+                      if (pages.length === 0) {
+                        console.log(`浏览器${id}中没有页面了，自动关闭`)
+                        await instance.browser.close()
+                        activeBrowsers.delete(id)
+                      }
+                    } catch (error) {
+                      console.error('检查页面数量时出错:', error)
+                    }
+                  })
+                  
                   return {
                     success: true,
                     message: `已在现有${browserType}浏览器中打开${url}`,
@@ -188,8 +204,32 @@ app.whenReady().then(() => {
 
           // 设置窗口大小
           if (windowSize === 'custom') {
-            await context.newPage({
+            const page = await context.newPage({
               viewport: { width: customWidth, height: customHeight }
+            })
+            
+            // 导航到URL
+            await page.goto(url, {
+              waitUntil: waitUntil,
+              timeout: timeout
+            })
+            
+            console.log(`已成功打开URL: ${url}, 窗口模式: ${windowSize}`)
+            
+            // 监听页面关闭事件，检查是否需要自动关闭浏览器
+            page.on('close', async () => {
+              try {
+                // 获取所有页面
+                const pages = await context.pages()
+                // 如果没有页面了，自动关闭浏览器
+                if (pages.length === 0) {
+                  console.log(`浏览器${browserId}中没有页面了，自动关闭`)
+                  await browser.close()
+                  activeBrowsers.delete(browserId)
+                }
+              } catch (error) {
+                console.error('检查页面数量时出错:', error)
+              }
             })
           } else {
             // 创建新页面
@@ -209,6 +249,22 @@ app.whenReady().then(() => {
             })
 
             console.log(`已成功打开URL: ${url}, 窗口模式: ${windowSize}`)
+            
+            // 监听页面关闭事件，检查是否需要自动关闭浏览器
+            page.on('close', async () => {
+              try {
+                // 获取所有页面
+                const pages = await context.pages()
+                // 如果没有页面了，自动关闭浏览器
+                if (pages.length === 0) {
+                  console.log(`浏览器${browserId}中没有页面了，自动关闭`)
+                  await browser.close()
+                  activeBrowsers.delete(browserId)
+                }
+              } catch (error) {
+                console.error('检查页面数量时出错:', error)
+              }
+            })
           }
 
           // 不关闭浏览器，让用户可以交互
