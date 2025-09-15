@@ -230,8 +230,6 @@ const emit = defineEmits(['workflow-updated'])
 const vueFlowRef = ref(null)
 const flowInstance = useVueFlow()
 
-// 新版本的Vue Flow API已经变更，我们需要使用flowInstance中的方法
-
 // 组件状态
 const elements = ref([])
 const edges = ref([])
@@ -279,63 +277,45 @@ watch(
   { immediate: true, deep: true }
 )
 
+// 处理节点更新并通知父组件
+const notifyWorkflowUpdate = () => {
+  const updatedWorkflow = {
+    ...props.workflow,
+    elements: elements.value.map((node) => ({
+      id: node.id,
+      name: node.data.name,
+      icon: node.data.icon,
+      position: node.position,
+      params: node.data.params || [],
+      paramValues: node.data.paramValues || {},
+      selected: node.selected
+    })),
+    edges: edges.value.map((conn) => ({
+      id: conn.id,
+      source: conn.source,
+      target: conn.target,
+      sourceHandle: conn.sourceHandle,
+      targetHandle: conn.targetHandle,
+      type: conn.type || 'smoothstep',
+      selected: conn.selected
+    }))
+  }
+  
+  emit('workflow-updated', updatedWorkflow)
+}
+
 // 监听元素和连接变化，通知父组件
 watch(
   [elements, edges],
-  () => {
-    // 构建工作流数据
-    const updatedWorkflow = {
-      ...props.workflow,
-      elements: elements.value.map((node) => ({
-        id: node.id,
-        name: node.data.name,
-        icon: node.data.icon,
-        position: node.position,
-        params: node.data.params || [],
-        paramValues: node.data.paramValues || {},
-        selected: node.selected
-      })),
-      edges: edges.value.map((conn) => ({
-        id: conn.id,
-        source: conn.source,
-        target: conn.target,
-        sourceHandle: conn.sourceHandle,
-        targetHandle: conn.targetHandle,
-        type: conn.type || 'smoothstep',
-        selected: conn.selected
-      }))
-    }
-
-    emit('workflow-updated', updatedWorkflow)
-  },
+  notifyWorkflowUpdate,
   { deep: true }
 )
 
 // 处理节点点击
 const handleNodeClick = (event, node) => {
   try {
-    console.log('handleNodeClick called with:', { eventType: event?.type, hasNode: !!node })
-
     // 添加多层安全检查
-    if (!event) {
-      console.warn('handleNodeClick called without an event parameter')
-      return
-    }
-
-    if (!node) {
-      console.warn('handleNodeClick called without a node parameter', {
-        eventType: event.type,
-        target: event.target?.tagName,
-        currentTarget: event.currentTarget?.tagName,
-        caller: new Error().stack?.split('\n')[2] // 尝试获取调用者信息
-      })
-      return
-    }
-
-    if (!node.data) {
-      console.warn('handleNodeClick called with a node that has no data property', {
-        nodeId: node.id
-      })
+    if (!event || !node || !node.data) {
       return
     }
 
@@ -347,34 +327,23 @@ const handleNodeClick = (event, node) => {
     // 设置新的选中状态
     node.data.selected = true
     selectedNode.value = node
-
-    // 设置焦点节点
     focusedNodeId.value = node.id
   } catch (error) {
     console.error('Error in handleNodeClick:', error)
   }
 }
 
-// 使用更健壮的方式监听Vue Flow的节点点击事件
-// 首先移除任何可能存在的旧监听器
-// 然后添加新的监听器
+// 设置节点点击事件监听
 onMounted(() => {
   // 确保flowInstance已经初始化
   if (flowInstance && flowInstance.onNodeClick) {
-    console.log('Setting up node click listener')
-    // 注意：VueFlow API可能会有变化，这里使用try-catch确保兼容性
     try {
-      // 尝试使用现代API方式 - 处理可能的参数格式变化
+      // 处理VueFlow API参数格式变化
       flowInstance.onNodeClick((...args) => {
-        console.log('Node click event received via flowInstance', {
-          argsCount: args.length,
-          args: args
-        })
-
         // 处理可能的参数格式变化
         let event, node
         if (args.length === 1) {
-          // 可能是VueFlow新版本的API，参数是单个对象
+          // 新版本API格式
           const payload = args[0]
           event = payload.event || payload
           node = payload.node
@@ -384,16 +353,13 @@ onMounted(() => {
           node = args[1]
         }
 
-        // 只有当node存在时才调用handleNodeClick，避免不必要的警告
+        // 只有当node存在时才调用handleNodeClick
         if (node) {
           handleNodeClick(event, node)
-        } else {
-          console.log('Skipping handleNodeClick call due to missing node parameter')
         }
       })
     } catch (error) {
-      console.warn('Failed to set up node click listener with modern API:', error)
-      // 尝试使用备选方案 - 监听底层DOM事件（如果需要）
+      console.warn('Failed to set up node click listener:', error)
     }
   }
 
@@ -419,38 +385,17 @@ const handleNodeDragStart = () => {
 
 const handleNodeDragStop = () => {
   // 节点拖动结束时自动保存位置更新
-  handleNodeUpdate()
+  notifyWorkflowUpdate()
 }
 
 // 处理节点位置变化
 const handleNodePositionChange = () => {
-  handleNodeUpdate()
+  notifyWorkflowUpdate()
 }
 
-// 处理节点更新
+// 处理节点数据更新
 const handleNodeUpdate = () => {
-  // 触发工作流更新事件
-  emit('workflow-updated', {
-    ...props.workflow,
-    elements: elements.value.map((node) => ({
-      id: node.id,
-      name: node.data.name,
-      icon: node.data.icon,
-      position: node.position,
-      params: node.data.params || [],
-      paramValues: node.data.paramValues || {},
-      selected: node.selected
-    })),
-    edges: edges.value.map((conn) => ({
-      id: conn.id,
-      source: conn.source,
-      target: conn.target,
-      sourceHandle: conn.sourceHandle,
-      targetHandle: conn.targetHandle,
-      type: conn.type || 'smoothstep',
-      selected: conn.selected
-    }))
-  })
+  notifyWorkflowUpdate()
 }
 
 // 处理连接成功
@@ -492,39 +437,30 @@ const handleZoom = (zoomLevel) => {
   currentZoom.value = zoomLevel
 }
 
-// 工具栏方法
-const zoomIn = () => {
-  // 在新版本中使用flowInstance的zoom方法
+// 工具栏方法 - 统一处理缩放逻辑
+const handleZoomChange = (scaleFactor) => {
   if (flowInstance.zoom) {
-    flowInstance.zoom(1.2)
+    flowInstance.zoom(scaleFactor)
   } else if (vueFlowRef.value && vueFlowRef.value.zoomTo) {
-    // 备选方案：使用我们自己维护的currentZoom变量，避免NaN错误
-    const newZoomLevel = currentZoom.value * 1.2
+    const newZoomLevel = currentZoom.value * scaleFactor
     if (!isNaN(newZoomLevel)) {
       vueFlowRef.value.zoomTo(newZoomLevel)
     }
   }
+}
+
+const zoomIn = () => {
+  handleZoomChange(1.2)
 }
 
 const zoomOut = () => {
-  // 在新版本中使用flowInstance的zoom方法
-  if (flowInstance.zoom) {
-    flowInstance.zoom(0.8)
-  } else if (vueFlowRef.value && vueFlowRef.value.zoomTo) {
-    // 备选方案：使用我们自己维护的currentZoom变量，避免NaN错误
-    const newZoomLevel = currentZoom.value * 0.8
-    if (!isNaN(newZoomLevel)) {
-      vueFlowRef.value.zoomTo(newZoomLevel)
-    }
-  }
+  handleZoomChange(0.8)
 }
 
 const resetZoom = () => {
-  // 在新版本中使用flowInstance的zoom方法
   if (flowInstance.zoom) {
     flowInstance.zoom(1)
   } else if (vueFlowRef.value && vueFlowRef.value.zoomTo) {
-    // 备选方案：使用vueFlowRef的zoomTo方法
     vueFlowRef.value.zoomTo(1)
   }
 }
@@ -536,7 +472,7 @@ const centerCanvas = () => {
   }
 }
 
-// 简单布局算法，参考Vue Flow官网示例
+// 简单布局算法
 const layout = (nodes, edges, direction) => {
   // 复制节点数组以避免直接修改原始数据
   const newNodes = [...nodes]
@@ -546,9 +482,8 @@ const layout = (nodes, edges, direction) => {
     return newNodes
   }
 
-  // 节点间距
+  // 节点间距和层级间距
   const nodeGap = 150
-  // 层级间距
   const levelGap = 180
 
   // 构建节点映射
@@ -705,7 +640,7 @@ const removeElement = (nodeId) => {
   }
 }
 
-// 辅助方法
+// 辅助方法：获取参数显示值
 const getParamDisplayValue = (paramValues, param) => {
   const value = paramValues[param.key]
   if (value === undefined || value === null) {
@@ -854,19 +789,7 @@ defineExpose({
   width: 100%;
 }
 
-/* 自定义节点样式 */
-.custom-node {
-  min-width: 150px;
-  background-color: var(--color-background-800);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  cursor: grab;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 1;
-}
-
-/* 自定义节点基础样式 */
+/* 自定义节点样式 - 合并重复定义 */
 .custom-node {
   position: relative;
   border-radius: 8px;
@@ -876,6 +799,8 @@ defineExpose({
   transition: all 0.3s ease;
   min-width: 180px;
   animation: fadeIn 0.3s ease;
+  cursor: grab;
+  z-index: 1;
 }
 
 @keyframes fadeIn {
@@ -1003,7 +928,8 @@ defineExpose({
   background-color: var(--color-background-800);
 }
 
-.param-item {
+/* 节点参数项样式 */
+.node-params .param-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1011,7 +937,7 @@ defineExpose({
   padding: 2px 0;
 }
 
-.param-item:last-child {
+.node-params .param-item:last-child {
   margin-bottom: 0;
 }
 
@@ -1041,21 +967,6 @@ defineExpose({
   border-top: 1px dotted var(--color-border);
 }
 
-/* 响应式节点 */
-@media (max-width: 768px) {
-  .custom-node {
-    min-width: 140px;
-  }
-
-  .node-header {
-    padding: 8px 10px;
-  }
-
-  .node-params {
-    padding: 8px 10px;
-  }
-}
-
 /* 连接线样式 */
 .connection-path {
   stroke: #94a3b8;
@@ -1077,6 +988,20 @@ defineExpose({
 
 /* 响应式调整 */
 @media (max-width: 768px) {
+  /* 响应式节点 */
+  .custom-node {
+    min-width: 140px;
+  }
+
+  .node-header {
+    padding: 8px 10px;
+  }
+
+  .node-params {
+    padding: 8px 10px;
+  }
+  
+  /* 响应式属性面板 */
   .editor-properties {
     position: relative;
     width: 100%;
