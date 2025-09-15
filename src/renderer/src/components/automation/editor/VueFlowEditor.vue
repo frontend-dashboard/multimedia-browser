@@ -235,6 +235,7 @@ const {
   onZoom,
   onDrop,
   onDragOver,
+  onPaneClick,
   zoom
 } = useVueFlow()
 
@@ -342,84 +343,117 @@ const handleNodeClick = (event, node) => {
   }
 }
 
-// 设置所有VueFlow事件监听
-onMounted(() => {
-  // 节点点击事件
-  if (onNodeClick) {
-    try {
-      onNodeClick((...args) => {
-        let event, node
-        if (args.length === 1) {
-          const payload = args[0]
-          event = payload.event || payload
-          node = payload.node
-        } else if (args.length >= 2) {
-          event = args[0]
-          node = args[1]
-        }
-
-        if (node) {
-          handleNodeClick(event, node)
-        }
-      })
-    } catch (error) {
-      console.warn('Failed to set up node click listener:', error)
+// 处理画布点击，关闭属性面板
+  const handlePaneClick = () => {
+    focusedNodeId.value = null
+    // 点击非节点位置时，关闭属性面板
+    if (selectedNode.value) {
+      // 清除选中节点的选中状态
+      selectedNode.value.data.selected = false
+      // 关闭属性面板
+      selectedNode.value = null
     }
   }
 
-  // 节点拖动开始事件
-  if (onNodeDragStart) {
-    onNodeDragStart(handleNodeDragStart)
-  }
+  // 设置所有VueFlow事件监听
+  onMounted(() => {
+    // 节点点击事件
+    if (onNodeClick) {
+      try {
+        onNodeClick((...args) => {
+          let event, node
+          if (args.length === 1) {
+            const payload = args[0]
+            event = payload.event || payload
+            node = payload.node
+          } else if (args.length >= 2) {
+            event = args[0]
+            node = args[1]
+          }
 
-  // 节点拖动结束事件
-  if (onNodeDragStop) {
-    onNodeDragStop(handleNodeDragStop)
-  }
-
-  // 连接成功事件
-  if (onConnectionSuccess) {
-    onConnectionSuccess(handleEdgeSuccess)
-  }
-
-  // 节点鼠标悬停事件
-  if (onNodeMouseEnter) {
-    onNodeMouseEnter((event, node) => handleNodeMouseEnter(event, node))
-  }
-
-  // 节点鼠标离开事件
-  if (onNodeMouseLeave) {
-    onNodeMouseLeave(handleNodeMouseLeave)
-  }
-
-  // 缩放事件
-  if (onZoom) {
-    onZoom(handleZoom)
-  }
-
-  // 拖放事件
-  if (onDrop) {
-    onDrop(handleDrop)
-  }
-
-  // 拖拽悬停事件
-  if (onDragOver) {
-    onDragOver(handleDragOver)
-  }
-
-  // 监听画布点击事件，用于清除焦点状态
-  const canvasElement = document.querySelector('.vue-flow__viewport')
-  if (canvasElement) {
-    canvasElement.addEventListener('click', (event) => {
-      if (
-        event.target.classList.contains('vue-flow__viewport') ||
-        event.target.classList.contains('vue-flow__background')
-      ) {
-        focusedNodeId.value = null
+          if (node) {
+            handleNodeClick(event, node)
+          }
+        })
+      } catch (error) {
+        console.warn('Failed to set up node click listener:', error)
       }
-    })
-  }
-})
+    }
+
+    // 节点拖动开始事件
+    if (onNodeDragStart) {
+      onNodeDragStart(handleNodeDragStart)
+    }
+
+    // 节点拖动结束事件
+    if (onNodeDragStop) {
+      onNodeDragStop(handleNodeDragStop)
+    }
+
+    // 连接成功事件
+    if (onConnectionSuccess) {
+      onConnectionSuccess(handleEdgeSuccess)
+    }
+
+    // 节点鼠标悬停事件
+    if (onNodeMouseEnter) {
+      onNodeMouseEnter((event, node) => handleNodeMouseEnter(event, node))
+    }
+
+    // 节点鼠标离开事件
+    if (onNodeMouseLeave) {
+      onNodeMouseLeave(handleNodeMouseLeave)
+    }
+
+    // 缩放事件
+    if (onZoom) {
+      onZoom(handleZoom)
+    }
+
+    // 拖放事件
+    if (onDrop) {
+      onDrop(handleDrop)
+    }
+
+    // 拖拽悬停事件
+    if (onDragOver) {
+      onDragOver(handleDragOver)
+    }
+
+    // 使用Vue Flow的官方paneClick事件（推荐方式）
+    if (onPaneClick) {
+      try {
+        onPaneClick(handlePaneClick)
+      } catch (error) {
+        console.warn('Failed to set up pane click listener:', error)
+        // 如果onPaneClick不可用，回退到DOM事件监听
+        const canvasElement = document.querySelector('.vue-flow__viewport')
+        if (canvasElement) {
+          canvasElement.addEventListener('click', (event) => {
+            if (
+              event.target.classList.contains('vue-flow__viewport') ||
+              event.target.classList.contains('vue-flow__background')
+            ) {
+              handlePaneClick()
+            }
+          })
+        }
+      }
+    } else {
+      // 如果onPaneClick不可用，使用DOM事件监听作为后备方案
+      const canvasElement = document.querySelector('.vue-flow__viewport')
+      if (canvasElement) {
+        canvasElement.addEventListener('click', (event) => {
+          if (
+            event.target.classList.contains('vue-flow__viewport') ||
+            event.target.classList.contains('vue-flow__background')
+          ) {
+            handlePaneClick()
+          }
+        })
+      }
+    }
+  })
 
 // 处理节点拖动
 const handleNodeDragStart = () => {
