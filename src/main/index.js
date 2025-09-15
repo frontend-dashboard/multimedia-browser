@@ -1,9 +1,15 @@
-import { app, shell, BrowserWindow, ipcMain, protocol } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { dialog } from 'electron'
 import fs from 'fs/promises'
+// 尝试导入Playwright
+let playwright
+try {
+  playwright = require('playwright')
+} catch {
+  console.warn('Playwright未安装，将使用系统默认浏览器替代')
+}
 
 function createWindow() {
   // Create the browser window.
@@ -74,6 +80,127 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // 浏览器自动化功能
+  const browserAutomation = {
+    // 运行浏览器节点
+    async runBrowserNode(params) {
+      const {
+        url,
+        browserType = 'chrome',
+        incognito = false,
+        windowSize = 'default',
+        customWidth = 1280,
+        customHeight = 800,
+        waitUntil = 'networkidle',
+        timeout = 30000
+      } = params
+
+      try {
+        // 如果Playwright已安装，使用Playwright打开浏览器
+        if (playwright) {
+          console.log(
+            `使用Playwright打开浏览器: ${browserType}, URL: ${url}, 隐身模式: ${incognito}`
+          )
+
+          // 设置浏览器启动选项
+          const launchOptions = {
+            headless: false, // 显示浏览器窗口
+            slowMo: 100, // 慢动作执行
+            timeout: timeout // 设置超时时间
+          }
+
+          // 如果选择了隐身模式，使用隐身上下文
+          let browser
+          let context
+
+          // 根据浏览器类型启动
+          if (incognito) {
+            // 启动普通浏览器然后创建隐身上下文
+            browser = await playwright[browserType].launch(launchOptions)
+            context = await browser.newContext({ incognito: true })
+          } else {
+            // 直接启动浏览器
+            browser = await playwright[browserType].launch(launchOptions)
+            context = await browser.newContext()
+          }
+
+          // 设置窗口大小
+          if (windowSize === 'custom') {
+            await context.newPage({
+              viewport: { width: customWidth, height: customHeight }
+            })
+          } else {
+            // 创建新页面
+            const page = await context.newPage()
+
+            // 根据windowSize设置窗口状态
+            if (windowSize === 'maximized') {
+              await page.maximize()
+            } else if (windowSize === 'fullscreen') {
+              await page.fullscreen()
+            }
+
+            // 导航到URL
+            await page.goto(url, {
+              waitUntil: waitUntil,
+              timeout: timeout
+            })
+
+            console.log(`已成功打开URL: ${url}, 窗口模式: ${windowSize}`)
+          }
+
+          // 不关闭浏览器，让用户可以交互
+          // 注意：在实际应用中，您可能需要实现一个关闭机制
+
+          return {
+            success: true,
+            message: `已使用${browserType}浏览器打开${url}${incognito ? '(隐身模式)' : ''}`,
+            browserId: browser._browserContextId, // 返回浏览器ID以便后续操作
+            windowSize: windowSize
+          }
+        } else {
+          // 如果Playwright未安装，使用系统默认浏览器
+          console.log('使用系统默认浏览器打开URL:', url)
+          const result = await shell.openExternal(url)
+
+          return {
+            success: result,
+            message: result ? '已使用系统默认浏览器打开URL' : '无法打开URL',
+            browserType: 'system'
+          }
+        }
+      } catch (error) {
+        console.error('运行浏览器节点时出错:', error)
+        return {
+          success: false,
+          error: error.message
+        }
+      }
+    },
+
+    // 关闭浏览器
+    async closeBrowser(browserId) {
+      try {
+        // 实际实现需要管理所有打开的浏览器实例
+        // 这里仅提供一个基本框架
+        console.log(`关闭浏览器实例: ${browserId}`)
+        return { success: true }
+      } catch (error) {
+        console.error('关闭浏览器时出错:', error)
+        return { success: false, error: error.message }
+      }
+    }
+  }
+
+  // 注册IPC处理程序
+  ipcMain.handle('browser-automation-run-node', async (_, params) => {
+    return await browserAutomation.runBrowserNode(params)
+  })
+
+  ipcMain.handle('browser-automation-close-browser', async (_, browserId) => {
+    return await browserAutomation.closeBrowser(browserId)
+  })
 
   // 处理打开目录对话框
   ipcMain.handle('open-directory-dialog', async () => {

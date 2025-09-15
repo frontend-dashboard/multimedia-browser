@@ -23,6 +23,17 @@ const api = {
       console.error('创建安全文件URL失败:', error)
       return ''
     }
+  },
+  // 浏览器自动化API
+  browserAutomation: {
+    // 运行浏览器节点
+    runNode: (params) => {
+      return ipcRenderer.invoke('browser-automation-run-node', params)
+    },
+    // 关闭浏览器
+    closeBrowser: (browserId) => {
+      return ipcRenderer.invoke('browser-automation-close-browser', browserId)
+    }
   }
 }
 

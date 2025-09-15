@@ -21,6 +21,50 @@ const ElementTypes = {
         options: ['chrome', 'firefox', 'safari'],
         defaultValue: 'chrome',
         description: '选择要使用的浏览器类型'
+      },
+      {
+        key: 'incognito',
+        label: '隐身模式',
+        type: 'boolean',
+        defaultValue: false,
+        description: '是否以隐身模式打开浏览器'
+      },
+      {
+        key: 'windowSize',
+        label: '窗口大小',
+        type: 'select',
+        options: ['default', 'maximized', 'fullscreen', 'custom'],
+        defaultValue: 'default',
+        description: '浏览器窗口的打开方式'
+      },
+      {
+        key: 'customWidth',
+        label: '自定义宽度',
+        type: 'number',
+        defaultValue: 1280,
+        description: '自定义窗口宽度（仅在窗口大小选择"custom"时生效）'
+      },
+      {
+        key: 'customHeight',
+        label: '自定义高度',
+        type: 'number',
+        defaultValue: 800,
+        description: '自定义窗口高度（仅在窗口大小选择"custom"时生效）'
+      },
+      {
+        key: 'waitUntil',
+        label: '等待加载完成',
+        type: 'select',
+        options: ['load', 'domcontentloaded', 'networkidle', 'commit'],
+        defaultValue: 'networkidle',
+        description: '页面加载完成的判断条件'
+      },
+      {
+        key: 'timeout',
+        label: '超时时间(ms)',
+        type: 'number',
+        defaultValue: 30000,
+        description: '页面加载的最大等待时间'
       }
     ]
   },

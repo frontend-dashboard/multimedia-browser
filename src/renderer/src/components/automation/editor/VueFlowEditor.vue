@@ -190,6 +190,13 @@
             </div>
           </div>
         </div>
+
+        <!-- 浏览器运行按钮 - 仅对BROWSER_OPEN类型节点显示 -->
+        <div v-if="selectedNode.type === 'BROWSER_OPEN'" class="property-group">
+          <el-button type="primary" size="small" class="run-browser-btn" @click="runBrowserNode">
+            运行
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -204,6 +211,8 @@ import { VueFlow, useVueFlow, Handle } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { MiniMap } from '@vue-flow/minimap'
 import { ZoomIn, ZoomOut, Refresh, FullScreen, Close } from '@element-plus/icons-vue'
+// 导入Element Plus消息组件
+import { ElMessage } from 'element-plus'
 // 导入图标工具函数
 import { getIconComponent } from '../utils/iconUtils.js'
 // 导入布局工具
@@ -388,6 +397,62 @@ const handlePaneClick = () => {
     selectedNode.value.data.selected = false
     // 关闭属性面板
     selectedNode.value = null
+  }
+}
+
+// 运行浏览器节点
+const runBrowserNode = async () => {
+  try {
+    if (!selectedNode.value || selectedNode.value.type !== 'BROWSER_OPEN') {
+      return
+    }
+
+    const nodeData = selectedNode.value.data
+    const url = nodeData.paramValues.url || 'https://www.example.com'
+    const browserType = nodeData.paramValues.browserType || 'chrome'
+    const incognito = nodeData.paramValues.incognito || false
+    const windowSize = nodeData.paramValues.windowSize || 'default'
+    const customWidth = nodeData.paramValues.customWidth || 1280
+    const customHeight = nodeData.paramValues.customHeight || 800
+    const waitUntil = nodeData.paramValues.waitUntil || 'networkidle'
+    const timeout = nodeData.paramValues.timeout || 30000
+
+    console.log(
+      `运行浏览器: ${browserType}, 打开URL: ${url}, 隐身模式: ${incognito}, 窗口大小: ${windowSize}`
+    )
+
+    // 通过preload脚本中暴露的API调用主进程的浏览器自动化功能
+    if (window.api && window.api.browserAutomation) {
+      try {
+        const result = await window.api.browserAutomation.runNode({
+          url,
+          browserType,
+          incognito,
+          windowSize,
+          customWidth,
+          customHeight,
+          waitUntil,
+          timeout
+        })
+        console.log('浏览器运行结果:', result)
+        // 显示成功消息
+        if (result.success) {
+          ElMessage.success(result.message || '浏览器已成功打开')
+        } else {
+          ElMessage.error(result.error || '打开浏览器失败')
+        }
+      } catch (error) {
+        console.error('调用浏览器自动化API失败:', error)
+        ElMessage.error('调用浏览器自动化API失败')
+      }
+    } else {
+      console.log('在开发环境中模拟打开浏览器')
+      // 在开发环境中可以模拟这个行为
+      window.open(url, '_blank')
+      ElMessage.info('在开发环境中已尝试打开浏览器')
+    }
+  } catch (error) {
+    console.error('运行浏览器节点出错:', error)
   }
 }
 
@@ -892,6 +957,11 @@ defineExpose({
   color: var(--color-text-primary);
 }
 
+.editor-properties {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
 .element-properties h4 {
   margin: 0 0 8px 0;
   font-size: 13px;
@@ -907,6 +977,11 @@ defineExpose({
   font-size: 12px;
   color: var(--color-text-secondary);
   text-transform: uppercase;
+}
+
+.run-browser-btn {
+  width: 100%;
+  margin-top: 8px;
 }
 
 .position-inputs {
