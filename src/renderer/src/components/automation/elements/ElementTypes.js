@@ -15,6 +15,14 @@ const ElementTypes = {
         defaultValue: 'https://www.example.com'
       },
       {
+        key: 'openMode',
+        label: '打开方式',
+        type: 'select',
+        options: ['useExisting', 'newBrowser'],
+        defaultValue: 'useExisting',
+        description: '在已打开的浏览器中打开，若没有则打开一个；或在新的浏览器中打开'
+      },
+      {
         key: 'browserType',
         label: '浏览器类型',
         type: 'select',

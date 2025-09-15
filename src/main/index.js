@@ -81,12 +81,16 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
+  // 存储已打开的浏览器实例
+  const activeBrowsers = new Map()
+
   // 浏览器自动化功能
   const browserAutomation = {
     // 运行浏览器节点
     async runBrowserNode(params) {
       const {
         url,
+        openMode = 'useExisting',
         browserType = 'chrome',
         incognito = false,
         windowSize = 'default',
@@ -118,6 +122,48 @@ app.whenReady().then(() => {
             `使用Playwright打开浏览器: ${playwrightBrowserType}, URL: ${url}, 隐身模式: ${incognito}`
           )
 
+          // 如果选择在已打开的浏览器中打开，检查是否有相同类型的浏览器实例
+          if (openMode === 'useExisting') {
+            // 查找是否有相同类型且非隐身模式的浏览器实例
+            for (const [id, instance] of activeBrowsers.entries()) {
+              if (instance.browserType === playwrightBrowserType && !instance.incognito) {
+                console.log(`使用已打开的浏览器: ${playwrightBrowserType}, URL: ${url}`)
+                try {
+                  // 创建新页面
+                  const page = await instance.context.newPage()
+                  
+                  // 根据windowSize设置窗口状态
+                  if (windowSize === 'maximized') {
+                    await page.maximize()
+                  } else if (windowSize === 'fullscreen') {
+                    await page.fullscreen()
+                  } else if (windowSize === 'custom') {
+                    await page.setViewportSize({ width: customWidth, height: customHeight })
+                  }
+                  
+                  // 导航到URL
+                  await page.goto(url, {
+                    waitUntil: waitUntil,
+                    timeout: timeout
+                  })
+                  
+                  return {
+                    success: true,
+                    message: `已在现有${browserType}浏览器中打开${url}`,
+                    browserId: id,
+                    windowSize: windowSize
+                  }
+                } catch (error) {
+                  console.error('使用现有浏览器时出错:', error)
+                  // 如果出错，继续创建新浏览器
+                  break
+                }
+              }
+            }
+          }
+          
+          console.log(`使用Playwright打开浏览器: ${playwrightBrowserType}, URL: ${url}, 隐身模式: ${incognito}`)
+          
           // 设置浏览器启动选项
           const launchOptions = {
             headless: false, // 显示浏览器窗口
@@ -167,11 +213,26 @@ app.whenReady().then(() => {
 
           // 不关闭浏览器，让用户可以交互
           // 注意：在实际应用中，您可能需要实现一个关闭机制
+          
+          // 存储浏览器实例信息
+          const browserId = browser._browserContextId
+          activeBrowsers.set(browserId, {
+            browser: browser,
+            context: context,
+            browserType: playwrightBrowserType,
+            incognito: incognito
+          })
+
+          // 监听浏览器关闭事件，自动从活动浏览器列表中移除
+          browser.on('disconnected', () => {
+            activeBrowsers.delete(browserId)
+            console.log(`浏览器已关闭，从活动列表中移除: ${browserId}`)
+          })
 
           return {
             success: true,
             message: `已使用${browserType}浏览器打开${url}${incognito ? '(隐身模式)' : ''}`,
-            browserId: browser._browserContextId, // 返回浏览器ID以便后续操作
+            browserId: browserId, // 返回浏览器ID以便后续操作
             windowSize: windowSize
           }
         } else {
@@ -197,10 +258,17 @@ app.whenReady().then(() => {
     // 关闭浏览器
     async closeBrowser(browserId) {
       try {
-        // 实际实现需要管理所有打开的浏览器实例
-        // 这里仅提供一个基本框架
-        console.log(`关闭浏览器实例: ${browserId}`)
-        return { success: true }
+        // 检查是否有指定ID的浏览器实例
+        if (activeBrowsers.has(browserId)) {
+          const browserInstance = activeBrowsers.get(browserId)
+          await browserInstance.browser.close()
+          activeBrowsers.delete(browserId)
+          console.log(`成功关闭浏览器实例: ${browserId}`)
+          return { success: true }
+        } else {
+          console.warn(`未找到浏览器实例: ${browserId}`)
+          return { success: false, error: '未找到指定的浏览器实例' }
+        }
       } catch (error) {
         console.error('关闭浏览器时出错:', error)
         return { success: false, error: error.message }
