@@ -61,10 +61,10 @@
           >
             <!-- 左侧连接点（用于接收连接） -->
             <Handle
+              :id="`${data.id}-left`"
               type="target"
               position="left"
               class="handle handle-left"
-              :id="`${data.id}-left`"
             />
 
             <div class="node-header">
@@ -95,10 +95,10 @@
 
             <!-- 右侧连接点（用于发送连接） -->
             <Handle
+              :id="`${data.id}-right`"
               type="source"
               position="right"
               class="handle handle-right"
-              :id="`${data.id}-right`"
             />
           </div>
         </template>
@@ -540,12 +540,12 @@ const handleNodePositionChange = () => {
 const handleNodeUpdate = () => {
   try {
     if (!selectedNode.value || !selectedNode.value.data) return
-    
+
     // 对不同类型的参数进行特定处理
-    selectedNode.value.data.params.forEach(param => {
+    selectedNode.value.data.params.forEach((param) => {
       const key = param.key
       let value = selectedNode.value.data.paramValues[key]
-      
+
       // 确保参数值符合类型要求
       if (param.type === 'number' && value !== null && value !== undefined) {
         // 转换为数字类型
@@ -557,13 +557,13 @@ const handleNodeUpdate = () => {
         // 确保字符串类型不为null
         selectedNode.value.data.paramValues[key] = ''
       }
-      
+
       // 必填参数验证
       if (param.required && (!value || value === '')) {
         console.warn(`节点"${selectedNode.value.data.name}"的必填参数"${param.label}"未设置`)
       }
     })
-    
+
     // 标记节点为已更新（可以用于UI反馈）
     // 注意：不再自动通知父组件，而是由父组件主动获取数据
   } catch (error) {

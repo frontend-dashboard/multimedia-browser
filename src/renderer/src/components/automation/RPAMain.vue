@@ -134,20 +134,20 @@ import { ArrowDown, Monitor, Moon, Sunny } from '@element-plus/icons-vue'
 const createNode = (id, elementType, x, y) => {
   // 处理类型名称映射（ElementTypes和ElementPanel中的名称不匹配）
   const typeMapping = {
-    'WAIT_TIME': 'WAIT',
-    'CONDITION_IF': 'IF_CONDITION',
-    'WRITE_FILE': 'SAVE_FILE'
+    WAIT_TIME: 'WAIT',
+    CONDITION_IF: 'IF_CONDITION',
+    WRITE_FILE: 'SAVE_FILE'
   }
-  
+
   // 获取实际的类型定义
   const mappedType = typeMapping[elementType] || elementType
   const typeDef = ElementTypes[mappedType]
-  
+
   // 如果在ElementTypes中找到了定义，则使用它
   if (typeDef) {
     // 构建默认参数值
     const paramValues = {}
-    typeDef.params.forEach(param => {
+    typeDef.params.forEach((param) => {
       paramValues[param.key] = param.defaultValue
     })
 
@@ -165,41 +165,41 @@ const createNode = (id, elementType, x, y) => {
     // 为ElementPanel中额外的元件类型创建默认节点配置
     // 这些类型在ElementTypes中没有定义，但在ElementPanel中有
     const defaultIcons = {
-      'BROWSER_REFRESH': 'Refresh',
-      'BROWSER_NAVIGATE': 'ArrowRight',
-      'SELECT_OPTION': 'Select',
-      'SCROLL_PAGE': 'RefreshRight',
-      'HOVER_ELEMENT': 'Mouse',
-      'SAVE_DATA': 'Document',
-      'PROCESS_DATA': 'Operation',
-      'COMPARE_DATA': 'Operation',
-      'LOOP_FOR': 'RefreshLeft',
-      'TRY_CATCH': 'Warning',
-      'READ_FILE': 'Document',
-      'UPLOAD_FILE': 'Upload',
-      'DOWNLOAD_FILE': 'Download'
+      BROWSER_REFRESH: 'Refresh',
+      BROWSER_NAVIGATE: 'ArrowRight',
+      SELECT_OPTION: 'Select',
+      SCROLL_PAGE: 'RefreshRight',
+      HOVER_ELEMENT: 'Mouse',
+      SAVE_DATA: 'Document',
+      PROCESS_DATA: 'Operation',
+      COMPARE_DATA: 'Operation',
+      LOOP_FOR: 'RefreshLeft',
+      TRY_CATCH: 'Warning',
+      READ_FILE: 'Document',
+      UPLOAD_FILE: 'Upload',
+      DOWNLOAD_FILE: 'Download'
     }
-    
+
     const defaultNames = {
-      'BROWSER_REFRESH': '刷新页面',
-      'BROWSER_NAVIGATE': '导航到URL',
-      'SELECT_OPTION': '选择选项',
-      'SCROLL_PAGE': '滚动页面',
-      'HOVER_ELEMENT': '悬停元素',
-      'SAVE_DATA': '保存数据',
-      'PROCESS_DATA': '处理数据',
-      'COMPARE_DATA': '比较数据',
-      'LOOP_FOR': '循环',
-      'TRY_CATCH': '异常处理',
-      'READ_FILE': '读取文件',
-      'UPLOAD_FILE': '上传文件',
-      'DOWNLOAD_FILE': '下载文件'
+      BROWSER_REFRESH: '刷新页面',
+      BROWSER_NAVIGATE: '导航到URL',
+      SELECT_OPTION: '选择选项',
+      SCROLL_PAGE: '滚动页面',
+      HOVER_ELEMENT: '悬停元素',
+      SAVE_DATA: '保存数据',
+      PROCESS_DATA: '处理数据',
+      COMPARE_DATA: '比较数据',
+      LOOP_FOR: '循环',
+      TRY_CATCH: '异常处理',
+      READ_FILE: '读取文件',
+      UPLOAD_FILE: '上传文件',
+      DOWNLOAD_FILE: '下载文件'
     }
-    
+
     // 简单的默认参数（实际在ElementPanel中会被覆盖）
     const defaultParams = []
     const paramValues = {}
-    
+
     return {
       id,
       type: 'custom-node',
@@ -221,18 +221,18 @@ const workflow = reactive({
     // 浏览器操作相关节点
     createNode('1', 'BROWSER_OPEN', 50, 100),
     createNode('2', 'BROWSER_CLOSE', 50, 250),
-    
+
     // 页面交互相关节点
     createNode('3', 'CLICK_ELEMENT', 300, 100),
     createNode('4', 'INPUT_TEXT', 300, 250),
-    
+
     // 数据处理相关节点
     createNode('5', 'EXTRACT_DATA', 550, 100),
-    
+
     // 逻辑控制相关节点
     createNode('6', 'WAIT', 800, 100),
     createNode('7', 'IF_CONDITION', 800, 250),
-    
+
     // 文件操作相关节点
     createNode('8', 'SAVE_FILE', 1050, 100)
   ].filter(Boolean), // 过滤掉可能的null值

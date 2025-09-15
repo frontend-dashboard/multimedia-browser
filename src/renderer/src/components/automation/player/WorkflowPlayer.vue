@@ -116,6 +116,9 @@ import { VideoPlay, VideoPause, Stopwatch, Right } from '@element-plus/icons-vue
 // 导入日志工具
 import logger from '@renderer/utils/logger.js'
 
+// 导入浏览器自动化工具
+import browserAutomation from '@renderer/utils/browserAutomation.js'
+
 // Props
 const props = defineProps({
   workflow: {
@@ -262,78 +265,180 @@ const executeElement = async (element) => {
 
 // 执行元件操作
 const executeElementAction = async (element) => {
-  // 这里是元件执行的模拟实现
-  // 在实际应用中，这里会调用真正的自动化API
+  // 这里使用实际的浏览器自动化API来执行操作
 
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+  // 添加事件监听器以获取页面状态更新
+  const handlePageLoaded = (url) => {
+    currentBrowserUrl.value = url
+    addLog('info', `页面已加载：${url}`)
+  }
 
-  switch (element.type) {
-    case 'BROWSER_OPEN': {
-      const url = element.paramValues?.url || 'https://www.example.com'
-      currentBrowserUrl.value = url
-      showBrowserPreview.value = true
-      addLog('info', `正在打开浏览器：${url}`)
-      await delay(2000 / playbackSpeed.value)
-      break
+  const handlePageConsole = (message) => {
+    addLog('info', `页面控制台：${message}`)
+  }
+
+  const handlePageError = (errorMessage) => {
+    addLog('error', `页面错误：${errorMessage}`)
+  }
+
+  // 设置事件监听器
+  browserAutomation.on('pageLoaded', handlePageLoaded)
+  browserAutomation.on('pageConsole', handlePageConsole)
+  browserAutomation.on('pageError', handlePageError)
+
+  try {
+    switch (element.type) {
+      case 'BROWSER_OPEN': {
+        const url = element.paramValues?.url || 'https://www.example.com'
+        const browserType = element.paramValues?.browserType || 'chrome'
+
+        // 转换浏览器类型名称以匹配Playwright的命名约定
+        const playwrightBrowserType = browserType === 'chrome' ? 'chromium' : browserType
+
+        addLog('info', `正在打开${browserType}浏览器：${url}`)
+
+        // 初始化浏览器
+        await browserAutomation.initialize({
+          browserType: playwrightBrowserType,
+          headless: false
+        })
+
+        // 打开URL
+        await browserAutomation.openUrl(url)
+
+        currentBrowserUrl.value = url
+        showBrowserPreview.value = true
+
+        addLog('success', `浏览器已成功打开，当前URL：${url}`)
+        break
+      }
+
+      case 'BROWSER_CLOSE': {
+        addLog('info', '正在关闭浏览器')
+        await browserAutomation.close()
+        showBrowserPreview.value = false
+        addLog('success', '浏览器已成功关闭')
+        break
+      }
+
+      case 'CLICK_ELEMENT': {
+        const selector = element.paramValues?.selector || ''
+        const waitForNavigation = element.paramValues?.waitForNavigation !== false
+        const clickCount = element.paramValues?.clickCount || 1
+
+        if (!selector) {
+          throw new Error('选择器不能为空')
+        }
+
+        addLog('info', `正在点击元素：${selector}${waitForNavigation ? '（等待页面加载）' : ''}`)
+
+        // 等待元素可见
+        await browserAutomation.waitForElementVisible(selector, 5000)
+
+        // 点击元素
+        await browserAutomation.clickElement(selector, {
+          waitForNavigation,
+          clickCount
+        })
+
+        addLog('success', `元素已成功点击：${selector}`)
+        break
+      }
+
+      case 'INPUT_TEXT': {
+        const selector = element.paramValues?.selector || ''
+        const text = element.paramValues?.text || ''
+        const clearBefore = element.paramValues?.clearBefore !== false
+
+        if (!selector) {
+          throw new Error('选择器不能为空')
+        }
+
+        addLog('info', `正在${clearBefore ? '清空并' : ''}输入文本到 ${selector}：${text}`)
+
+        // 等待元素可见
+        await browserAutomation.waitForElementVisible(selector, 5000)
+
+        // 输入文本
+        await browserAutomation.inputText(selector, text, {
+          clearBefore
+        })
+
+        addLog('success', `文本已成功输入到：${selector}`)
+        break
+      }
+
+      case 'EXTRACT_DATA': {
+        const selector = element.paramValues?.selector || ''
+        const extractType = element.paramValues?.extractType || 'text'
+        const attributeName = element.paramValues?.attributeName || 'href'
+        const variableName = element.paramValues?.variableName || 'extractedData'
+
+        if (!selector) {
+          throw new Error('选择器不能为空')
+        }
+
+        addLog('info', `正在从 ${selector} 提取 ${extractType} 数据到变量 ${variableName}`)
+
+        // 等待元素可见
+        await browserAutomation.waitForElementVisible(selector, 5000)
+
+        // 提取数据
+        const result = await browserAutomation.extractData(selector, extractType, attributeName)
+
+        // 模拟存储提取的数据到变量（实际应用中可能需要更复杂的变量管理系统）
+        // 这里只是记录到日志中
+        addLog('success', `数据已成功提取到变量 ${variableName}`, {
+          extractedValue: result.data
+        })
+        break
+      }
+
+      case 'WAIT': {
+        const waitSeconds = element.paramValues?.seconds || 2
+        addLog('info', `等待 ${waitSeconds} 秒`)
+
+        // 实际等待指定的时间
+        await browserAutomation.waitForTimeout((waitSeconds * 1000) / playbackSpeed.value)
+
+        addLog('success', `等待完成`)
+        break
+      }
+
+      case 'IF_CONDITION': {
+        const condition = element.paramValues?.condition || 'true'
+        addLog('info', `条件判断：${condition}`)
+
+        // 在实际应用中，这里应该有更复杂的条件评估逻辑
+        // 这里只是简单的模拟
+        addLog('info', `条件评估完成`)
+        break
+      }
+
+      case 'SAVE_FILE': {
+        const filePath = element.paramValues?.filePath || 'output.txt'
+        const format = element.paramValues?.format || 'txt'
+
+        // 在实际应用中，这里应该调用文件系统API来保存文件
+        // 由于在渲染进程中，我们可能需要通过IPC与主进程通信
+        addLog('info', `保存文件：${filePath} (格式：${format})`)
+        addLog('info', '文件保存功能在渲染进程中受到限制，需要通过主进程API实现')
+        break
+      }
+
+      default: {
+        addLog('warn', `未知元件类型：${element.type}`)
+        break
+      }
     }
-
-    case 'BROWSER_CLOSE': {
-      showBrowserPreview.value = false
-      addLog('info', '正在关闭浏览器')
-      await delay(1000 / playbackSpeed.value)
-      break
-    }
-
-    case 'CLICK_ELEMENT': {
-      const selector = element.paramValues?.selector || 'unknown'
-      addLog('info', `正在点击元素：${selector}`)
-      await delay(1500 / playbackSpeed.value)
-      break
-    }
-
-    case 'INPUT_TEXT': {
-      const inputSelector = element.paramValues?.selector || 'unknown'
-      const text = element.paramValues?.text || ''
-      addLog('info', `正在输入文本到 ${inputSelector}：${text}`)
-      await delay(2000 / playbackSpeed.value)
-      break
-    }
-
-    case 'EXTRACT_DATA': {
-      const extractSelector = element.paramValues?.selector || 'unknown'
-      const extractType = element.paramValues?.extractType || 'text'
-      const variableName = element.paramValues?.variableName || 'extractedData'
-      addLog('info', `正在从 ${extractSelector} 提取 ${extractType} 数据到变量 ${variableName}`)
-      await delay(1500 / playbackSpeed.value)
-      break
-    }
-
-    case 'WAIT': {
-      const waitSeconds = element.paramValues?.seconds || 2
-      addLog('info', `等待 ${waitSeconds} 秒`)
-      await delay((waitSeconds * 1000) / playbackSpeed.value)
-      break
-    }
-
-    case 'IF_CONDITION': {
-      const condition = element.paramValues?.condition || 'true'
-      addLog('info', `条件判断：${condition}`)
-      await delay(1000 / playbackSpeed.value)
-      break
-    }
-
-    case 'SAVE_FILE': {
-      const filePath = element.paramValues?.filePath || 'output.txt'
-      const format = element.paramValues?.format || 'txt'
-      addLog('info', `保存文件：${filePath} (格式：${format})`)
-      await delay(1500 / playbackSpeed.value)
-      break
-    }
-
-    default: {
-      addLog('warn', `未知元件类型：${element.type}`)
-      await delay(1000 / playbackSpeed.value)
-    }
+  } catch (error) {
+    addLog('error', `执行操作失败：${error.message}`)
+    throw error
+  } finally {
+    // 清理事件监听器
+    browserAutomation.off('pageLoaded', handlePageLoaded)
+    browserAutomation.off('pageConsole', handlePageConsole)
+    browserAutomation.off('pageError', handlePageError)
   }
 }
 
@@ -467,9 +572,15 @@ watch(
 onMounted(() => {
   addLog('info', '播放器已初始化')
 })
-
+// 生命周期钩子
 onUnmounted(() => {
   stopTimer()
+  // 确保在组件卸载时关闭浏览器
+  if (browserAutomation.isReady()) {
+    browserAutomation.close().catch((err) => {
+      console.error('关闭浏览器时出错:', err)
+    })
+  }
   addLog('info', '播放器已卸载')
 })
 </script>

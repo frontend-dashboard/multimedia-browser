@@ -110,17 +110,35 @@ const getElementParams = (elementType) => {
   if (typeDef && typeDef.params) {
     return typeDef.params
   }
-  
+
   // 为ElementPanel中额外的元件类型提供参数定义
   switch (elementType) {
     case 'BROWSER_REFRESH':
       return [
-        { key: 'waitForLoad', name: '等待加载', type: 'boolean', defaultValue: true, required: false }
+        {
+          key: 'waitForLoad',
+          name: '等待加载',
+          type: 'boolean',
+          defaultValue: true,
+          required: false
+        }
       ]
     case 'BROWSER_NAVIGATE':
       return [
-        { key: 'url', name: '网址', type: 'string', defaultValue: 'https://www.example.com', required: true },
-        { key: 'waitForLoad', name: '等待加载', type: 'boolean', defaultValue: true, required: false }
+        {
+          key: 'url',
+          name: '网址',
+          type: 'string',
+          defaultValue: 'https://www.example.com',
+          required: true
+        },
+        {
+          key: 'waitForLoad',
+          name: '等待加载',
+          type: 'boolean',
+          defaultValue: true,
+          required: false
+        }
       ]
     case 'SELECT_OPTION':
       return [
@@ -130,62 +148,147 @@ const getElementParams = (elementType) => {
       ]
     case 'SCROLL_PAGE':
       return [
-        { key: 'scrollType', name: '滚动方式', type: 'select', defaultValue: 'down', options: ['up', 'down', 'toTop', 'toBottom', 'toElement'], required: true },
+        {
+          key: 'scrollType',
+          name: '滚动方式',
+          type: 'select',
+          defaultValue: 'down',
+          options: ['up', 'down', 'toTop', 'toBottom', 'toElement'],
+          required: true
+        },
         { key: 'selector', name: '元素选择器', type: 'string', defaultValue: '', required: false },
         { key: 'distance', name: '滚动距离', type: 'number', defaultValue: 500, required: false }
       ]
     case 'HOVER_ELEMENT':
-      return [
-        { key: 'selector', name: '选择器', type: 'string', defaultValue: '', required: true }
-      ]
+      return [{ key: 'selector', name: '选择器', type: 'string', defaultValue: '', required: true }]
     case 'SAVE_DATA':
       return [
-        { key: 'variableName', name: '变量名', type: 'string', defaultValue: 'data', required: true },
+        {
+          key: 'variableName',
+          name: '变量名',
+          type: 'string',
+          defaultValue: 'data',
+          required: true
+        },
         { key: 'dataValue', name: '数据值', type: 'string', defaultValue: '', required: true }
       ]
     case 'PROCESS_DATA':
       return [
-        { key: 'inputVariable', name: '输入变量', type: 'string', defaultValue: '', required: true },
-        { key: 'outputVariable', name: '输出变量', type: 'string', defaultValue: '', required: true },
-        { key: 'processType', name: '处理类型', type: 'select', defaultValue: 'uppercase', options: ['uppercase', 'lowercase', 'trim', 'split', 'join'], required: true }
+        {
+          key: 'inputVariable',
+          name: '输入变量',
+          type: 'string',
+          defaultValue: '',
+          required: true
+        },
+        {
+          key: 'outputVariable',
+          name: '输出变量',
+          type: 'string',
+          defaultValue: '',
+          required: true
+        },
+        {
+          key: 'processType',
+          name: '处理类型',
+          type: 'select',
+          defaultValue: 'uppercase',
+          options: ['uppercase', 'lowercase', 'trim', 'split', 'join'],
+          required: true
+        }
       ]
     case 'COMPARE_DATA':
       return [
         { key: 'value1', name: '值1', type: 'string', defaultValue: '', required: true },
         { key: 'value2', name: '值2', type: 'string', defaultValue: '', required: true },
-        { key: 'operator', name: '运算符', type: 'select', defaultValue: 'equal', options: ['equal', 'notEqual', 'greaterThan', 'lessThan'], required: true },
-        { key: 'resultVariable', name: '结果变量', type: 'string', defaultValue: 'compareResult', required: true }
+        {
+          key: 'operator',
+          name: '运算符',
+          type: 'select',
+          defaultValue: 'equal',
+          options: ['equal', 'notEqual', 'greaterThan', 'lessThan'],
+          required: true
+        },
+        {
+          key: 'resultVariable',
+          name: '结果变量',
+          type: 'string',
+          defaultValue: 'compareResult',
+          required: true
+        }
       ]
     case 'WAIT_TIME':
-      return [
-        { key: 'seconds', name: '等待秒数', type: 'number', defaultValue: 2, required: true }
-      ]
+      return [{ key: 'seconds', name: '等待秒数', type: 'number', defaultValue: 2, required: true }]
     case 'CONDITION_IF':
       return [
         { key: 'condition', name: '条件表达式', type: 'string', defaultValue: '', required: true },
-        { key: 'trueBranchId', name: '条件为真时执行', type: 'string', defaultValue: '', required: false },
-        { key: 'falseBranchId', name: '条件为假时执行', type: 'string', defaultValue: '', required: false }
+        {
+          key: 'trueBranchId',
+          name: '条件为真时执行',
+          type: 'string',
+          defaultValue: '',
+          required: false
+        },
+        {
+          key: 'falseBranchId',
+          name: '条件为假时执行',
+          type: 'string',
+          defaultValue: '',
+          required: false
+        }
       ]
     case 'LOOP_FOR':
       return [
         { key: 'loopCount', name: '循环次数', type: 'number', defaultValue: 5, required: true },
-        { key: 'loopVariable', name: '循环变量名', type: 'string', defaultValue: 'i', required: false }
+        {
+          key: 'loopVariable',
+          name: '循环变量名',
+          type: 'string',
+          defaultValue: 'i',
+          required: false
+        }
       ]
     case 'TRY_CATCH':
       return [
-        { key: 'errorVariable', name: '错误变量名', type: 'string', defaultValue: 'error', required: false }
+        {
+          key: 'errorVariable',
+          name: '错误变量名',
+          type: 'string',
+          defaultValue: 'error',
+          required: false
+        }
       ]
     case 'READ_FILE':
       return [
         { key: 'filePath', name: '文件路径', type: 'string', defaultValue: '', required: true },
-        { key: 'encoding', name: '编码格式', type: 'select', defaultValue: 'utf8', options: ['utf8', 'ascii', 'base64'], required: false },
-        { key: 'outputVariable', name: '输出变量', type: 'string', defaultValue: 'fileContent', required: true }
+        {
+          key: 'encoding',
+          name: '编码格式',
+          type: 'select',
+          defaultValue: 'utf8',
+          options: ['utf8', 'ascii', 'base64'],
+          required: false
+        },
+        {
+          key: 'outputVariable',
+          name: '输出变量',
+          type: 'string',
+          defaultValue: 'fileContent',
+          required: true
+        }
       ]
     case 'WRITE_FILE':
       return [
         { key: 'filePath', name: '文件路径', type: 'string', defaultValue: '', required: true },
         { key: 'content', name: '文件内容', type: 'string', defaultValue: '', required: true },
-        { key: 'encoding', name: '编码格式', type: 'select', defaultValue: 'utf8', options: ['utf8', 'ascii', 'base64'], required: false },
+        {
+          key: 'encoding',
+          name: '编码格式',
+          type: 'select',
+          defaultValue: 'utf8',
+          options: ['utf8', 'ascii', 'base64'],
+          required: false
+        },
         { key: 'append', name: '追加模式', type: 'boolean', defaultValue: false, required: false }
       ]
     case 'DOWNLOAD_FILE':
@@ -195,7 +298,13 @@ const getElementParams = (elementType) => {
       ]
     case 'UPLOAD_FILE':
       return [
-        { key: 'selector', name: '上传元素选择器', type: 'string', defaultValue: '', required: true },
+        {
+          key: 'selector',
+          name: '上传元素选择器',
+          type: 'string',
+          defaultValue: '',
+          required: true
+        },
         { key: 'filePath', name: '文件路径', type: 'string', defaultValue: '', required: true }
       ]
     default:

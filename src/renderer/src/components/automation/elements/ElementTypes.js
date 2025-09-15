@@ -4,7 +4,7 @@ const ElementTypes = {
   BROWSER_OPEN: {
     type: 'BROWSER_OPEN',
     name: '打开浏览器',
-    description: '打开指定URL的浏览器窗口',
+    description: '使用Playwright打开指定URL的浏览器窗口',
     icon: 'Browser',
     params: [
       {
@@ -18,8 +18,9 @@ const ElementTypes = {
         key: 'browserType',
         label: '浏览器类型',
         type: 'select',
-        options: ['chrome', 'firefox', 'edge'],
-        defaultValue: 'chrome'
+        options: ['chrome', 'firefox', 'safari'],
+        defaultValue: 'chrome',
+        description: '选择要使用的浏览器类型'
       }
     ]
   },
@@ -27,7 +28,7 @@ const ElementTypes = {
   BROWSER_CLOSE: {
     type: 'BROWSER_CLOSE',
     name: '关闭浏览器',
-    description: '关闭当前浏览器窗口',
+    description: '关闭当前Playwright浏览器实例',
     icon: 'Close',
     params: []
   },
@@ -36,12 +37,31 @@ const ElementTypes = {
   CLICK_ELEMENT: {
     type: 'CLICK_ELEMENT',
     name: '点击元素',
-    description: '点击页面上的指定元素',
+    description: '在页面上点击指定的元素',
     icon: 'Pointer',
     params: [
-      { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' },
-      { key: 'waitForNavigation', label: '等待页面加载', type: 'boolean', defaultValue: true },
-      { key: 'clickCount', label: '点击次数', type: 'number', defaultValue: 1 }
+      {
+        key: 'selector',
+        label: '选择器',
+        type: 'string',
+        required: true,
+        defaultValue: '',
+        description: 'CSS或XPath选择器'
+      },
+      {
+        key: 'waitForNavigation',
+        label: '等待页面加载',
+        type: 'boolean',
+        defaultValue: true,
+        description: '点击后是否等待页面导航完成'
+      },
+      {
+        key: 'clickCount',
+        label: '点击次数',
+        type: 'number',
+        defaultValue: 1,
+        description: '单击或双击'
+      }
     ]
   },
 
@@ -51,9 +71,29 @@ const ElementTypes = {
     description: '在输入框中输入文本',
     icon: 'Edit',
     params: [
-      { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' },
-      { key: 'text', label: '输入文本', type: 'string', required: true, defaultValue: '' },
-      { key: 'clearBefore', label: '先清空', type: 'boolean', defaultValue: true }
+      {
+        key: 'selector',
+        label: '选择器',
+        type: 'string',
+        required: true,
+        defaultValue: '',
+        description: 'CSS或XPath选择器'
+      },
+      {
+        key: 'text',
+        label: '输入文本',
+        type: 'string',
+        required: true,
+        defaultValue: '',
+        description: '要输入的文本内容'
+      },
+      {
+        key: 'clearBefore',
+        label: '先清空',
+        type: 'boolean',
+        defaultValue: true,
+        description: '输入前是否清空已有内容'
+      }
     ]
   },
 
@@ -61,24 +101,39 @@ const ElementTypes = {
   EXTRACT_DATA: {
     type: 'EXTRACT_DATA',
     name: '提取数据',
-    description: '从页面中提取数据',
+    description: '从页面元素中提取数据并存储到变量',
     icon: 'DataAnalysis',
     params: [
-      { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' },
+      {
+        key: 'selector',
+        label: '选择器',
+        type: 'string',
+        required: true,
+        defaultValue: '',
+        description: 'CSS或XPath选择器'
+      },
       {
         key: 'extractType',
         label: '提取类型',
         type: 'select',
-        options: ['text', 'attribute', 'html'],
-        defaultValue: 'text'
+        options: ['text', 'attribute', 'html', 'value'],
+        defaultValue: 'text',
+        description: '提取元素的文本、属性、HTML或值'
       },
-      { key: 'attributeName', label: '属性名', type: 'string', defaultValue: 'href' },
+      {
+        key: 'attributeName',
+        label: '属性名',
+        type: 'string',
+        defaultValue: 'href',
+        description: '当提取类型为属性时，指定要提取的属性名'
+      },
       {
         key: 'variableName',
         label: '变量名',
         type: 'string',
         required: true,
-        defaultValue: 'extractedData'
+        defaultValue: 'extractedData',
+        description: '存储提取数据的变量名称'
       }
     ]
   },
