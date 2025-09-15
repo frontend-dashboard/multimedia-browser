@@ -66,6 +66,14 @@
               'custom-node-focused': data.id === focusedNodeId
             }"
           >
+            <!-- 顶部连接点（用于接收连接） -->
+            <Handle
+              type="target"
+              position="top"
+              class="handle handle-top"
+              :id="`${data.id}-top`"
+            />
+
             <div class="node-header">
               <el-icon class="node-icon">
                 <component :is="getIconComponent(data.icon)" />
@@ -91,6 +99,14 @@
                 +{{ data.params.length - 2 }} 个参数
               </div>
             </div>
+
+            <!-- 底部连接点（用于发送连接） -->
+            <Handle
+              type="source"
+              position="bottom"
+              class="handle handle-bottom"
+              :id="`${data.id}-bottom`"
+            />
           </div>
         </template>
 
@@ -189,7 +205,7 @@
 <script setup>
 import { ref, watch, onMounted, nextTick } from 'vue'
 // 导入 VueFlow 相关组件
-import { VueFlow, useVueFlow } from '@vue-flow/core'
+import { VueFlow, useVueFlow, Handle } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { MiniMap } from '@vue-flow/minimap'
 import { ZoomIn, ZoomOut, Refresh, FullScreen, Close } from '@element-plus/icons-vue'
@@ -856,7 +872,6 @@ defineExpose({
   border-radius: 8px;
   border: 1px solid var(--color-border);
   background-color: var(--color-background-800);
-  overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   min-width: 180px;
