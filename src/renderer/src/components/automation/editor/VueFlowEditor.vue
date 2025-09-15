@@ -28,7 +28,7 @@
     <div class="vue-flow-container">
       <VueFlow
         ref="vueFlowRef"
-        v-model="elements"
+        :nodes="elements"
         :edges="edges"
         :nodes-draggable="true"
         :connection-mode="connectionMode"
