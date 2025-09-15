@@ -195,7 +195,7 @@
       </div>
     </div>
 
-    <InteractionControls />
+    <!-- <InteractionControls /> -->
   </div>
 </template>
 
@@ -210,7 +210,7 @@ import { ZoomIn, ZoomOut, Refresh, FullScreen, Close } from '@element-plus/icons
 // 导入图标工具函数
 import { getIconComponent } from '../utils/iconUtils.js'
 
-import InteractionControls from './InteractionControls.vue'
+// import InteractionControls from './InteractionControls.vue'
 
 // 导入所需的样式
 import '@vue-flow/core/dist/style.css'
@@ -228,7 +228,26 @@ const emit = defineEmits(['workflow-updated'])
 
 // 初始化 Vue Flow 实例
 const vueFlowRef = ref(null)
-const flowInstance = useVueFlow()
+const {
+  nodesDraggable,
+  nodesConnectable,
+  elementsSelectable,
+  zoomOnScroll,
+  zoomOnDoubleClick,
+  zoomOnPinch,
+  panOnScroll,
+  panOnScrollMode,
+  panOnDrag,
+  onConnect,
+  onNodeDragStop,
+  onPaneClick,
+  onPaneScroll,
+  onPaneContextMenu,
+  onNodeDragStart,
+  onMoveEnd,
+  addEdges,
+  onNodeClick
+} = useVueFlow()
 
 // 组件状态
 const elements = ref([])
@@ -276,6 +295,11 @@ watch(
   },
   { immediate: true, deep: true }
 )
+
+onConnect((params) => {
+  console.log('connect', params)
+  addEdges(params)
+})
 
 // 处理节点更新并通知父组件
 const notifyWorkflowUpdate = debounce(() => {
@@ -331,11 +355,10 @@ const handleNodeClick = (event, node) => {
 
 // 设置节点点击事件监听
 onMounted(() => {
-  // 确保flowInstance已经初始化
-  if (flowInstance && flowInstance.onNodeClick) {
+  if (onNodeClick) {
     try {
       // 处理VueFlow API参数格式变化
-      flowInstance.onNodeClick((...args) => {
+      onNodeClick((...args) => {
         // 处理可能的参数格式变化
         let event, node
         if (args.length === 1) {
@@ -436,8 +459,8 @@ const handleZoom = (zoomLevel) => {
 
 // 工具栏方法 - 统一处理缩放逻辑
 const handleZoomChange = (scaleFactor) => {
-  if (flowInstance.zoom) {
-    flowInstance.zoom(scaleFactor)
+  if (zoom) {
+    zoom(scaleFactor)
   } else if (vueFlowRef.value && vueFlowRef.value.zoomTo) {
     const newZoomLevel = currentZoom.value * scaleFactor
     if (!isNaN(newZoomLevel)) {
@@ -455,8 +478,8 @@ const zoomOut = () => {
 }
 
 const resetZoom = () => {
-  if (flowInstance.zoom) {
-    flowInstance.zoom(1)
+  if (zoom) {
+    zoom(1)
   } else if (vueFlowRef.value && vueFlowRef.value.zoomTo) {
     vueFlowRef.value.zoomTo(1)
   }

@@ -26,7 +26,10 @@ const captureZoomClick = ref(false)
 
 const captureZoomScroll = ref(false)
 
-onConnect((params) => addEdges(params))
+onConnect((params) => {
+  console.log('connect', params)
+  addEdges(params)
+})
 
 onNodeDragStart((e) => console.log('drag start', e))
 
