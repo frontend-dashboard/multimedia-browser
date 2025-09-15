@@ -67,12 +67,7 @@
             }"
           >
             <!-- 顶部连接点（用于接收连接） -->
-            <Handle
-              type="target"
-              position="top"
-              class="handle handle-top"
-              :id="`${data.id}-top`"
-            />
+            <Handle type="target" position="top" class="handle handle-top" :id="`${data.id}-top`" />
 
             <div class="node-header">
               <el-icon class="node-icon">
@@ -204,6 +199,7 @@
 
 <script setup>
 import { ref, watch, onMounted, nextTick } from 'vue'
+import { debounce } from 'lodash'
 // 导入 VueFlow 相关组件
 import { VueFlow, useVueFlow, Handle } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
@@ -278,7 +274,7 @@ watch(
 )
 
 // 处理节点更新并通知父组件
-const notifyWorkflowUpdate = () => {
+const notifyWorkflowUpdate = debounce(() => {
   const updatedWorkflow = {
     ...props.workflow,
     elements: elements.value.map((node) => ({
@@ -300,16 +296,12 @@ const notifyWorkflowUpdate = () => {
       selected: conn.selected
     }))
   }
-  
+
   emit('workflow-updated', updatedWorkflow)
-}
+}, 100)
 
 // 监听元素和连接变化，通知父组件
-watch(
-  [elements, edges],
-  notifyWorkflowUpdate,
-  { deep: true }
-)
+watch([elements, edges], notifyWorkflowUpdate, { deep: true })
 
 // 处理节点点击
 const handleNodeClick = (event, node) => {
@@ -414,12 +406,13 @@ const handleEdgeSuccess = (params) => {
 
 // 处理连接创建
 const handleConnect = (connection) => {
-  // 生成唯一的连接 ID
   const connectionId = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
   return {
     ...connection,
-    id: connectionId
+    id: connectionId,
+    // 绑定连接点ID（与自定义节点的Handle ID匹配）
+    sourceHandle: `${connection.source}-bottom`,
+    targetHandle: `${connection.target}-top`
   }
 }
 
@@ -1000,7 +993,7 @@ defineExpose({
   .node-params {
     padding: 8px 10px;
   }
-  
+
   /* 响应式属性面板 */
   .editor-properties {
     position: relative;

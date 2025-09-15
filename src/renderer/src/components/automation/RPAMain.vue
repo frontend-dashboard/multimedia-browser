@@ -138,8 +138,8 @@ const workflow = reactive({
   elements: [
     {
       id: '1',
-      name: '浏览器打开',
-      icon: 'ChromeFilled',
+      name: '打开浏览器',
+      icon: 'Browser',
       position: { x: 50, y: 100 },
       params: [
         { key: 'url', label: '网址', type: 'string', defaultValue: 'https://www.example.com' }
@@ -171,17 +171,15 @@ const workflow = reactive({
       id: 'edge-1-2',
       source: '1',
       target: '2',
-      sourceHandle: 'right',
-      targetHandle: 'left',
-      type: 'smoothstep'
+      sourceHandle: '1-bottom', // 新增：绑定源节点底部连接点
+      targetHandle: '2-top' // 新增：绑定目标节点顶部连接点
     },
     {
       id: 'edge-2-3',
       source: '2',
       target: '3',
-      sourceHandle: 'right',
-      targetHandle: 'left',
-      type: 'smoothstep'
+      sourceHandle: '2-bottom',
+      targetHandle: '3-top'
     }
   ]
 })
