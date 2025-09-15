@@ -60,7 +60,12 @@
             }"
           >
             <!-- 左侧连接点（用于接收连接） -->
-            <Handle type="target" position="left" class="handle handle-left" :id="`${data.id}-left`" />
+            <Handle
+              type="target"
+              position="left"
+              class="handle handle-left"
+              :id="`${data.id}-left`"
+            />
 
             <div class="node-header">
               <el-icon class="node-icon">
@@ -201,6 +206,8 @@ import { MiniMap } from '@vue-flow/minimap'
 import { ZoomIn, ZoomOut, Refresh, FullScreen, Close } from '@element-plus/icons-vue'
 // 导入图标工具函数
 import { getIconComponent } from '../utils/iconUtils.js'
+// 导入布局工具
+import { useLayout } from '../utils/useLayout.js'
 
 // import InteractionControls from './InteractionControls.vue'
 
@@ -239,6 +246,9 @@ const {
   onPaneClick,
   zoom
 } = useVueFlow()
+
+// 初始化布局工具
+const { layout: dagreLayout } = useLayout()
 
 // 组件状态
 const elements = ref([])
@@ -370,103 +380,89 @@ const handleNodeClick = (event, node) => {
 }
 
 // 处理画布点击，关闭属性面板
-  const handlePaneClick = () => {
-    focusedNodeId.value = null
-    // 点击非节点位置时，关闭属性面板
-    if (selectedNode.value) {
-      // 清除选中节点的选中状态
-      selectedNode.value.data.selected = false
-      // 关闭属性面板
-      selectedNode.value = null
+const handlePaneClick = () => {
+  focusedNodeId.value = null
+  // 点击非节点位置时，关闭属性面板
+  if (selectedNode.value) {
+    // 清除选中节点的选中状态
+    selectedNode.value.data.selected = false
+    // 关闭属性面板
+    selectedNode.value = null
+  }
+}
+
+// 设置所有VueFlow事件监听
+onMounted(() => {
+  // 节点点击事件
+  if (onNodeClick) {
+    try {
+      onNodeClick((...args) => {
+        let event, node
+        if (args.length === 1) {
+          const payload = args[0]
+          event = payload.event || payload
+          node = payload.node
+        } else if (args.length >= 2) {
+          event = args[0]
+          node = args[1]
+        }
+
+        if (node) {
+          handleNodeClick(event, node)
+        }
+      })
+    } catch (error) {
+      console.warn('Failed to set up node click listener:', error)
     }
   }
 
-  // 设置所有VueFlow事件监听
-  onMounted(() => {
-    // 节点点击事件
-    if (onNodeClick) {
-      try {
-        onNodeClick((...args) => {
-          let event, node
-          if (args.length === 1) {
-            const payload = args[0]
-            event = payload.event || payload
-            node = payload.node
-          } else if (args.length >= 2) {
-            event = args[0]
-            node = args[1]
-          }
+  // 节点拖动开始事件
+  if (onNodeDragStart) {
+    onNodeDragStart(handleNodeDragStart)
+  }
 
-          if (node) {
-            handleNodeClick(event, node)
-          }
-        })
-      } catch (error) {
-        console.warn('Failed to set up node click listener:', error)
-      }
-    }
+  // 节点拖动结束事件
+  if (onNodeDragStop) {
+    onNodeDragStop(handleNodeDragStop)
+  }
 
-    // 节点拖动开始事件
-    if (onNodeDragStart) {
-      onNodeDragStart(handleNodeDragStart)
-    }
+  // 连接成功事件
+  if (onConnectionSuccess) {
+    onConnectionSuccess(handleEdgeSuccess)
+  }
 
-    // 节点拖动结束事件
-    if (onNodeDragStop) {
-      onNodeDragStop(handleNodeDragStop)
-    }
+  // 节点鼠标悬停事件
+  if (onNodeMouseEnter) {
+    onNodeMouseEnter((event, node) => handleNodeMouseEnter(event, node))
+  }
 
-    // 连接成功事件
-    if (onConnectionSuccess) {
-      onConnectionSuccess(handleEdgeSuccess)
-    }
+  // 节点鼠标离开事件
+  if (onNodeMouseLeave) {
+    onNodeMouseLeave(handleNodeMouseLeave)
+  }
 
-    // 节点鼠标悬停事件
-    if (onNodeMouseEnter) {
-      onNodeMouseEnter((event, node) => handleNodeMouseEnter(event, node))
-    }
+  // 缩放事件
+  if (onZoom) {
+    onZoom(handleZoom)
+  }
 
-    // 节点鼠标离开事件
-    if (onNodeMouseLeave) {
-      onNodeMouseLeave(handleNodeMouseLeave)
-    }
+  // 拖放事件
+  if (onDrop) {
+    onDrop(handleDrop)
+  }
 
-    // 缩放事件
-    if (onZoom) {
-      onZoom(handleZoom)
-    }
+  // 拖拽悬停事件
+  if (onDragOver) {
+    onDragOver(handleDragOver)
+  }
 
-    // 拖放事件
-    if (onDrop) {
-      onDrop(handleDrop)
-    }
-
-    // 拖拽悬停事件
-    if (onDragOver) {
-      onDragOver(handleDragOver)
-    }
-
-    // 使用Vue Flow的官方paneClick事件（推荐方式）
-    if (onPaneClick) {
-      try {
-        onPaneClick(handlePaneClick)
-      } catch (error) {
-        console.warn('Failed to set up pane click listener:', error)
-        // 如果onPaneClick不可用，回退到DOM事件监听
-        const canvasElement = document.querySelector('.vue-flow__viewport')
-        if (canvasElement) {
-          canvasElement.addEventListener('click', (event) => {
-            if (
-              event.target.classList.contains('vue-flow__viewport') ||
-              event.target.classList.contains('vue-flow__background')
-            ) {
-              handlePaneClick()
-            }
-          })
-        }
-      }
-    } else {
-      // 如果onPaneClick不可用，使用DOM事件监听作为后备方案
+  // 使用Vue Flow的官方paneClick事件（推荐方式）
+  if (onPaneClick) {
+    try {
+      onPaneClick(handlePaneClick)
+    } catch (error) {
+      console.warn('Failed to set up pane click listener:', error)
+      // 如果onPaneClick不可用，回退到DOM事件监听
       const canvasElement = document.querySelector('.vue-flow__viewport')
       if (canvasElement) {
         canvasElement.addEventListener('click', (event) => {
@@ -479,7 +475,21 @@ const handleNodeClick = (event, node) => {
         })
       }
     }
-  })
+  } else {
+    // 如果onPaneClick不可用，使用DOM事件监听作为后备方案
+    const canvasElement = document.querySelector('.vue-flow__viewport')
+    if (canvasElement) {
+      canvasElement.addEventListener('click', (event) => {
+        if (
+          event.target.classList.contains('vue-flow__viewport') ||
+          event.target.classList.contains('vue-flow__background')
+        ) {
+          handlePaneClick()
+        }
+      })
+    }
+  }
+})
 
 // 处理节点拖动
 const handleNodeDragStart = () => {
@@ -493,7 +503,7 @@ const handleNodeDragStop = (event) => {
       // 先记录节点的基本位置信息（来自事件对象）
       const nodePosition = event.node.position
       console.log('节点位置信息 (来自事件对象):', nodePosition)
-      
+
       // 尝试使用 dimensions API 但增加错误处理和日志记录
       if (dimensions) {
         try {
@@ -504,7 +514,7 @@ const handleNodeDragStop = (event) => {
             isObject: dimensions.value && typeof dimensions.value === 'object',
             hasGetNodeRect: dimensions.value && typeof dimensions.value.getNodeRect === 'function'
           })
-          
+
           // 只有当 getNodeRect 方法存在时才调用
           if (dimensions.value && typeof dimensions.value.getNodeRect === 'function') {
             const nodeDimensions = dimensions.value.getNodeRect(event.node.id)
@@ -605,99 +615,50 @@ const centerCanvas = () => {
   }
 }
 
-// 简单布局算法
+// 使用 dagre 库的布局算法
 const layout = (nodes, edges, direction) => {
-  // 复制节点数组以避免直接修改原始数据
-  const newNodes = [...nodes]
+  try {
+    // 调用从 useLayout composable 导入的 dagre 布局函数
+    return dagreLayout(nodes, edges, direction)
+  } catch (error) {
+    console.warn('Dagre布局失败，使用备选布局方案:', error)
 
-  // 如果没有节点，直接返回
-  if (newNodes.length === 0) {
-    return newNodes
-  }
+    // 复制节点数组以避免直接修改原始数据
+    const newNodes = [...nodes]
 
-  // 节点间距和层级间距
-  const nodeGap = 150
-  const levelGap = 180
-
-  // 构建节点映射
-  const nodeMap = new Map(newNodes.map((node) => [node.id, node]))
-
-  // 找出所有根节点（没有入边的节点）
-  const rootNodes = newNodes.filter((node) => !edges.some((edge) => edge.target === node.id))
-
-  // 计算每个节点的层级
-  const nodeLevels = new Map()
-
-  // BFS计算层级
-  const calculateLevels = () => {
-    const queue = [...rootNodes]
-
-    // 设置根节点层级为0
-    rootNodes.forEach((node) => nodeLevels.set(node.id, 0))
-
-    while (queue.length > 0) {
-      const current = queue.shift()
-      const currentLevel = nodeLevels.get(current.id)
-      const nextLevel = currentLevel + 1
-
-      // 找到当前节点的所有子节点
-      const childEdges = edges.filter((edge) => edge.source === current.id)
-
-      childEdges.forEach((edge) => {
-        const childNode = nodeMap.get(edge.target)
-        if (childNode && !nodeLevels.has(childNode.id)) {
-          nodeLevels.set(childNode.id, nextLevel)
-          queue.push(childNode)
-        }
-      })
+    // 如果没有节点，直接返回
+    if (newNodes.length === 0) {
+      return newNodes
     }
 
-    // 如果没有根节点（环形图），默认将所有节点放在同一层
-    if (nodeLevels.size === 0) {
-      newNodes.forEach((node) => nodeLevels.set(node.id, 0))
-    }
-  }
+    // 简单备选布局算法
+    const nodeGap = 150
+    const centerOffset = 200
 
-  calculateLevels()
-
-  // 按层级分组节点
-  const levelGroups = new Map()
-  nodeLevels.forEach((level, nodeId) => {
-    if (!levelGroups.has(level)) {
-      levelGroups.set(level, [])
-    }
-    levelGroups.get(level).push(nodeMap.get(nodeId))
-  })
-
-  // 计算每个层级的节点位置
-  const levelKeys = Array.from(levelGroups.keys()).sort((a, b) => a - b)
-
-  levelKeys.forEach((level) => {
-    const levelNodes = levelGroups.get(level)
-    const levelCount = levelNodes.length
-    const levelOffset = ((levelCount - 1) * nodeGap) / 2
-
-    levelNodes.forEach((node, index) => {
+    newNodes.forEach((node, index) => {
       if (direction === 'TB') {
-        // 垂直布局 (top to bottom)
-        node.position.x = 200 + level * levelGap
-        node.position.y = 100 + index * nodeGap - levelOffset
+        // 垂直布局 (top to bottom) - 简单线性排列
+        node.position.x = centerOffset
+        node.position.y = 100 + index * nodeGap
       } else {
-        // 水平布局 (left to right)
-        node.position.x = 100 + index * nodeGap - levelOffset
-        node.position.y = 200 + level * levelGap
+        // 水平布局 (left to right) - 简单线性排列
+        node.position.x = 100 + index * nodeGap
+        node.position.y = centerOffset
       }
     })
-  })
 
-  return newNodes
+    return newNodes
+  }
 }
 
 // 执行布局
 const layoutGraph = async (direction) => {
   try {
+    let workflowData = exportWorkflowData()
+    console.log('workflowData:', workflowData.elements)
+    console.log('workflowData:', workflowData.edges)
     // 执行布局算法
-    const newNodes = layout(elements.value, edges.value, direction)
+    const newNodes = layout(workflowData.elements, workflowData.edges, direction)
 
     // 更新节点位置
     elements.value = newNodes
