@@ -118,6 +118,9 @@ import VueFlowEditor from './editor/VueFlowEditor.vue'
 import WorkflowPlayer from './player/WorkflowPlayer.vue'
 import LogViewer from '../LogViewer.vue'
 
+// 导入元件类型定义
+import ElementTypes from './elements/ElementTypes.js'
+
 // 导入日志工具
 import logger from '@renderer/utils/logger.js'
 
@@ -127,55 +130,155 @@ import { saveAndApplyTheme, setupSystemThemeListener } from '@renderer/utils/the
 // 导入Element Plus图标
 import { ArrowDown, Monitor, Moon, Sunny } from '@element-plus/icons-vue'
 
+// 创建节点的辅助函数
+const createNode = (id, elementType, x, y) => {
+  // 处理类型名称映射（ElementTypes和ElementPanel中的名称不匹配）
+  const typeMapping = {
+    'WAIT_TIME': 'WAIT',
+    'CONDITION_IF': 'IF_CONDITION',
+    'WRITE_FILE': 'SAVE_FILE'
+  }
+  
+  // 获取实际的类型定义
+  const mappedType = typeMapping[elementType] || elementType
+  const typeDef = ElementTypes[mappedType]
+  
+  // 如果在ElementTypes中找到了定义，则使用它
+  if (typeDef) {
+    // 构建默认参数值
+    const paramValues = {}
+    typeDef.params.forEach(param => {
+      paramValues[param.key] = param.defaultValue
+    })
+
+    return {
+      id,
+      type: 'custom-node',
+      name: typeDef.name,
+      icon: typeDef.icon,
+      position: { x, y },
+      params: typeDef.params,
+      paramValues,
+      selected: false
+    }
+  } else {
+    // 为ElementPanel中额外的元件类型创建默认节点配置
+    // 这些类型在ElementTypes中没有定义，但在ElementPanel中有
+    const defaultIcons = {
+      'BROWSER_REFRESH': 'Refresh',
+      'BROWSER_NAVIGATE': 'ArrowRight',
+      'SELECT_OPTION': 'Select',
+      'SCROLL_PAGE': 'RefreshRight',
+      'HOVER_ELEMENT': 'Mouse',
+      'SAVE_DATA': 'Document',
+      'PROCESS_DATA': 'Operation',
+      'COMPARE_DATA': 'Operation',
+      'LOOP_FOR': 'RefreshLeft',
+      'TRY_CATCH': 'Warning',
+      'READ_FILE': 'Document',
+      'UPLOAD_FILE': 'Upload',
+      'DOWNLOAD_FILE': 'Download'
+    }
+    
+    const defaultNames = {
+      'BROWSER_REFRESH': '刷新页面',
+      'BROWSER_NAVIGATE': '导航到URL',
+      'SELECT_OPTION': '选择选项',
+      'SCROLL_PAGE': '滚动页面',
+      'HOVER_ELEMENT': '悬停元素',
+      'SAVE_DATA': '保存数据',
+      'PROCESS_DATA': '处理数据',
+      'COMPARE_DATA': '比较数据',
+      'LOOP_FOR': '循环',
+      'TRY_CATCH': '异常处理',
+      'READ_FILE': '读取文件',
+      'UPLOAD_FILE': '上传文件',
+      'DOWNLOAD_FILE': '下载文件'
+    }
+    
+    // 简单的默认参数（实际在ElementPanel中会被覆盖）
+    const defaultParams = []
+    const paramValues = {}
+    
+    return {
+      id,
+      type: 'custom-node',
+      name: defaultNames[elementType] || elementType,
+      icon: defaultIcons[elementType] || 'Menu',
+      position: { x, y },
+      params: defaultParams,
+      paramValues,
+      selected: false
+    }
+  }
+}
+
 // 工作流数据
 const workflow = reactive({
   name: '未命名流程',
   description: '',
   elements: [
-    {
-      id: '1',
-      name: '打开浏览器',
-      icon: 'Browser',
-      position: { x: 50, y: 100 },
-      params: [
-        { key: 'url', label: '网址', type: 'string', defaultValue: 'https://www.example.com' }
-      ],
-      paramValues: { url: 'https://www.example.com' },
-      selected: false
-    },
-    {
-      id: '2',
-      name: '等待',
-      icon: 'Clock',
-      position: { x: 300, y: 100 },
-      params: [{ key: 'seconds', label: '等待时间(秒)', type: 'string', defaultValue: '2' }],
-      paramValues: { seconds: '2' },
-      selected: false
-    },
-    {
-      id: '3',
-      name: '数据处理',
-      icon: 'DataAnalysis',
-      position: { x: 550, y: 100 },
-      params: [{ key: 'operation', label: '操作类型', type: 'string', defaultValue: '提取' }],
-      paramValues: { operation: '提取' },
-      selected: false
-    }
-  ],
+    // 浏览器操作相关节点
+    createNode('1', 'BROWSER_OPEN', 50, 100),
+    createNode('2', 'BROWSER_CLOSE', 50, 250),
+    
+    // 页面交互相关节点
+    createNode('3', 'CLICK_ELEMENT', 300, 100),
+    createNode('4', 'INPUT_TEXT', 300, 250),
+    
+    // 数据处理相关节点
+    createNode('5', 'EXTRACT_DATA', 550, 100),
+    
+    // 逻辑控制相关节点
+    createNode('6', 'WAIT', 800, 100),
+    createNode('7', 'IF_CONDITION', 800, 250),
+    
+    // 文件操作相关节点
+    createNode('8', 'SAVE_FILE', 1050, 100)
+  ].filter(Boolean), // 过滤掉可能的null值
   edges: [
+    // 基本流程连接
     {
-      id: 'edge-1-2',
+      id: 'edge-1-3',
       source: '1',
-      target: '2',
-      sourceHandle: '1-right', // 新增：绑定源节点底部连接点
-      targetHandle: '2-left' // 新增：绑定目标节点顶部连接点
+      target: '3',
+      sourceHandle: '1-right',
+      targetHandle: '3-left'
     },
     {
-      id: 'edge-2-3',
-      source: '2',
-      target: '3',
-      sourceHandle: '2-right',
-      targetHandle: '3-left'
+      id: 'edge-3-4',
+      source: '3',
+      target: '4',
+      sourceHandle: '3-right',
+      targetHandle: '4-left'
+    },
+    {
+      id: 'edge-4-5',
+      source: '4',
+      target: '5',
+      sourceHandle: '4-right',
+      targetHandle: '5-left'
+    },
+    {
+      id: 'edge-5-6',
+      source: '5',
+      target: '6',
+      sourceHandle: '5-right',
+      targetHandle: '6-left'
+    },
+    {
+      id: 'edge-6-8',
+      source: '6',
+      target: '8',
+      sourceHandle: '6-right',
+      targetHandle: '8-left'
+    },
+    {
+      id: 'edge-8-2',
+      source: '8',
+      target: '2',
+      sourceHandle: '8-right',
+      targetHandle: '2-left'
     }
   ]
 })
