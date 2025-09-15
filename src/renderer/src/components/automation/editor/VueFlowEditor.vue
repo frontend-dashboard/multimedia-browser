@@ -38,15 +38,7 @@
         :min-zoom="0.5"
         :max-zoom="2"
         class="vue-flow-workspace"
-        @node-drag-stop="handleNodeDragStop"
-        @node-drag-start="handleNodeDragStart"
-        @connection-success="handleEdgeSuccess"
-        @node-mouseenter="handleNodeMouseEnter"
-        @node-mouseleave="handleNodeMouseLeave"
         @connect="handleConnect"
-        @zoom="handleZoom"
-        @drop="handleDrop"
-        @dragover="handleDragOver"
       >
         <!-- 背景网格 -->
         <Background
@@ -229,24 +221,19 @@ const emit = defineEmits(['workflow-updated'])
 // 初始化 Vue Flow 实例
 const vueFlowRef = ref(null)
 const {
-  nodesDraggable,
-  nodesConnectable,
-  elementsSelectable,
-  zoomOnScroll,
-  zoomOnDoubleClick,
-  zoomOnPinch,
-  panOnScroll,
-  panOnScrollMode,
-  panOnDrag,
+  // 保留实际使用的事件处理器和函数
   onConnect,
   onNodeDragStop,
-  onPaneClick,
-  onPaneScroll,
-  onPaneContextMenu,
   onNodeDragStart,
-  onMoveEnd,
   addEdges,
-  onNodeClick
+  onNodeClick,
+  onConnectionSuccess,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
+  onZoom,
+  onDrop,
+  onDragOver,
+  zoom
 } = useVueFlow()
 
 // 组件状态
@@ -353,26 +340,22 @@ const handleNodeClick = (event, node) => {
   }
 }
 
-// 设置节点点击事件监听
+// 设置所有VueFlow事件监听
 onMounted(() => {
+  // 节点点击事件
   if (onNodeClick) {
     try {
-      // 处理VueFlow API参数格式变化
       onNodeClick((...args) => {
-        // 处理可能的参数格式变化
         let event, node
         if (args.length === 1) {
-          // 新版本API格式
           const payload = args[0]
           event = payload.event || payload
           node = payload.node
         } else if (args.length >= 2) {
-          // 传统API格式
           event = args[0]
           node = args[1]
         }
 
-        // 只有当node存在时才调用handleNodeClick
         if (node) {
           handleNodeClick(event, node)
         }
@@ -382,11 +365,50 @@ onMounted(() => {
     }
   }
 
+  // 节点拖动开始事件
+  if (onNodeDragStart) {
+    onNodeDragStart(handleNodeDragStart)
+  }
+
+  // 节点拖动结束事件
+  if (onNodeDragStop) {
+    onNodeDragStop(handleNodeDragStop)
+  }
+
+  // 连接成功事件
+  if (onConnectionSuccess) {
+    onConnectionSuccess(handleEdgeSuccess)
+  }
+
+  // 节点鼠标悬停事件
+  if (onNodeMouseEnter) {
+    onNodeMouseEnter((event, node) => handleNodeMouseEnter(event, node))
+  }
+
+  // 节点鼠标离开事件
+  if (onNodeMouseLeave) {
+    onNodeMouseLeave(handleNodeMouseLeave)
+  }
+
+  // 缩放事件
+  if (onZoom) {
+    onZoom(handleZoom)
+  }
+
+  // 拖放事件
+  if (onDrop) {
+    onDrop(handleDrop)
+  }
+
+  // 拖拽悬停事件
+  if (onDragOver) {
+    onDragOver(handleDragOver)
+  }
+
   // 监听画布点击事件，用于清除焦点状态
   const canvasElement = document.querySelector('.vue-flow__viewport')
   if (canvasElement) {
     canvasElement.addEventListener('click', (event) => {
-      // 只有当点击的是画布本身而不是节点时才清除焦点
       if (
         event.target.classList.contains('vue-flow__viewport') ||
         event.target.classList.contains('vue-flow__background')
@@ -419,16 +441,25 @@ const handleNodeUpdate = () => {
 
 // 处理连接成功
 const handleEdgeSuccess = (params) => {
-  const { edge } = params
-  edges.value.push({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    sourceHandle: edge.sourceHandle,
-    targetHandle: edge.targetHandle,
-    type: edge.type || 'smoothstep',
-    selected: false
-  })
+  try {
+    if (!params || !params.edge) {
+      console.warn('Invalid edge connection params:', params)
+      return
+    }
+
+    const { edge } = params
+    edges.value.push({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: edge.sourceHandle,
+      targetHandle: edge.targetHandle,
+      type: edge.type || 'smoothstep',
+      selected: false
+    })
+  } catch (error) {
+    console.error('Error in handleEdgeSuccess:', error)
+  }
 }
 
 // 处理连接创建
@@ -445,7 +476,9 @@ const handleConnect = (connection) => {
 
 // 处理节点鼠标悬停
 const handleNodeMouseEnter = (event, node) => {
-  hoveredNodeId.value = node.id
+  if (node && node.id) {
+    hoveredNodeId.value = node.id
+  }
 }
 
 const handleNodeMouseLeave = () => {
