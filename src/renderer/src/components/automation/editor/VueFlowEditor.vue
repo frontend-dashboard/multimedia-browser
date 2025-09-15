@@ -192,7 +192,7 @@
         </div>
 
         <!-- 浏览器运行按钮 - 仅对BROWSER_OPEN类型节点显示 -->
-        <div v-if="selectedNode.type === 'BROWSER_OPEN'" class="property-group">
+        <div v-if="selectedNode.data.type === 'BROWSER_OPEN'" class="property-group">
           <el-button type="primary" size="small" class="run-browser-btn" @click="runBrowserNode">
             运行
           </el-button>
@@ -284,12 +284,15 @@ watch(
         type: 'custom-node',
         position: { x: el.position?.x || 0, y: el.position?.y || 0 },
         data: {
-          ...el,
+          // 确保type参数值被保留
+          type: el.type || el.data?.type,
+          // 保留其他属性
+          ...(el.data ? el.data : el),
           // Vue Flow 要求数据中包含必要的属性
-          selected: el.selected || false,
-          paramValues: el.paramValues || {}
+          selected: el.selected || (el.data && el.data.selected) || false,
+          paramValues: el.paramValues || (el.data && el.data.paramValues) || {}
         },
-        selected: el.selected || false
+        selected: el.selected || (el.data && el.data.selected) || false
       }))
 
       // 将工作流连接转换为 Vue Flow 连接格式
@@ -320,6 +323,7 @@ const exportWorkflowData = () => {
       ...props.workflow,
       elements: flowData.nodes.map((node) => ({
         id: node.id,
+        type: node.data.type,
         name: node.data.name,
         icon: node.data.icon,
         position: node.position,
@@ -343,6 +347,7 @@ const exportWorkflowData = () => {
       ...props.workflow,
       elements: elements.value.map((node) => ({
         id: node.id,
+        type: node.data.type,
         name: node.data.name,
         icon: node.data.icon,
         position: node.position,
@@ -403,7 +408,7 @@ const handlePaneClick = () => {
 // 运行浏览器节点
 const runBrowserNode = async () => {
   try {
-    if (!selectedNode.value || selectedNode.value.type !== 'BROWSER_OPEN') {
+    if (!selectedNode.value || !selectedNode.value.data || selectedNode.value.data.type !== 'BROWSER_OPEN') {
       return
     }
 

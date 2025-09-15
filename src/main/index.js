@@ -99,8 +99,23 @@ app.whenReady().then(() => {
       try {
         // 如果Playwright已安装，使用Playwright打开浏览器
         if (playwright) {
+          // 转换浏览器类型名称以匹配Playwright的命名约定
+          const playwrightBrowserType = browserType === 'chrome' ? 'chromium' : browserType
+          
+          // 检查Playwright是否支持指定的浏览器类型
+          if (!playwright[playwrightBrowserType]) {
+            console.warn(`Playwright不支持浏览器类型: ${playwrightBrowserType}`)
+            // 使用系统默认浏览器
+            const result = await shell.openExternal(url)
+            return {
+              success: result,
+              message: result ? '已使用系统默认浏览器打开URL' : '无法打开URL',
+              browserType: 'system'
+            }
+          }
+          
           console.log(
-            `使用Playwright打开浏览器: ${browserType}, URL: ${url}, 隐身模式: ${incognito}`
+            `使用Playwright打开浏览器: ${playwrightBrowserType}, URL: ${url}, 隐身模式: ${incognito}`
           )
 
           // 设置浏览器启动选项
@@ -117,11 +132,11 @@ app.whenReady().then(() => {
           // 根据浏览器类型启动
           if (incognito) {
             // 启动普通浏览器然后创建隐身上下文
-            browser = await playwright[browserType].launch(launchOptions)
+            browser = await playwright[playwrightBrowserType].launch(launchOptions)
             context = await browser.newContext({ incognito: true })
           } else {
             // 直接启动浏览器
-            browser = await playwright[browserType].launch(launchOptions)
+            browser = await playwright[playwrightBrowserType].launch(launchOptions)
             context = await browser.newContext()
           }
 

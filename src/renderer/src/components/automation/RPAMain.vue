@@ -154,11 +154,16 @@ const createNode = (id, elementType, x, y) => {
     return {
       id,
       type: 'custom-node',
-      name: typeDef.name,
-      icon: typeDef.icon,
+      data: {
+        id,
+        type: typeDef.type,
+        name: typeDef.name,
+        icon: typeDef.icon,
+        params: typeDef.params,
+        paramValues,
+        selected: false
+      },
       position: { x, y },
-      params: typeDef.params,
-      paramValues,
       selected: false
     }
   } else {
@@ -203,11 +208,16 @@ const createNode = (id, elementType, x, y) => {
     return {
       id,
       type: 'custom-node',
-      name: defaultNames[elementType] || elementType,
-      icon: defaultIcons[elementType] || 'Menu',
+      data: {
+        id,
+        type: elementType,
+        name: defaultNames[elementType] || elementType,
+        icon: defaultIcons[elementType] || 'Menu',
+        params: defaultParams,
+        paramValues,
+        selected: false
+      },
       position: { x, y },
-      params: defaultParams,
-      paramValues,
       selected: false
     }
   }

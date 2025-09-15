@@ -266,6 +266,8 @@ const executeElement = async (element) => {
 // 执行元件操作
 const executeElementAction = async (element) => {
   // 这里使用实际的浏览器自动化API来执行操作
+  // 优先使用element.data.type，如果不存在则回退到element.type
+  const elementType = element.data?.type || element.type
 
   // 添加事件监听器以获取页面状态更新
   const handlePageLoaded = (url) => {
@@ -287,10 +289,15 @@ const executeElementAction = async (element) => {
   browserAutomation.on('pageError', handlePageError)
 
   try {
-    switch (element.type) {
+    // 获取参数值，支持两种数据结构
+    const getParamValue = (key, defaultValue = '') => {
+      return element.data?.paramValues?.[key] || element.paramValues?.[key] || defaultValue
+    }
+    
+    switch (elementType) {
       case 'BROWSER_OPEN': {
-        const url = element.paramValues?.url || 'https://www.example.com'
-        const browserType = element.paramValues?.browserType || 'chrome'
+        const url = getParamValue('url', 'https://www.example.com')
+        const browserType = getParamValue('browserType', 'chrome')
 
         // 转换浏览器类型名称以匹配Playwright的命名约定
         const playwrightBrowserType = browserType === 'chrome' ? 'chromium' : browserType
@@ -322,15 +329,15 @@ const executeElementAction = async (element) => {
       }
 
       case 'CLICK_ELEMENT': {
-        const selector = element.paramValues?.selector || ''
-        const waitForNavigation = element.paramValues?.waitForNavigation !== false
-        const clickCount = element.paramValues?.clickCount || 1
+        const selector = getParamValue('selector', '')
+        const waitForNavigation = getParamValue('waitForNavigation', true) !== false
+        const clickCount = getParamValue('clickCount', 1)
 
         if (!selector) {
           throw new Error('选择器不能为空')
         }
 
-        addLog('info', `正在点击元素：${selector}${waitForNavigation ? '（等待页面加载）' : ''}`)
+        addLog('info', `正在点击元素：${selector}${clickCount > 1 ? ` (${clickCount}次)` : ''}${waitForNavigation ? '（等待页面加载）' : ''}`)
 
         // 等待元素可见
         await browserAutomation.waitForElementVisible(selector, 5000)
@@ -346,9 +353,9 @@ const executeElementAction = async (element) => {
       }
 
       case 'INPUT_TEXT': {
-        const selector = element.paramValues?.selector || ''
-        const text = element.paramValues?.text || ''
-        const clearBefore = element.paramValues?.clearBefore !== false
+        const selector = getParamValue('selector', '')
+        const text = getParamValue('text', '')
+        const clearBefore = getParamValue('clearBefore', true) !== false
 
         if (!selector) {
           throw new Error('选择器不能为空')
@@ -369,10 +376,10 @@ const executeElementAction = async (element) => {
       }
 
       case 'EXTRACT_DATA': {
-        const selector = element.paramValues?.selector || ''
-        const extractType = element.paramValues?.extractType || 'text'
-        const attributeName = element.paramValues?.attributeName || 'href'
-        const variableName = element.paramValues?.variableName || 'extractedData'
+        const selector = getParamValue('selector', '')
+        const extractType = getParamValue('extractType', 'text')
+        const attributeName = getParamValue('attributeName', 'href')
+        const variableName = getParamValue('variableName', 'extractedData')
 
         if (!selector) {
           throw new Error('选择器不能为空')
@@ -395,7 +402,7 @@ const executeElementAction = async (element) => {
       }
 
       case 'WAIT': {
-        const waitSeconds = element.paramValues?.seconds || 2
+        const waitSeconds = getParamValue('seconds', 2)
         addLog('info', `等待 ${waitSeconds} 秒`)
 
         // 实际等待指定的时间
@@ -406,7 +413,7 @@ const executeElementAction = async (element) => {
       }
 
       case 'IF_CONDITION': {
-        const condition = element.paramValues?.condition || 'true'
+        const condition = getParamValue('condition', 'true')
         addLog('info', `条件判断：${condition}`)
 
         // 在实际应用中，这里应该有更复杂的条件评估逻辑
