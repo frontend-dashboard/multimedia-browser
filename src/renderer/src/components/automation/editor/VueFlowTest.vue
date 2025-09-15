@@ -18,7 +18,7 @@
         <VueFlow
           ref="vueFlowRef"
           v-model="elements"
-          :connections="connections"
+          :edges="edges"
           :nodes-draggable="true"
           :connection-mode="connectionMode"
           :snap-to-grid="snapToGrid"
@@ -26,7 +26,7 @@
           :min-zoom="0.5"
           :max-zoom="2"
           @node-drag-stop="handleNodeDragStop"
-          @connection-success="handleConnectionSuccess"
+          @edge-success="handleEdgeSuccess"
           @node-click="handleNodeClick"
           @connect="handleConnect"
         >
@@ -65,7 +65,7 @@
         <h3>统计信息</h3>
         <div class="stats">
           <p>节点数量: {{ elements.length }}</p>
-          <p>连接数量: {{ connections.length }}</p>
+          <p>连接数量: {{ edges.length }}</p>
         </div>
       </div>
     </div>
@@ -162,7 +162,7 @@ const { centerView: centerVueFlowView } = useVueFlow()
 
 // 状态
 const elements = ref([])
-const connections = ref([])
+const edges = ref([])
 const selectedNode = ref(null)
 const connectionMode = ref('loose')
 const snapToGrid = ref(true)
@@ -212,9 +212,9 @@ const createSampleNodes = () => {
   ]
 
   // 创建一些示例连接
-  connections.value = [
+  edges.value = [
     {
-      id: 'connection-1',
+      id: 'edge-1',
       source: 'node-1',
       target: 'node-2',
       sourceHandle: 'right',
@@ -271,7 +271,7 @@ const addNode = (type) => {
 // 清空节点
 const clearNodes = () => {
   elements.value = []
-  connections.value = []
+  edges.value = []
   selectedNode.value = null
 }
 
@@ -288,7 +288,7 @@ const handleNodeDragStop = (event, node) => {
 }
 
 // 处理连接成功
-const handleConnectionSuccess = (params) => {
+const handleEdgeSuccess = (params) => {
   const { edge } = params
   console.log('连接成功:', edge)
 }

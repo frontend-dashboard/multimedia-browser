@@ -103,7 +103,7 @@
         <span>元件数量: {{ workflow.elements.length }}</span>
       </div>
       <div class="status-item">
-        <span>连接数量: {{ workflow.connections.length }}</span>
+        <span>连接数量: {{ workflow.edges.length }}</span>
       </div>
       <div class="status-item">
         <span>已保存: {{ isSaved ? '是' : '否' }}</span>
@@ -166,7 +166,24 @@ const workflow = reactive({
       selected: false
     }
   ],
-  connections: []
+  edges: [
+    {
+      id: 'edge-1-2',
+      source: '1',
+      target: '2',
+      sourceHandle: 'right',
+      targetHandle: 'left',
+      type: 'smoothstep'
+    },
+    {
+      id: 'edge-2-3',
+      source: '2',
+      target: '3',
+      sourceHandle: 'right',
+      targetHandle: 'left',
+      type: 'smoothstep'
+    }
+  ]
 })
 
 // 组件引用
@@ -233,7 +250,7 @@ const newWorkflow = () => {
     name: '未命名流程',
     description: '',
     elements: [],
-    connections: []
+    edges: []
   })
 
   isSaved.value = false
@@ -247,14 +264,14 @@ const newWorkflow = () => {
 
 // 清空画布
 const clearWorkflow = () => {
-  if (workflow.elements.length > 0 || workflow.connections.length > 0) {
+  if (workflow.elements.length > 0 || workflow.edges.length > 0) {
     if (!confirm('确定要清空画布吗？当前未保存的内容将会丢失。')) {
       return
     }
   }
 
   workflow.elements = []
-  workflow.connections = []
+  workflow.edges = []
   isSaved.value = false
   lastModified.value = new Date()
 
@@ -280,9 +297,7 @@ const handleWorkflowUpdated = (updatedWorkflow) => {
 // 组件挂载时记录日志
 onMounted(() => {
   logger.info('RPAMain组件已挂载，工作流系统初始化完成')
-  logger.debug(
-    `初始工作流包含${workflow.elements.length}个元件和${workflow.connections.length}个连接`
-  )
+  logger.debug(`初始工作流包含${workflow.elements.length}个元件和${workflow.edges.length}个连接`)
 })
 
 // 处理主题切换

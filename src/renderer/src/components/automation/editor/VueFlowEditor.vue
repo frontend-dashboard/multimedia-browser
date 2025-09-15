@@ -29,7 +29,7 @@
       <VueFlow
         ref="vueFlowRef"
         v-model="elements"
-        :connections="connections"
+        :edges="edges"
         :nodes-draggable="true"
         :connection-mode="connectionMode"
         :snap-to-grid="snapToGrid"
@@ -40,7 +40,7 @@
         class="vue-flow-workspace"
         @node-drag-stop="handleNodeDragStop"
         @node-drag-start="handleNodeDragStart"
-        @connection-success="handleConnectionSuccess"
+        @connection-success="handleEdgeSuccess"
         @node-mouseenter="handleNodeMouseEnter"
         @node-mouseleave="handleNodeMouseLeave"
         @connect="handleConnect"
@@ -218,7 +218,7 @@ const flowInstance = useVueFlow()
 
 // 组件状态
 const elements = ref([])
-const connections = ref([])
+const edges = ref([])
 const selectedNode = ref(null)
 const hoveredNodeId = ref(null)
 const focusedNodeId = ref(null) // 用于存储当前焦点节点ID
@@ -250,10 +250,10 @@ watch(
       }))
 
       // 将工作流连接转换为 Vue Flow 连接格式
-      connections.value = newWorkflow.connections.map((conn) => ({
-        id: conn.id || `conn_${conn.sourceId}_${conn.targetId}`,
-        source: conn.sourceId,
-        target: conn.targetId,
+      edges.value = newWorkflow.edges.map((conn) => ({
+        id: conn.id || `edge_${conn.source}_${conn.target}`,
+        source: conn.source,
+        target: conn.target,
         sourceHandle: conn.sourceHandle || 'bottom',
         targetHandle: conn.targetHandle || 'top',
         selected: conn.selected || false
@@ -265,7 +265,7 @@ watch(
 
 // 监听元素和连接变化，通知父组件
 watch(
-  [elements, connections],
+  [elements, edges],
   () => {
     // 构建工作流数据
     const updatedWorkflow = {
@@ -279,7 +279,7 @@ watch(
         paramValues: node.data.paramValues || {},
         selected: node.selected
       })),
-      connections: connections.value.map((conn) => ({
+      edges: edges.value.map((conn) => ({
         id: conn.id,
         sourceId: conn.source,
         targetId: conn.target,
@@ -422,7 +422,7 @@ const handleNodeUpdate = () => {
       paramValues: node.data.paramValues || {},
       selected: node.selected
     })),
-    connections: connections.value.map((conn) => ({
+    edges: edges.value.map((conn) => ({
       id: conn.id,
       sourceId: conn.source,
       targetId: conn.target,
@@ -432,9 +432,9 @@ const handleNodeUpdate = () => {
 }
 
 // 处理连接成功
-const handleConnectionSuccess = (params) => {
+const handleEdgeSuccess = (params) => {
   const { edge } = params
-  connections.value.push({
+  edges.value.push({
     id: edge.id,
     source: edge.source,
     target: edge.target,
@@ -604,7 +604,7 @@ const layout = (nodes, edges, direction) => {
 const layoutGraph = async (direction) => {
   try {
     // 执行布局算法
-    const newNodes = layout(elements.value, connections.value, direction)
+    const newNodes = layout(elements.value, edges.value, direction)
 
     // 更新节点位置
     elements.value = newNodes
@@ -672,9 +672,7 @@ const removeElement = (nodeId) => {
   elements.value = elements.value.filter((node) => node.id !== nodeId)
 
   // 移除与该节点相关的所有连接
-  connections.value = connections.value.filter(
-    (conn) => conn.source !== nodeId && conn.target !== nodeId
-  )
+  edges.value = edges.value.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
 
   // 清除选中状态
   if (selectedNode.value && selectedNode.value.id === nodeId) {
@@ -700,13 +698,13 @@ const getParamDisplayValue = (paramValues, param) => {
 // 暴露方法给父组件
 const resetWorkflow = () => {
   elements.value = []
-  connections.value = []
+  edges.value = []
   selectedNode.value = null
 }
 
 const onWorkflowCleared = () => {
   elements.value = []
-  connections.value = []
+  edges.value = []
   selectedNode.value = null
 }
 

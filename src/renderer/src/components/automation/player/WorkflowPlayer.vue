@@ -122,7 +122,7 @@ const props = defineProps({
     type: Object,
     default: () => ({
       elements: [],
-      connections: []
+      edges: []
     })
   }
 })

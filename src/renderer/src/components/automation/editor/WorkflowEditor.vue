@@ -36,17 +36,17 @@
           <!-- 连接线层 -->
           <svg ref="connectionLayerRef" class="connection-layer">
             <!-- 渲染所有连接线 -->
-            <g class="connections-group">
+            <g class="edges-group">
               <path
-                v-for="connection in connections"
-                :key="connection.id"
-                :d="getConnectionPath(connection)"
+                v-for="edge in edges"
+                :key="edge.id"
+                :d="getConnectionPath(edge)"
                 class="connection-path"
-                :class="{ 'connection-path-selected': connection.selected }"
-                :stroke-width="connection.selected ? 3 : 2"
-                :data-source-id="connection.sourceId"
-                :data-target-id="connection.targetId"
-                @click.stop="selectConnection(connection)"
+                :class="{ 'connection-path-selected': edge.selected }"
+                :stroke-width="edge.selected ? 3 : 2"
+                :data-source-id="edge.source"
+                :data-target-id="edge.target"
+                @click.stop="selectConnection(edge)"
               />
             </g>
 
@@ -264,20 +264,20 @@ const emit = defineEmits(['workflow-updated', 'selection-changed'])
 // 响应式数据 - 使用reactive创建本地工作流对象
 const localWorkflow = reactive({
   elements: props.workflow.elements || [],
-  connections: props.workflow.connections || []
+  edges: props.workflow.edges || []
 })
 
-// 确保elements和connections数组存在
+// 确保elements和edges数组存在
 if (!localWorkflow.elements) {
   localWorkflow.elements = []
 }
-if (!localWorkflow.connections) {
-  localWorkflow.connections = []
+if (!localWorkflow.edges) {
+  localWorkflow.edges = []
 }
 
 // 计算属性
 const elements = computed(() => localWorkflow.elements || [])
-const connections = computed(() => localWorkflow.connections || [])
+const edges = computed(() => localWorkflow.edges || [])
 
 // 画布状态
 const canvasRef = ref(null)
@@ -314,10 +314,7 @@ const canvasStyle = computed(() => ({
 // 只在初始化时使用props数据
 onMounted(() => {
   // 初始化时从props获取数据
-  if (
-    props.workflow &&
-    (props.workflow.elements?.length > 0 || props.workflow.connections?.length > 0)
-  ) {
+  if (props.workflow && (props.workflow.elements?.length > 0 || props.workflow.edges?.length > 0)) {
     Object.assign(localWorkflow, JSON.parse(JSON.stringify(props.workflow)))
   } else {
     initWorkflow()
@@ -344,7 +341,7 @@ onMounted(() => {
 
 // 监听工作流内部变化，通知父组件
 watch(
-  () => [localWorkflow.elements, localWorkflow.connections],
+  () => [localWorkflow.elements, localWorkflow.edges],
   () => {
     emit('workflow-updated', { ...localWorkflow })
   },
@@ -412,7 +409,7 @@ const loadWorkflow = () => {
 const onWorkflowCleared = () => {
   // 清空本地工作流
   localWorkflow.elements = []
-  localWorkflow.connections = []
+  localWorkflow.edges = []
   // 清空选中状态
   selectedElement.value = null
   selectedConnection.value = null
@@ -451,7 +448,7 @@ const removeElement = (element) => {
   if (props.readOnly) return
 
   // 先删除与该元素相关的连接
-  localWorkflow.connections = localWorkflow.connections.filter((connection) => {
+  localWorkflow.edges = localWorkflow.edges.filter((connection) => {
     return connection.sourceId !== element.id && connection.targetId !== element.id
   })
 
@@ -653,7 +650,7 @@ const createConnection = (connectionData) => {
   }
 
   // 检查连接是否已存在
-  const existingConnection = localWorkflow.connections.find(
+  const existingConnection = localWorkflow.edges.find(
     (conn) => conn.sourceId === connectionData.sourceId && conn.targetId === connectionData.targetId
   )
 
@@ -672,7 +669,7 @@ const createConnection = (connectionData) => {
   }
 
   // 添加连接到工作流
-  localWorkflow.connections.push(newConnection)
+  localWorkflow.edges.push(newConnection)
   console.log('成功创建连接:', newConnection)
 }
 
@@ -705,7 +702,7 @@ const clearSelection = () => {
   })
 
   // 重置连接选中状态
-  localWorkflow.connections.forEach((connection) => {
+  localWorkflow.edges.forEach((connection) => {
     connection.selected = false
   })
 }
