@@ -60,8 +60,8 @@
               'custom-node-focused': data.id === focusedNodeId
             }"
           >
-            <!-- 顶部连接点（用于接收连接） -->
-            <Handle type="target" position="top" class="handle handle-top" :id="`${data.id}-top`" />
+            <!-- 左侧连接点（用于接收连接） -->
+            <Handle type="target" position="left" class="handle handle-left" :id="`${data.id}-left`" />
 
             <div class="node-header">
               <el-icon class="node-icon">
@@ -89,12 +89,12 @@
               </div>
             </div>
 
-            <!-- 底部连接点（用于发送连接） -->
+            <!-- 右侧连接点（用于发送连接） -->
             <Handle
               type="source"
-              position="bottom"
-              class="handle handle-bottom"
-              :id="`${data.id}-bottom`"
+              position="right"
+              class="handle handle-right"
+              :id="`${data.id}-right`"
             />
           </div>
         </template>
@@ -505,8 +505,8 @@ const handleConnect = (connection) => {
     ...connection,
     id: connectionId,
     // 绑定连接点ID（与自定义节点的Handle ID匹配）
-    sourceHandle: `${connection.source}-bottom`,
-    targetHandle: `${connection.target}-top`
+    sourceHandle: `${connection.source}-right`,
+    targetHandle: `${connection.target}-left`
   }
 }
 
@@ -921,23 +921,38 @@ defineExpose({
   opacity: 0.8;
 }
 
-.handle-top {
-  top: -7px;
-  left: 50%;
-  transform: translateX(-50%);
+/* 左侧连接点 */
+.handle-left {
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.handle-bottom {
-  bottom: -7px;
-  left: 50%;
-  transform: translateX(-50%);
+/* 右侧连接点 */
+.handle-right {
+  right: -7px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
+/* 连接点悬停效果 */
 .handle:hover,
 .custom-node:hover .handle {
   opacity: 1;
-  transform: translateX(-50%) scale(1.1);
+  transform: scale(1.1);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* 重置左侧连接点悬停的transform */
+.handle-left:hover,
+.custom-node:hover .handle-left {
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* 重置右侧连接点悬停的transform */
+.handle-right:hover,
+.custom-node:hover .handle-right {
+  transform: translateY(-50%) scale(1.1);
 }
 
 /* 节点状态样式 */

@@ -171,15 +171,15 @@ const workflow = reactive({
       id: 'edge-1-2',
       source: '1',
       target: '2',
-      sourceHandle: '1-bottom', // 新增：绑定源节点底部连接点
-      targetHandle: '2-top' // 新增：绑定目标节点顶部连接点
+      sourceHandle: '1-right', // 新增：绑定源节点底部连接点
+      targetHandle: '2-left' // 新增：绑定目标节点顶部连接点
     },
     {
       id: 'edge-2-3',
       source: '2',
       target: '3',
-      sourceHandle: '2-bottom',
-      targetHandle: '3-top'
+      sourceHandle: '2-right',
+      targetHandle: '3-left'
     }
   ]
 })
