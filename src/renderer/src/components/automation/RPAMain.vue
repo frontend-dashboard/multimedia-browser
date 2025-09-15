@@ -57,13 +57,12 @@
       </div>
 
       <!-- 中间工作区 -->
-      <div class="center-panel">
-        <VueFlowEditor
-          ref="vueFlowEditorRef"
-          :workflow="workflow"
-          @workflow-updated="handleWorkflowUpdated"
-        />
-      </div>
+        <div class="center-panel">
+          <VueFlowEditor
+            ref="vueFlowEditorRef"
+            :workflow="workflow"
+          />
+        </div>
 
       <!-- 右侧面板 - 标签页切换 -->
       <div class="right-panel" :style="{ display: 'none' }">
@@ -214,9 +213,14 @@ const formatDate = (date) => {
 
 // 保存工作流
 const saveWorkflow = () => {
-  if (vueFlowEditorRef.value && vueFlowEditorRef.value.saveWorkflow) {
-    vueFlowEditorRef.value.saveWorkflow()
+  if (vueFlowEditorRef.value && vueFlowEditorRef.value.getWorkflowData) {
+    // 从编辑器获取最新的工作流数据
+    const updatedWorkflow = vueFlowEditorRef.value.getWorkflowData()
+    // 更新本地工作流数据
+    Object.assign(workflow, updatedWorkflow)
     isSaved.value = true
+    lastModified.value = new Date()
+    console.log('工作流已保存', updatedWorkflow)
   }
 }
 
@@ -279,18 +283,8 @@ const clearWorkflow = () => {
   }
 }
 
-// 处理工作流更新事件 - 使用展开运算符创建新对象，避免直接修改导致的递归更新
-const handleWorkflowUpdated = (updatedWorkflow) => {
-  // 避免递归更新错误 - 确保只在有实际变化时才更新
-  if (JSON.stringify(workflow) !== JSON.stringify(updatedWorkflow)) {
-    // 创建新的对象引用而不是直接修改原对象
-    Object.assign(workflow, { ...updatedWorkflow })
-    isSaved.value = false
-    lastModified.value = new Date()
-
-    console.log('工作流已更新', updatedWorkflow)
-  }
-}
+// 已移除自动更新机制，改为在保存时主动获取数据
+// 此函数已不再使用
 
 // 组件挂载时记录日志
 onMounted(() => {

@@ -195,7 +195,6 @@
 
 <script setup>
 import { ref, watch, onMounted, nextTick } from 'vue'
-import { debounce } from 'lodash'
 // 导入 VueFlow 相关组件
 import { VueFlow, useVueFlow, Handle } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
@@ -217,8 +216,7 @@ const props = defineProps({
   }
 })
 
-// 定义 emits
-const emit = defineEmits(['workflow-updated'])
+// 已移除自动同步机制，因此不再需要 emits
 
 // 初始化 Vue Flow 实例
 const vueFlowRef = ref(null)
@@ -291,9 +289,9 @@ onConnect((params) => {
   addEdges(params)
 })
 
-// 处理节点更新并通知父组件
-const notifyWorkflowUpdate = debounce(() => {
-  const updatedWorkflow = {
+// 导出工作流数据的方法，供父组件在保存时调用
+const exportWorkflowData = () => {
+  return {
     ...props.workflow,
     elements: elements.value.map((node) => ({
       id: node.id,
@@ -314,12 +312,10 @@ const notifyWorkflowUpdate = debounce(() => {
       selected: conn.selected
     }))
   }
+}
 
-  emit('workflow-updated', updatedWorkflow)
-}, 100)
-
-// 监听元素和连接变化，通知父组件
-watch([elements, edges], notifyWorkflowUpdate, { deep: true })
+// 移除自动同步，改为由父组件主动获取数据
+// 注：所有编辑器操作将仅更新本地状态，不再自动通知父组件
 
 // 处理节点点击
 const handleNodeClick = (event, node) => {
@@ -461,18 +457,17 @@ const handleNodeDragStart = () => {
 }
 
 const handleNodeDragStop = () => {
-  // 节点拖动结束时自动保存位置更新
-  notifyWorkflowUpdate()
+  // 节点拖动结束时的处理逻辑 - 不再自动通知父组件
 }
 
 // 处理节点位置变化
 const handleNodePositionChange = () => {
-  notifyWorkflowUpdate()
+  // 节点位置变化的处理逻辑 - 不再自动通知父组件
 }
 
 // 处理节点数据更新
 const handleNodeUpdate = () => {
-  notifyWorkflowUpdate()
+  // 节点数据更新的处理逻辑 - 不再自动通知父组件
 }
 
 // 处理连接成功
@@ -775,7 +770,9 @@ defineExpose({
   resetWorkflow,
   onWorkflowCleared,
   saveWorkflow,
-  loadWorkflow
+  loadWorkflow,
+  // 新增：提供获取工作流数据的方法，供父组件在保存时调用
+  getWorkflowData: exportWorkflowData
 })
 </script>
 
