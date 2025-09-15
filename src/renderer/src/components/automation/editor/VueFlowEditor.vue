@@ -281,8 +281,11 @@ watch(
       })),
       edges: edges.value.map((conn) => ({
         id: conn.id,
-        sourceId: conn.source,
-        targetId: conn.target,
+        source: conn.source,
+        target: conn.target,
+        sourceHandle: conn.sourceHandle,
+        targetHandle: conn.targetHandle,
+        type: conn.type || 'smoothstep',
         selected: conn.selected
       }))
     }
@@ -424,8 +427,11 @@ const handleNodeUpdate = () => {
     })),
     edges: edges.value.map((conn) => ({
       id: conn.id,
-      sourceId: conn.source,
-      targetId: conn.target,
+      source: conn.source,
+      target: conn.target,
+      sourceHandle: conn.sourceHandle,
+      targetHandle: conn.targetHandle,
+      type: conn.type || 'smoothstep',
       selected: conn.selected
     }))
   })
@@ -438,6 +444,9 @@ const handleEdgeSuccess = (params) => {
     id: edge.id,
     source: edge.source,
     target: edge.target,
+    sourceHandle: edge.sourceHandle,
+    targetHandle: edge.targetHandle,
+    type: edge.type || 'smoothstep',
     selected: false
   })
 }
