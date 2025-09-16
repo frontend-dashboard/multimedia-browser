@@ -238,8 +238,8 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        selector: '#chat-input-main',
-        text: '三字经',
+        selector: '#chat-textarea',
+        text: '三字经的正规全文',
         clearBefore: true
       }
     },
@@ -274,7 +274,7 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        selector: '#su',
+        selector: '#chat-submit-button',
         waitForNavigation: true,
         clickCount: 1
       }
@@ -321,7 +321,7 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        selector: '#content_left > div:nth-child(1) h3 a',
+        selector: '#content_left > .s-tab-item:nth-child(2)',
         waitForNavigation: true,
         clickCount: 1
       }
