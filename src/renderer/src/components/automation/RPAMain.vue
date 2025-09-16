@@ -76,10 +76,7 @@
 
         <!-- 标签页内容 -->
         <div class="right-panel-content">
-          <WorkflowPlayer
-            ref="workflowPlayerRef"
-            :workflow="workflow"
-          />
+          <WorkflowPlayer ref="workflowPlayerRef" :workflow="workflow" />
         </div>
       </div>
     </div>
@@ -218,67 +215,305 @@ const workflow = reactive({
   name: '未命名流程',
   description: '',
   elements: [
-    // 浏览器操作相关节点
-    createNode('1', 'BROWSER_OPEN', 50, 100),
-    createNode('2', 'BROWSER_CLOSE', 50, 250),
-
-    // 页面交互相关节点
-    createNode('3', 'CLICK_ELEMENT', 300, 100),
-    createNode('4', 'INPUT_TEXT', 300, 250),
-
-    // 数据处理相关节点
-    createNode('5', 'EXTRACT_DATA', 550, 100),
-
-    // 逻辑控制相关节点
-    createNode('6', 'WAIT', 800, 100),
-    createNode('7', 'IF_CONDITION', 800, 250),
-
-    // 文件操作相关节点
-    createNode('8', 'SAVE_FILE', 1050, 100)
-  ].filter(Boolean), // 过滤掉可能的null值
+    {
+      id: '1',
+      type: 'BROWSER_OPEN',
+      name: '打开浏览器',
+      icon: 'Browser',
+      position: { x: 50, y: 50 },
+      params: [
+        {
+          key: 'url',
+          label: 'URL地址',
+          type: 'string',
+          required: true,
+          defaultValue: 'https://www.example.com'
+        },
+        {
+          key: 'openMode',
+          label: '打开方式',
+          type: 'select',
+          options: ['useExisting', 'newBrowser'],
+          defaultValue: 'useExisting',
+          description: '在已打开的浏览器中打开，若没有则打开一个；或在新的浏览器中打开'
+        },
+        {
+          key: 'browserType',
+          label: '浏览器类型',
+          type: 'select',
+          options: ['chrome', 'firefox', 'safari'],
+          defaultValue: 'chrome',
+          description: '选择要使用的浏览器类型'
+        },
+        {
+          key: 'incognito',
+          label: '隐身模式',
+          type: 'boolean',
+          defaultValue: false,
+          description: '是否以隐身模式打开浏览器'
+        },
+        {
+          key: 'windowSize',
+          label: '窗口大小',
+          type: 'select',
+          options: ['default', 'maximized', 'fullscreen', 'custom'],
+          defaultValue: 'default',
+          description: '浏览器窗口的打开方式'
+        },
+        {
+          key: 'customWidth',
+          label: '自定义宽度',
+          type: 'number',
+          defaultValue: 1280,
+          description: '自定义窗口宽度（仅在窗口大小选择"custom"时生效）'
+        },
+        {
+          key: 'customHeight',
+          label: '自定义高度',
+          type: 'number',
+          defaultValue: 800,
+          description: '自定义窗口高度（仅在窗口大小选择"custom"时生效）'
+        },
+        {
+          key: 'waitUntil',
+          label: '等待加载完成',
+          type: 'select',
+          options: ['load', 'domcontentloaded', 'networkidle', 'commit'],
+          defaultValue: 'networkidle',
+          description: '页面加载完成的判断条件'
+        },
+        {
+          key: 'timeout',
+          label: '超时时间(ms)',
+          type: 'number',
+          defaultValue: 30000,
+          description: '页面加载的最大等待时间'
+        }
+      ],
+      paramValues: {
+        url: 'https://www.example.com',
+        openMode: 'useExisting',
+        browserType: 'chrome',
+        incognito: false,
+        windowSize: 'default',
+        customWidth: 1280,
+        customHeight: 800,
+        waitUntil: 'networkidle',
+        timeout: 30000
+      }
+    },
+    {
+      id: '2',
+      type: 'BROWSER_CLOSE',
+      name: '关闭浏览器',
+      icon: 'Close',
+      position: { x: 1850, y: 104.5 },
+      params: [],
+      paramValues: {}
+    },
+    {
+      id: '3',
+      type: 'CLICK_ELEMENT',
+      name: '点击元素',
+      icon: 'Pointer',
+      position: { x: 350, y: 50 },
+      params: [
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: '',
+          description: 'CSS或XPath选择器'
+        },
+        {
+          key: 'waitForNavigation',
+          label: '等待页面加载',
+          type: 'boolean',
+          defaultValue: true,
+          description: '点击后是否等待页面导航完成'
+        },
+        {
+          key: 'clickCount',
+          label: '点击次数',
+          type: 'number',
+          defaultValue: 1,
+          description: '单击或双击'
+        }
+      ],
+      paramValues: { selector: '', waitForNavigation: true, clickCount: 1 }
+    },
+    {
+      id: '4',
+      type: 'INPUT_TEXT',
+      name: '输入文本',
+      icon: 'Edit',
+      position: { x: 650, y: 50 },
+      params: [
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: '',
+          description: 'CSS或XPath选择器'
+        },
+        {
+          key: 'text',
+          label: '输入文本',
+          type: 'string',
+          required: true,
+          defaultValue: '',
+          description: '要输入的文本内容'
+        },
+        {
+          key: 'clearBefore',
+          label: '先清空',
+          type: 'boolean',
+          defaultValue: true,
+          description: '输入前是否清空已有内容'
+        }
+      ],
+      paramValues: { selector: '', text: '', clearBefore: true }
+    },
+    {
+      id: '5',
+      type: 'EXTRACT_DATA',
+      name: '提取数据',
+      icon: 'DataAnalysis',
+      position: { x: 950, y: 50 },
+      params: [
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: '',
+          description: 'CSS或XPath选择器'
+        },
+        {
+          key: 'extractType',
+          label: '提取类型',
+          type: 'select',
+          options: ['text', 'attribute', 'html', 'value'],
+          defaultValue: 'text',
+          description: '提取元素的文本、属性、HTML或值'
+        },
+        {
+          key: 'attributeName',
+          label: '属性名',
+          type: 'string',
+          defaultValue: 'href',
+          description: '当提取类型为属性时，指定要提取的属性名'
+        },
+        {
+          key: 'variableName',
+          label: '变量名',
+          type: 'string',
+          required: true,
+          defaultValue: 'extractedData',
+          description: '存储提取数据的变量名称'
+        }
+      ],
+      paramValues: {
+        selector: '',
+        extractType: 'text',
+        attributeName: 'href',
+        variableName: 'extractedData'
+      }
+    },
+    {
+      id: '6',
+      type: 'WAIT',
+      name: '等待',
+      icon: 'Clock',
+      position: { x: 1250, y: 81 },
+      params: [
+        { key: 'seconds', label: '等待秒数', type: 'number', required: true, defaultValue: 2 }
+      ],
+      paramValues: { seconds: 2 }
+    },
+    {
+      id: '7',
+      type: 'IF_CONDITION',
+      name: '条件判断',
+      icon: 'Sort',
+      position: { x: 50, y: 351 },
+      params: [
+        { key: 'condition', label: '条件表达式', type: 'string', required: true, defaultValue: '' },
+        { key: 'trueBranchId', label: '条件为真时执行', type: 'string', defaultValue: '' },
+        { key: 'falseBranchId', label: '条件为假时执行', type: 'string', defaultValue: '' }
+      ],
+      paramValues: { condition: '', trueBranchId: '', falseBranchId: '' }
+    },
+    {
+      id: '8',
+      type: 'SAVE_FILE',
+      name: '保存文件',
+      icon: 'Download',
+      position: { x: 1550, y: 50 },
+      params: [
+        { key: 'data', label: '数据', type: 'string', required: true, defaultValue: '' },
+        { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
+        {
+          key: 'format',
+          label: '文件格式',
+          type: 'select',
+          options: ['txt', 'json', 'csv'],
+          defaultValue: 'txt'
+        }
+      ],
+      paramValues: { data: '', filePath: '', format: 'txt' }
+    }
+  ],
   edges: [
-    // 基本流程连接
     {
       id: 'edge-1-3',
       source: '1',
       target: '3',
       sourceHandle: '1-right',
-      targetHandle: '3-left'
+      targetHandle: '3-left',
+      type: 'default'
     },
     {
       id: 'edge-3-4',
       source: '3',
       target: '4',
       sourceHandle: '3-right',
-      targetHandle: '4-left'
+      targetHandle: '4-left',
+      type: 'default'
     },
     {
       id: 'edge-4-5',
       source: '4',
       target: '5',
       sourceHandle: '4-right',
-      targetHandle: '5-left'
+      targetHandle: '5-left',
+      type: 'default'
     },
     {
       id: 'edge-5-6',
       source: '5',
       target: '6',
       sourceHandle: '5-right',
-      targetHandle: '6-left'
+      targetHandle: '6-left',
+      type: 'default'
     },
     {
       id: 'edge-6-8',
       source: '6',
       target: '8',
       sourceHandle: '6-right',
-      targetHandle: '8-left'
+      targetHandle: '8-left',
+      type: 'default'
     },
     {
       id: 'edge-8-2',
       source: '8',
       target: '2',
       sourceHandle: '8-right',
-      targetHandle: '2-left'
+      targetHandle: '2-left',
+      type: 'default'
     }
   ]
 })
@@ -320,7 +555,7 @@ const saveWorkflow = () => {
     Object.assign(workflow, updatedWorkflow)
     isSaved.value = true
     lastModified.value = new Date()
-    console.log('工作流已保存', updatedWorkflow)
+    console.log('工作流已保存', JSON.stringify(updatedWorkflow))
   }
 }
 

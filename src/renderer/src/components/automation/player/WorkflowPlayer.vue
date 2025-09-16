@@ -14,7 +14,11 @@
           {{ playState === 'playing' ? '暂停' : '播放' }}
         </el-button>
 
-        <el-button type="danger" :disabled="playState === 'stopped'" @click="stopPlayback">
+        <el-button
+          type="danger"
+          :disabled="playState === 'stopped'"
+          @click="stopPlayback"
+        >
           <el-icon><Stopwatch /></el-icon>
           停止
         </el-button>
@@ -38,7 +42,11 @@
           size="small"
         />
 
-        <el-switch v-model="enableDebugging" active-text="调试模式" inactive-text="正常模式" />
+        <el-switch
+          v-model="enableDebugging"
+          active-text="调试模式"
+          inactive-text="正常模式"
+        />
       </div>
     </div>
 
@@ -105,8 +113,6 @@
           <p v-if="currentBrowserUrl">当前URL: {{ currentBrowserUrl }}</p>
         </div>
       </div>
-
-
     </div>
   </div>
 </template>
@@ -115,10 +121,8 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { VideoPlay, VideoPause, Stopwatch, Right } from '@element-plus/icons-vue'
 
-// 导入日志工具
+// 导入工具
 import logger from '@renderer/utils/logger.js'
-
-// 导入浏览器自动化工具
 import browserAutomation from '@renderer/utils/browserAutomation.js'
 
 // 已移除元素选择器组件
@@ -134,7 +138,7 @@ const props = defineProps({
   }
 })
 
-// 播放状态
+// 播放状态相关变量
 const playState = ref('stopped') // stopped, playing, paused
 const currentElement = ref(null)
 const currentElementIndex = ref(-1)
@@ -145,7 +149,7 @@ const enableDebugging = ref(false)
 const showBrowserPreview = ref(false)
 const currentBrowserUrl = ref('')
 
-// 执行时间
+// 执行时间相关变量
 const startTime = ref(0)
 const elapsedTime = ref(0)
 let timeInterval = null
@@ -153,17 +157,17 @@ let timeInterval = null
 // 浏览器状态
 let currentBrowserId = null
 
-// 执行日志
+// 执行日志相关变量
 const logs = ref([])
 const logContentRef = ref(null)
 let logUnsubscribe = null
 
-// 是否可以播放
+// 计算属性
 const canPlay = computed(() => {
   return props.workflow.elements && props.workflow.elements.length > 0
 })
 
-// 监听全局日志更新
+// 日志处理函数
 const handleGlobalLogUpdate = (newLog) => {
   logs.value.push(newLog)
   
@@ -188,27 +192,6 @@ const handleGlobalLogUpdate = (newLog) => {
   })
 }
 
-// 获取播放状态文本
-const getPlayStateText = (state) => {
-  const stateMap = {
-    stopped: '已停止',
-    playing: '播放中',
-    paused: '已暂停'
-  }
-
-  return stateMap[state] || '未知状态'
-}
-
-// 格式化时间
-const formatTime = (ms) => {
-  const seconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-}
-
-// 添加日志 - 只发送到全局日志系统，不再添加到组件内部日志
 const addLog = (level, message, details = null) => {
   // 发送到全局日志系统
   switch (level) {
@@ -230,13 +213,12 @@ const addLog = (level, message, details = null) => {
   }
 }
 
-// 清除日志
 const clearLog = () => {
   logger.clearLogs()
   logs.value = []
 }
 
-// 启动计时器
+// 计时器相关函数
 const startTimer = () => {
   startTime.value = Date.now() - elapsedTime.value
   timeInterval = setInterval(() => {
@@ -244,7 +226,6 @@ const startTimer = () => {
   }, 1000)
 }
 
-// 停止计时器
 const stopTimer = () => {
   if (timeInterval) {
     clearInterval(timeInterval)
@@ -252,7 +233,26 @@ const stopTimer = () => {
   }
 }
 
-// 执行单个元件
+// 工具函数
+const getPlayStateText = (state) => {
+  const stateMap = {
+    stopped: '已停止',
+    playing: '播放中',
+    paused: '已暂停'
+  }
+
+  return stateMap[state] || '未知状态'
+}
+
+const formatTime = (ms) => {
+  const seconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+}
+
+// 执行相关函数
 const executeElement = async (element) => {
   if (!element) {
     return false
@@ -280,7 +280,6 @@ const executeElement = async (element) => {
   }
 }
 
-// 执行元件操作
 const executeElementAction = async (element) => {
   // 这里使用实际的浏览器自动化API来执行操作
   // 优先使用element.data.type，如果不存在则回退到element.type
@@ -488,7 +487,6 @@ const executeElementAction = async (element) => {
   }
 }
 
-// 执行下一个元件
 const executeNextElement = async () => {
   if (!props.workflow.elements || props.workflow.elements.length === 0) {
     addLog('info', '工作流为空，无法执行')
@@ -527,7 +525,7 @@ const executeNextElement = async () => {
   }
 }
 
-// 切换播放/暂停
+// 用户交互函数
 const togglePlayPause = async () => {
   if (playState.value === 'stopped') {
     // 开始播放
@@ -556,7 +554,6 @@ const togglePlayPause = async () => {
   }
 }
 
-// 停止播放
 const stopPlayback = () => {
   playState.value = 'stopped'
   stopTimer()
@@ -565,7 +562,6 @@ const stopPlayback = () => {
   addLog('info', '工作流已停止')
 }
 
-// 单步执行
 const stepForward = async () => {
   if (playState.value === 'playing') {
     return
@@ -598,12 +594,11 @@ const stepForward = async () => {
   }
 }
 
-// 关闭浏览器预览
 const closeBrowserPreview = () => {
   showBrowserPreview.value = false
 }
 
-// 监听工作流变化
+// 监听器
 watch(
   () => props.workflow,
   () => {
@@ -624,7 +619,7 @@ onMounted(() => {
   
   addLog('info', '播放器已初始化')
 })
-// 生命周期钩子
+
 onUnmounted(() => {
   // 取消日志订阅
   if (typeof logUnsubscribe === 'function') {
@@ -651,6 +646,7 @@ onUnmounted(() => {
   background-color: var(--color-background);
 }
 
+/* 控制面板样式 */
 .player-controls {
   display: flex;
   align-items: center;
@@ -667,6 +663,7 @@ onUnmounted(() => {
   align-items: center;
 }
 
+/* 状态显示样式 */
 .player-status {
   display: flex;
   align-items: center;
@@ -704,6 +701,7 @@ onUnmounted(() => {
   color: #e6a23c;
 }
 
+/* 执行日志样式 */
 .execution-log {
   flex: 1;
   display: flex;
@@ -793,6 +791,7 @@ onUnmounted(() => {
   overflow-x: auto;
 }
 
+/* 浏览器预览样式 */
 .browser-preview {
   height: 300px;
   display: flex;

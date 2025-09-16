@@ -128,12 +128,6 @@
         <h4>{{ selectedNode.data.name }}</h4>
         <el-divider />
 
-        <!-- 基础属性 -->
-        <div class="property-group">
-          <h5>基础属性</h5>
-          <el-input v-model="selectedNode.data.name" placeholder="节点名称" />
-        </div>
-
         <!-- 位置属性 -->
         <div class="property-group">
           <h5>位置</h5>
