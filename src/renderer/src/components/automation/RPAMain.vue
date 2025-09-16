@@ -105,9 +105,6 @@ import ElementPanel from './elements/ElementPanel.vue'
 import VueFlowEditor from './editor/VueFlowEditor.vue'
 import WorkflowPlayer from './player/WorkflowPlayer.vue'
 
-// 导入元件类型定义
-import ElementTypes from './elements/ElementTypes.js'
-
 // 导入日志工具
 import logger from '@renderer/utils/logger.js'
 
@@ -117,103 +114,10 @@ import { saveAndApplyTheme, setupSystemThemeListener } from '@renderer/utils/the
 // 导入Element Plus图标
 import { ArrowDown, Monitor, Moon, Sunny } from '@element-plus/icons-vue'
 
-// 创建节点的辅助函数
-const createNode = (id, elementType, x, y) => {
-  // 处理类型名称映射（ElementTypes和ElementPanel中的名称不匹配）
-  const typeMapping = {
-    WAIT_TIME: 'WAIT',
-    CONDITION_IF: 'IF_CONDITION',
-    WRITE_FILE: 'SAVE_FILE'
-  }
-
-  // 获取实际的类型定义
-  const mappedType = typeMapping[elementType] || elementType
-  const typeDef = ElementTypes[mappedType]
-
-  // 如果在ElementTypes中找到了定义，则使用它
-  if (typeDef) {
-    // 构建默认参数值
-    const paramValues = {}
-    typeDef.params.forEach((param) => {
-      paramValues[param.key] = param.defaultValue
-    })
-
-    return {
-      id,
-      type: 'custom-node',
-      data: {
-        id,
-        type: typeDef.type,
-        name: typeDef.name,
-        icon: typeDef.icon,
-        params: typeDef.params,
-        paramValues,
-        selected: false
-      },
-      position: { x, y },
-      selected: false
-    }
-  } else {
-    // 为ElementPanel中额外的元件类型创建默认节点配置
-    // 这些类型在ElementTypes中没有定义，但在ElementPanel中有
-    const defaultIcons = {
-      BROWSER_REFRESH: 'Refresh',
-      BROWSER_NAVIGATE: 'ArrowRight',
-      SELECT_OPTION: 'Select',
-      SCROLL_PAGE: 'RefreshRight',
-      HOVER_ELEMENT: 'Mouse',
-      SAVE_DATA: 'Document',
-      PROCESS_DATA: 'Operation',
-      COMPARE_DATA: 'Operation',
-      LOOP_FOR: 'RefreshLeft',
-      TRY_CATCH: 'Warning',
-      READ_FILE: 'Document',
-      UPLOAD_FILE: 'Upload',
-      DOWNLOAD_FILE: 'Download'
-    }
-
-    const defaultNames = {
-      BROWSER_REFRESH: '刷新页面',
-      BROWSER_NAVIGATE: '导航到URL',
-      SELECT_OPTION: '选择选项',
-      SCROLL_PAGE: '滚动页面',
-      HOVER_ELEMENT: '悬停元素',
-      SAVE_DATA: '保存数据',
-      PROCESS_DATA: '处理数据',
-      COMPARE_DATA: '比较数据',
-      LOOP_FOR: '循环',
-      TRY_CATCH: '异常处理',
-      READ_FILE: '读取文件',
-      UPLOAD_FILE: '上传文件',
-      DOWNLOAD_FILE: '下载文件'
-    }
-
-    // 简单的默认参数（实际在ElementPanel中会被覆盖）
-    const defaultParams = []
-    const paramValues = {}
-
-    return {
-      id,
-      type: 'custom-node',
-      data: {
-        id,
-        type: elementType,
-        name: defaultNames[elementType] || elementType,
-        icon: defaultIcons[elementType] || 'Menu',
-        params: defaultParams,
-        paramValues,
-        selected: false
-      },
-      position: { x, y },
-      selected: false
-    }
-  }
-}
-
 // 工作流数据
 const workflow = reactive({
-  name: '未命名流程',
-  description: '',
+  name: '百度搜索国庆流程',
+  description: '打开浏览器、访问百度、搜索国庆、提取数据并保存',
   elements: [
     {
       id: '1',
@@ -291,7 +195,7 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        url: 'https://www.example.com',
+        url: 'https://www.baidu.com',
         openMode: 'useExisting',
         browserType: 'chrome',
         incognito: false,
@@ -304,51 +208,10 @@ const workflow = reactive({
     },
     {
       id: '2',
-      type: 'BROWSER_CLOSE',
-      name: '关闭浏览器',
-      icon: 'Close',
-      position: { x: 1850, y: 104.5 },
-      params: [],
-      paramValues: {}
-    },
-    {
-      id: '3',
-      type: 'CLICK_ELEMENT',
-      name: '点击元素',
-      icon: 'Pointer',
-      position: { x: 350, y: 50 },
-      params: [
-        {
-          key: 'selector',
-          label: '选择器',
-          type: 'string',
-          required: true,
-          defaultValue: '',
-          description: 'CSS或XPath选择器'
-        },
-        {
-          key: 'waitForNavigation',
-          label: '等待页面加载',
-          type: 'boolean',
-          defaultValue: true,
-          description: '点击后是否等待页面导航完成'
-        },
-        {
-          key: 'clickCount',
-          label: '点击次数',
-          type: 'number',
-          defaultValue: 1,
-          description: '单击或双击'
-        }
-      ],
-      paramValues: { selector: '', waitForNavigation: true, clickCount: 1 }
-    },
-    {
-      id: '4',
       type: 'INPUT_TEXT',
-      name: '输入文本',
+      name: '输入搜索内容',
       icon: 'Edit',
-      position: { x: 650, y: 50 },
+      position: { x: 350, y: 50 },
       params: [
         {
           key: 'selector',
@@ -374,14 +237,101 @@ const workflow = reactive({
           description: '输入前是否清空已有内容'
         }
       ],
-      paramValues: { selector: '', text: '', clearBefore: true }
+      paramValues: {
+        selector: '#kw',
+        text: '国庆',
+        clearBefore: true
+      }
+    },
+    {
+      id: '3',
+      type: 'CLICK_ELEMENT',
+      name: '点击搜索按钮',
+      icon: 'Pointer',
+      position: { x: 650, y: 50 },
+      params: [
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: '',
+          description: 'CSS或XPath选择器'
+        },
+        {
+          key: 'waitForNavigation',
+          label: '等待页面加载',
+          type: 'boolean',
+          defaultValue: true,
+          description: '点击后是否等待页面导航完成'
+        },
+        {
+          key: 'clickCount',
+          label: '点击次数',
+          type: 'number',
+          defaultValue: 1,
+          description: '单击或双击'
+        }
+      ],
+      paramValues: {
+        selector: '#su',
+        waitForNavigation: true,
+        clickCount: 1
+      }
+    },
+    {
+      id: '4',
+      type: 'WAIT',
+      name: '等待搜索结果',
+      icon: 'Clock',
+      position: { x: 950, y: 50 },
+      params: [
+        { key: 'seconds', label: '等待秒数', type: 'number', required: true, defaultValue: 2 }
+      ],
+      paramValues: { seconds: 2 }
     },
     {
       id: '5',
+      type: 'CLICK_ELEMENT',
+      name: '点击第一条结果',
+      icon: 'Pointer',
+      position: { x: 1250, y: 50 },
+      params: [
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: '',
+          description: 'CSS或XPath选择器'
+        },
+        {
+          key: 'waitForNavigation',
+          label: '等待页面加载',
+          type: 'boolean',
+          defaultValue: true,
+          description: '点击后是否等待页面导航完成'
+        },
+        {
+          key: 'clickCount',
+          label: '点击次数',
+          type: 'number',
+          defaultValue: 1,
+          description: '单击或双击'
+        }
+      ],
+      paramValues: {
+        selector: '#content_left > div:nth-child(1) h3 a',
+        waitForNavigation: true,
+        clickCount: 1
+      }
+    },
+    {
+      id: '6',
       type: 'EXTRACT_DATA',
-      name: '提取数据',
+      name: '提取页面数据',
       icon: 'DataAnalysis',
-      position: { x: 950, y: 50 },
+      position: { x: 1550, y: 50 },
       params: [
         {
           key: 'selector',
@@ -416,42 +366,18 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        selector: '',
+        selector: 'body',
         extractType: 'text',
         attributeName: 'href',
-        variableName: 'extractedData'
+        variableName: 'pageData'
       }
     },
     {
-      id: '6',
-      type: 'WAIT',
-      name: '等待',
-      icon: 'Clock',
-      position: { x: 1250, y: 81 },
-      params: [
-        { key: 'seconds', label: '等待秒数', type: 'number', required: true, defaultValue: 2 }
-      ],
-      paramValues: { seconds: 2 }
-    },
-    {
       id: '7',
-      type: 'IF_CONDITION',
-      name: '条件判断',
-      icon: 'Sort',
-      position: { x: 50, y: 351 },
-      params: [
-        { key: 'condition', label: '条件表达式', type: 'string', required: true, defaultValue: '' },
-        { key: 'trueBranchId', label: '条件为真时执行', type: 'string', defaultValue: '' },
-        { key: 'falseBranchId', label: '条件为假时执行', type: 'string', defaultValue: '' }
-      ],
-      paramValues: { condition: '', trueBranchId: '', falseBranchId: '' }
-    },
-    {
-      id: '8',
       type: 'SAVE_FILE',
-      name: '保存文件',
+      name: '保存数据到文件',
       icon: 'Download',
-      position: { x: 1550, y: 50 },
+      position: { x: 1850, y: 50 },
       params: [
         { key: 'data', label: '数据', type: 'string', required: true, defaultValue: '' },
         { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
@@ -463,15 +389,36 @@ const workflow = reactive({
           defaultValue: 'txt'
         }
       ],
-      paramValues: { data: '', filePath: '', format: 'txt' }
+      paramValues: {
+        data: '${pageData}',
+        filePath: '~/Desktop/code/multimedia-browser/国庆搜索结果.txt',
+        format: 'txt'
+      }
+    },
+    {
+      id: '8',
+      type: 'BROWSER_CLOSE',
+      name: '关闭浏览器',
+      icon: 'Close',
+      position: { x: 2150, y: 50 },
+      params: [],
+      paramValues: {}
     }
   ],
   edges: [
     {
-      id: 'edge-1-3',
+      id: 'edge-1-2',
       source: '1',
-      target: '3',
+      target: '2',
       sourceHandle: '1-right',
+      targetHandle: '2-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-2-3',
+      source: '2',
+      target: '3',
+      sourceHandle: '2-right',
       targetHandle: '3-left',
       type: 'default'
     },
@@ -500,19 +447,19 @@ const workflow = reactive({
       type: 'default'
     },
     {
-      id: 'edge-6-8',
+      id: 'edge-6-7',
       source: '6',
-      target: '8',
+      target: '7',
       sourceHandle: '6-right',
-      targetHandle: '8-left',
+      targetHandle: '7-left',
       type: 'default'
     },
     {
-      id: 'edge-8-2',
-      source: '8',
-      target: '2',
-      sourceHandle: '8-right',
-      targetHandle: '2-left',
+      id: 'edge-7-8',
+      source: '7',
+      target: '8',
+      sourceHandle: '7-right',
+      targetHandle: '8-left',
       type: 'default'
     }
   ]
