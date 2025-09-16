@@ -116,15 +116,15 @@ import { ArrowDown, Monitor, Moon, Sunny } from '@element-plus/icons-vue'
 
 // 工作流数据
 const workflow = reactive({
-  name: '百度搜索国庆流程',
-  description: '打开浏览器、访问百度、搜索国庆、提取数据并保存',
+  name: 'RPA初始化演示工作流',
+  description: '包含所有支持的RPA元件类型的演示工作流',
   elements: [
     {
-      id: '1',
+      id: 'element_browser_open',
       type: 'BROWSER_OPEN',
       name: '打开浏览器',
       icon: 'Browser',
-      position: { x: 50, y: 50 },
+      position: { x: 100, y: 50 },
       params: [
         {
           key: 'url',
@@ -138,7 +138,7 @@ const workflow = reactive({
           label: '打开方式',
           type: 'select',
           options: ['useExisting', 'newBrowser'],
-          defaultValue: 'useExisting',
+          defaultValue: 'newBrowser',
           description: '在已打开的浏览器中打开，若没有则打开一个；或在新的浏览器中打开'
         },
         {
@@ -161,22 +161,8 @@ const workflow = reactive({
           label: '窗口大小',
           type: 'select',
           options: ['default', 'maximized', 'fullscreen', 'custom'],
-          defaultValue: 'default',
+          defaultValue: 'maximized',
           description: '浏览器窗口的打开方式'
-        },
-        {
-          key: 'customWidth',
-          label: '自定义宽度',
-          type: 'number',
-          defaultValue: 1280,
-          description: '自定义窗口宽度（仅在窗口大小选择"custom"时生效）'
-        },
-        {
-          key: 'customHeight',
-          label: '自定义高度',
-          type: 'number',
-          defaultValue: 800,
-          description: '自定义窗口高度（仅在窗口大小选择"custom"时生效）'
         },
         {
           key: 'waitUntil',
@@ -195,23 +181,48 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        url: 'https://www.baidu.com',
-        openMode: 'useExisting',
+        url: 'https://www.example.com',
+        openMode: 'newBrowser',
         browserType: 'chrome',
         incognito: false,
-        windowSize: 'default',
-        customWidth: 1280,
-        customHeight: 800,
+        windowSize: 'maximized',
         waitUntil: 'networkidle',
         timeout: 30000
       }
     },
     {
-      id: '2',
+      id: 'element_browser_navigate',
+      type: 'BROWSER_NAVIGATE',
+      name: '导航到URL',
+      icon: 'Navigation',
+      position: { x: 300, y: 50 },
+      params: [
+        {
+          key: 'url',
+          label: 'URL地址',
+          type: 'string',
+          required: true,
+          defaultValue: 'https://www.baidu.com'
+        },
+        {
+          key: 'waitForLoad',
+          label: '等待加载完成',
+          type: 'boolean',
+          defaultValue: true,
+          description: '是否等待页面加载完成'
+        }
+      ],
+      paramValues: {
+        url: 'https://www.baidu.com',
+        waitForLoad: true
+      }
+    },
+    {
+      id: 'element_input_text',
       type: 'INPUT_TEXT',
-      name: '输入搜索内容',
+      name: '输入文本',
       icon: 'Edit',
-      position: { x: 350, y: 50 },
+      position: { x: 500, y: 50 },
       params: [
         {
           key: 'selector',
@@ -244,11 +255,11 @@ const workflow = reactive({
       }
     },
     {
-      id: '3',
+      id: 'element_click_search',
       type: 'CLICK_ELEMENT',
-      name: '点击搜索按钮',
+      name: '点击搜索',
       icon: 'Pointer',
-      position: { x: 650, y: 50 },
+      position: { x: 700, y: 50 },
       params: [
         {
           key: 'selector',
@@ -280,22 +291,22 @@ const workflow = reactive({
       }
     },
     {
-      id: '4',
+      id: 'element_wait_search',
       type: 'WAIT',
       name: '等待搜索结果',
       icon: 'Clock',
-      position: { x: 950, y: 50 },
+      position: { x: 100, y: 150 },
       params: [
         { key: 'seconds', label: '等待秒数', type: 'number', required: true, defaultValue: 2 }
       ],
       paramValues: { seconds: 2 }
     },
     {
-      id: '5',
+      id: 'element_click_tab',
       type: 'CLICK_ELEMENT',
-      name: '点击第一条结果',
+      name: '点击标签',
       icon: 'Pointer',
-      position: { x: 1250, y: 50 },
+      position: { x: 300, y: 150 },
       params: [
         {
           key: 'selector',
@@ -327,11 +338,59 @@ const workflow = reactive({
       }
     },
     {
-      id: '6',
+      id: 'element_hover_element',
+      type: 'HOVER_ELEMENT',
+      name: '悬停元素',
+      icon: 'MousePointer',
+      position: { x: 500, y: 150 },
+      params: [
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: '',
+          description: 'CSS或XPath选择器'
+        }
+      ],
+      paramValues: {
+        selector: '#content_left .result:first-child'
+      }
+    },
+    {
+      id: 'element_scroll_page',
+      type: 'SCROLL_PAGE',
+      name: '滚动页面',
+      icon: 'ScrollText',
+      position: { x: 700, y: 150 },
+      params: [
+        {
+          key: 'scrollType',
+          label: '滚动类型',
+          type: 'select',
+          options: ['up', 'down', 'top', 'bottom'],
+          defaultValue: 'down',
+          description: '向上、向下、滚动到顶部或底部'
+        },
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          defaultValue: '',
+          description: '可选的CSS或XPath选择器'
+        }
+      ],
+      paramValues: {
+        scrollType: 'down',
+        selector: ''
+      }
+    },
+    {
+      id: 'element_extract_data',
       type: 'EXTRACT_DATA',
-      name: '提取页面数据',
+      name: '提取数据',
       icon: 'DataAnalysis',
-      position: { x: 1550, y: 50 },
+      position: { x: 100, y: 250 },
       params: [
         {
           key: 'selector',
@@ -350,37 +409,325 @@ const workflow = reactive({
           description: '提取元素的文本、属性、HTML或值'
         },
         {
-          key: 'attributeName',
-          label: '属性名',
+          key: 'variableName',
+          label: '变量名',
           type: 'string',
-          defaultValue: 'href',
-          description: '当提取类型为属性时，指定要提取的属性名'
+          required: true,
+          defaultValue: 'pageData',
+          description: '存储提取数据的变量名称'
+        }
+      ],
+      paramValues: {
+        selector: '#content_left',
+        extractType: 'text',
+        variableName: 'pageData'
+      }
+    },
+    {
+      id: 'element_get_page_elements',
+      type: 'GET_PAGE_ELEMENTS',
+      name: '获取页面元素',
+      icon: 'ElementPlus',
+      position: { x: 300, y: 250 },
+      params: [
+        {
+          key: 'browserId',
+          label: '浏览器ID',
+          type: 'string',
+          defaultValue: '',
+          description: '可选的浏览器实例ID'
+        },
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: '.result',
+          description: 'CSS或XPath选择器'
+        },
+        {
+          key: 'extractDetails',
+          label: '提取详情',
+          type: 'boolean',
+          defaultValue: true,
+          description: '是否提取元素的详细信息'
         },
         {
           key: 'variableName',
           label: '变量名',
           type: 'string',
           required: true,
-          defaultValue: 'extractedData',
-          description: '存储提取数据的变量名称'
+          defaultValue: 'searchResults',
+          description: '存储结果的变量名称'
         }
       ],
       paramValues: {
-        selector: 'body',
-        extractType: 'text',
-        attributeName: 'href',
-        variableName: 'pageData'
+        browserId: '',
+        selector: '.result',
+        extractDetails: true,
+        variableName: 'searchResults'
       }
     },
     {
-      id: '7',
-      type: 'SAVE_FILE',
-      name: '保存数据到文件',
-      icon: 'Download',
-      position: { x: 1850, y: 50 },
+      id: 'element_process_data',
+      type: 'PROCESS_DATA',
+      name: '处理数据',
+      icon: 'RefreshCw',
+      position: { x: 500, y: 250 },
       params: [
-        { key: 'data', label: '数据', type: 'string', required: true, defaultValue: '' },
-        { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
+        {
+          key: 'inputVariable',
+          label: '输入变量',
+          type: 'string',
+          required: true,
+          defaultValue: 'pageData',
+          description: '要处理的输入变量'
+        },
+        {
+          key: 'operationType',
+          label: '操作类型',
+          type: 'select',
+          options: ['trim', 'toLowerCase', 'toUpperCase', 'split'],
+          defaultValue: 'trim',
+          description: '数据处理操作类型'
+        },
+        {
+          key: 'outputVariable',
+          label: '输出变量',
+          type: 'string',
+          required: true,
+          defaultValue: 'processedData',
+          description: '存储处理结果的变量名称'
+        }
+      ],
+      paramValues: {
+        inputVariable: 'pageData',
+        operationType: 'trim',
+        outputVariable: 'processedData'
+      }
+    },
+    {
+      id: 'element_compare_data',
+      type: 'COMPARE_DATA',
+      name: '比较数据',
+      icon: 'Diff',
+      position: { x: 700, y: 250 },
+      params: [
+        {
+          key: 'value1',
+          label: '值1',
+          type: 'string',
+          required: true,
+          defaultValue: 'pageData',
+          description: '要比较的第一个值'
+        },
+        {
+          key: 'value2',
+          label: '值2',
+          type: 'string',
+          defaultValue: '',
+          description: '要比较的第二个值'
+        },
+        {
+          key: 'operator',
+          label: '运算符',
+          type: 'select',
+          options: ['equal', 'notEqual', 'greaterThan', 'lessThan'],
+          defaultValue: 'notEqual',
+          description: '比较运算符'
+        },
+        {
+          key: 'resultVariable',
+          label: '结果变量',
+          type: 'string',
+          required: true,
+          defaultValue: 'hasData',
+          description: '存储比较结果的变量名称'
+        }
+      ],
+      paramValues: {
+        value1: 'pageData',
+        value2: '',
+        operator: 'notEqual',
+        resultVariable: 'hasData'
+      }
+    },
+    {
+      id: 'element_if_condition',
+      type: 'IF_CONDITION',
+      name: '条件判断',
+      icon: 'Filter',
+      position: { x: 100, y: 350 },
+      params: [
+        {
+          key: 'condition',
+          label: '条件表达式',
+          type: 'string',
+          required: true,
+          defaultValue: 'hasData === true',
+          description: 'JavaScript条件表达式'
+        },
+        {
+          key: 'trueBranchId',
+          label: '真分支ID',
+          type: 'string',
+          defaultValue: '',
+          description: '条件为真时执行的分支元素ID'
+        },
+        {
+          key: 'falseBranchId',
+          label: '假分支ID',
+          type: 'string',
+          defaultValue: '',
+          description: '条件为假时执行的分支元素ID'
+        }
+      ],
+      paramValues: {
+        condition: 'hasData === true',
+        trueBranchId: '',
+        falseBranchId: ''
+      }
+    },
+    {
+      id: 'element_loop_for',
+      type: 'LOOP_FOR',
+      name: '循环',
+      icon: 'Repeat',
+      position: { x: 300, y: 350 },
+      params: [
+        {
+          key: 'loopCount',
+          label: '循环次数',
+          type: 'number',
+          required: true,
+          defaultValue: 2,
+          description: '循环执行的次数'
+        },
+        {
+          key: 'loopVariable',
+          label: '循环变量',
+          type: 'string',
+          defaultValue: 'i',
+          description: '循环计数器变量名'
+        }
+      ],
+      paramValues: {
+        loopCount: 2,
+        loopVariable: 'i'
+      }
+    },
+    {
+      id: 'element_try_catch',
+      type: 'TRY_CATCH',
+      name: '异常处理',
+      icon: 'AlertTriangle',
+      position: { x: 500, y: 350 },
+      params: [
+        {
+          key: 'errorVariable',
+          label: '错误变量',
+          type: 'string',
+          defaultValue: 'error',
+          description: '存储错误信息的变量名称'
+        }
+      ],
+      paramValues: {
+        errorVariable: 'error'
+      }
+    },
+    {
+      id: 'element_read_file',
+      type: 'READ_FILE',
+      name: '读取文件',
+      icon: 'FileOpen',
+      position: { x: 700, y: 350 },
+      params: [
+        {
+          key: 'filePath',
+          label: '文件路径',
+          type: 'string',
+          required: true,
+          defaultValue: '~/Desktop/sample.txt',
+          description: '要读取的文件路径'
+        },
+        {
+          key: 'encoding',
+          label: '编码',
+          type: 'select',
+          options: ['utf8', 'ascii', 'base64'],
+          defaultValue: 'utf8',
+          description: '文件编码格式'
+        },
+        {
+          key: 'outputVariable',
+          label: '输出变量',
+          type: 'string',
+          required: true,
+          defaultValue: 'fileContent',
+          description: '存储文件内容的变量名称'
+        }
+      ],
+      paramValues: {
+        filePath: '~/Desktop/sample.txt',
+        encoding: 'utf8',
+        outputVariable: 'fileContent'
+      }
+    },
+    {
+      id: 'element_write_file',
+      type: 'WRITE_FILE',
+      name: '写入文件',
+      icon: 'FileEdit',
+      position: { x: 100, y: 450 },
+      params: [
+        {
+          key: 'filePath',
+          label: '文件路径',
+          type: 'string',
+          required: true,
+          defaultValue: '~/Desktop/output.txt',
+          description: '要写入的文件路径'
+        },
+        {
+          key: 'content',
+          label: '内容',
+          type: 'string',
+          required: true,
+          defaultValue: '${processedData}',
+          description: '要写入的内容，可以使用变量'
+        },
+        {
+          key: 'encoding',
+          label: '编码',
+          type: 'select',
+          options: ['utf8', 'ascii', 'base64'],
+          defaultValue: 'utf8',
+          description: '文件编码格式'
+        },
+        {
+          key: 'append',
+          label: '追加模式',
+          type: 'boolean',
+          defaultValue: false,
+          description: '是否以追加模式写入'
+        }
+      ],
+      paramValues: {
+        filePath: '~/Desktop/output.txt',
+        content: '${processedData}',
+        encoding: 'utf8',
+        append: false
+      }
+    },
+    {
+      id: 'element_save_file',
+      type: 'SAVE_FILE',
+      name: '保存文件',
+      icon: 'Download',
+      position: { x: 300, y: 450 },
+      params: [
+        { key: 'data', label: '数据', type: 'string', required: true, defaultValue: '${pageData}' },
+        { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '~/Desktop/国庆搜索结果.txt' },
         {
           key: 'format',
           label: '文件格式',
@@ -391,75 +738,308 @@ const workflow = reactive({
       ],
       paramValues: {
         data: '${pageData}',
-        filePath: '~/Desktop/code/multimedia-browser/国庆搜索结果.txt',
+        filePath: '~/Desktop/国庆搜索结果.txt',
         format: 'txt'
       }
     },
     {
-      id: '8',
+      id: 'element_download_file',
+      type: 'DOWNLOAD_FILE',
+      name: '下载文件',
+      icon: 'DownloadCloud',
+      position: { x: 500, y: 450 },
+      params: [
+        {
+          key: 'url',
+          label: '文件URL',
+          type: 'string',
+          required: true,
+          defaultValue: 'https://example.com/sample.pdf',
+          description: '要下载的文件URL'
+        },
+        {
+          key: 'savePath',
+          label: '保存路径',
+          type: 'string',
+          required: true,
+          defaultValue: '~/Downloads/sample.pdf',
+          description: '文件保存的本地路径'
+        }
+      ],
+      paramValues: {
+        url: 'https://example.com/sample.pdf',
+        savePath: '~/Downloads/sample.pdf'
+      }
+    },
+    {
+      id: 'element_upload_file',
+      type: 'UPLOAD_FILE',
+      name: '上传文件',
+      icon: 'UploadCloud',
+      position: { x: 700, y: 450 },
+      params: [
+        {
+          key: 'selector',
+          label: '文件输入选择器',
+          type: 'string',
+          required: true,
+          defaultValue: 'input[type=file]',
+          description: '文件输入框的CSS或XPath选择器'
+        },
+        {
+          key: 'filePath',
+          label: '本地文件路径',
+          type: 'string',
+          required: true,
+          defaultValue: '~/Desktop/upload.txt',
+          description: '要上传的本地文件路径'
+        }
+      ],
+      paramValues: {
+        selector: 'input[type=file]',
+        filePath: '~/Desktop/upload.txt'
+      }
+    },
+    {
+      id: 'element_browser_refresh',
+      type: 'BROWSER_REFRESH',
+      name: '刷新页面',
+      icon: 'RefreshLeft',
+      position: { x: 300, y: 550 },
+      params: [
+        {
+          key: 'waitForLoad',
+          label: '等待加载完成',
+          type: 'boolean',
+          defaultValue: true,
+          description: '是否等待页面加载完成'
+        }
+      ],
+      paramValues: {
+        waitForLoad: true
+      }
+    },
+    {
+      id: 'element_browser_close',
       type: 'BROWSER_CLOSE',
       name: '关闭浏览器',
       icon: 'Close',
-      position: { x: 2150, y: 50 },
+      position: { x: 500, y: 550 },
       params: [],
       paramValues: {}
+    },
+    {
+      id: 'element_select_option',
+      type: 'SELECT_OPTION',
+      name: '选择选项',
+      icon: 'Select',
+      position: { x: 100, y: 550 },
+      params: [
+        {
+          key: 'selector',
+          label: '选择器',
+          type: 'string',
+          required: true,
+          defaultValue: 'select',
+          description: '下拉选择框的CSS或XPath选择器'
+        },
+        {
+          key: 'optionText',
+          label: '选项文本',
+          type: 'string',
+          defaultValue: 'Option 1',
+          description: '要选择的选项文本（与value二选一）'
+        },
+        {
+          key: 'optionValue',
+          label: '选项值',
+          type: 'string',
+          defaultValue: 'option1',
+          description: '要选择的选项值（与text二选一）'
+        }
+      ],
+      paramValues: {
+        selector: 'select',
+        optionText: 'Option 1',
+        optionValue: 'option1'
+      }
     }
   ],
   edges: [
     {
-      id: 'edge-1-2',
-      source: '1',
-      target: '2',
-      sourceHandle: '1-right',
-      targetHandle: '2-left',
+      id: 'edge-element_browser_open-element_browser_navigate',
+      source: 'element_browser_open',
+      target: 'element_browser_navigate',
+      sourceHandle: 'element_browser_open-right',
+      targetHandle: 'element_browser_navigate-left',
       type: 'default'
     },
     {
-      id: 'edge-2-3',
-      source: '2',
-      target: '3',
-      sourceHandle: '2-right',
-      targetHandle: '3-left',
+      id: 'edge-element_browser_navigate-element_input_text',
+      source: 'element_browser_navigate',
+      target: 'element_input_text',
+      sourceHandle: 'element_browser_navigate-right',
+      targetHandle: 'element_input_text-left',
       type: 'default'
     },
     {
-      id: 'edge-3-4',
-      source: '3',
-      target: '4',
-      sourceHandle: '3-right',
-      targetHandle: '4-left',
+      id: 'edge-element_input_text-element_click_search',
+      source: 'element_input_text',
+      target: 'element_click_search',
+      sourceHandle: 'element_input_text-right',
+      targetHandle: 'element_click_search-left',
       type: 'default'
     },
     {
-      id: 'edge-4-5',
-      source: '4',
-      target: '5',
-      sourceHandle: '4-right',
-      targetHandle: '5-left',
+      id: 'edge-element_click_search-element_wait_search',
+      source: 'element_click_search',
+      target: 'element_wait_search',
+      sourceHandle: 'element_click_search-right',
+      targetHandle: 'element_wait_search-left',
       type: 'default'
     },
     {
-      id: 'edge-5-6',
-      source: '5',
-      target: '6',
-      sourceHandle: '5-right',
-      targetHandle: '6-left',
+      id: 'edge-element_wait_search-element_click_tab',
+      source: 'element_wait_search',
+      target: 'element_click_tab',
+      sourceHandle: 'element_wait_search-right',
+      targetHandle: 'element_click_tab-left',
       type: 'default'
     },
     {
-      id: 'edge-6-7',
-      source: '6',
-      target: '7',
-      sourceHandle: '6-right',
-      targetHandle: '7-left',
+      id: 'edge-element_click_tab-element_hover_element',
+      source: 'element_click_tab',
+      target: 'element_hover_element',
+      sourceHandle: 'element_click_tab-right',
+      targetHandle: 'element_hover_element-left',
       type: 'default'
     },
     {
-      id: 'edge-7-8',
-      source: '7',
-      target: '8',
-      sourceHandle: '7-right',
-      targetHandle: '8-left',
+      id: 'edge-element_hover_element-element_scroll_page',
+      source: 'element_hover_element',
+      target: 'element_scroll_page',
+      sourceHandle: 'element_hover_element-right',
+      targetHandle: 'element_scroll_page-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_scroll_page-element_extract_data',
+      source: 'element_scroll_page',
+      target: 'element_extract_data',
+      sourceHandle: 'element_scroll_page-right',
+      targetHandle: 'element_extract_data-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_extract_data-element_get_page_elements',
+      source: 'element_extract_data',
+      target: 'element_get_page_elements',
+      sourceHandle: 'element_extract_data-right',
+      targetHandle: 'element_get_page_elements-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_get_page_elements-element_process_data',
+      source: 'element_get_page_elements',
+      target: 'element_process_data',
+      sourceHandle: 'element_get_page_elements-right',
+      targetHandle: 'element_process_data-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_process_data-element_compare_data',
+      source: 'element_process_data',
+      target: 'element_compare_data',
+      sourceHandle: 'element_process_data-right',
+      targetHandle: 'element_compare_data-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_compare_data-element_if_condition',
+      source: 'element_compare_data',
+      target: 'element_if_condition',
+      sourceHandle: 'element_compare_data-right',
+      targetHandle: 'element_if_condition-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_if_condition-element_loop_for',
+      source: 'element_if_condition',
+      target: 'element_loop_for',
+      sourceHandle: 'element_if_condition-right',
+      targetHandle: 'element_loop_for-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_loop_for-element_try_catch',
+      source: 'element_loop_for',
+      target: 'element_try_catch',
+      sourceHandle: 'element_loop_for-right',
+      targetHandle: 'element_try_catch-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_try_catch-element_read_file',
+      source: 'element_try_catch',
+      target: 'element_read_file',
+      sourceHandle: 'element_try_catch-right',
+      targetHandle: 'element_read_file-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_read_file-element_write_file',
+      source: 'element_read_file',
+      target: 'element_write_file',
+      sourceHandle: 'element_read_file-right',
+      targetHandle: 'element_write_file-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_write_file-element_save_file',
+      source: 'element_write_file',
+      target: 'element_save_file',
+      sourceHandle: 'element_write_file-right',
+      targetHandle: 'element_save_file-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_save_file-element_download_file',
+      source: 'element_save_file',
+      target: 'element_download_file',
+      sourceHandle: 'element_save_file-right',
+      targetHandle: 'element_download_file-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_download_file-element_upload_file',
+      source: 'element_download_file',
+      target: 'element_upload_file',
+      sourceHandle: 'element_download_file-right',
+      targetHandle: 'element_upload_file-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_upload_file-element_select_option',
+      source: 'element_upload_file',
+      target: 'element_select_option',
+      sourceHandle: 'element_upload_file-right',
+      targetHandle: 'element_select_option-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_select_option-element_browser_refresh',
+      source: 'element_select_option',
+      target: 'element_browser_refresh',
+      sourceHandle: 'element_select_option-right',
+      targetHandle: 'element_browser_refresh-left',
+      type: 'default'
+    },
+    {
+      id: 'edge-element_browser_refresh-element_browser_close',
+      source: 'element_browser_refresh',
+      target: 'element_browser_close',
+      sourceHandle: 'element_browser_refresh-right',
+      targetHandle: 'element_browser_close-left',
       type: 'default'
     }
   ]
