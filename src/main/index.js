@@ -90,7 +90,7 @@ app.whenReady().then(() => {
     async runBrowserNode(params) {
       // 确保params对象存在
       params = params || {}
-      
+
       const {
         url = 'https://www.example.com', // 确保URL永远不会是undefined
         openMode = 'useExisting',
@@ -436,7 +436,13 @@ app.whenReady().then(() => {
 
     // 点击元素
     async clickElement(params) {
-      const { browserId, selector, timeout = 30000, dryRun = false, waitForNavigation = false } = params
+      const {
+        browserId,
+        selector,
+        timeout = 30000,
+        dryRun = false,
+        waitForNavigation = false
+      } = params
 
       try {
         if (activeBrowsers.has(browserId)) {
@@ -453,7 +459,7 @@ app.whenReady().then(() => {
 
           // 等待元素出现
           await page.waitForSelector(selector, { timeout })
-          
+
           // 如果不是dryRun模式，则执行点击操作
           if (!dryRun) {
             // 如果需要等待导航完成
@@ -468,7 +474,7 @@ app.whenReady().then(() => {
           } else {
             console.log(`dryRun模式，已确认元素存在: ${selector}`)
           }
-          
+
           return { success: true }
         } else {
           console.warn(`未找到浏览器实例: ${browserId}`)
@@ -515,7 +521,14 @@ app.whenReady().then(() => {
 
     // 提取数据
     async extractData(params) {
-      const { browserId, selector, extractType = 'text', timeout = 30000, attribute, attributeName } = params
+      const {
+        browserId,
+        selector,
+        extractType = 'text',
+        timeout = 30000,
+        attribute,
+        attributeName
+      } = params
 
       try {
         if (activeBrowsers.has(browserId)) {

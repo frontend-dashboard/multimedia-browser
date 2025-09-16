@@ -45,12 +45,10 @@ export function useLayout() {
       try {
         // 尝试获取节点的实际尺寸
         const graphNode = findNode ? findNode(node.id) : null
-        const width = graphNode && graphNode.dimensions ? 
-          (graphNode.dimensions.width || nodeWidth) : 
-          nodeWidth
-        const height = graphNode && graphNode.dimensions ? 
-          (graphNode.dimensions.height || nodeHeight) : 
-          nodeHeight
+        const width =
+          graphNode && graphNode.dimensions ? graphNode.dimensions.width || nodeWidth : nodeWidth
+        const height =
+          graphNode && graphNode.dimensions ? graphNode.dimensions.height || nodeHeight : nodeHeight
 
         dagreGraph.setNode(node.id, {
           width,
@@ -88,8 +86,8 @@ export function useLayout() {
         if (!nodeWithPosition) return node
 
         // 计算最终位置（dagre返回的是中心点位置，我们需要调整为左上角位置）
-        const finalX = nodeWithPosition.x - (nodeWithPosition.width / 2)
-        const finalY = nodeWithPosition.y - (nodeWithPosition.height / 2)
+        const finalX = nodeWithPosition.x - nodeWithPosition.width / 2
+        const finalY = nodeWithPosition.y - nodeWithPosition.height / 2
 
         // 根据布局方向设置连接点位置和边方向
         const targetPosition = isHorizontal ? Position.Left : Position.Top
@@ -133,11 +131,11 @@ export function useLayout() {
     return layout(nodes, edges, 'TB')
   }
 
-  return { 
-    graph, 
-    layout, 
+  return {
+    graph,
+    layout,
     previousDirection,
     optimizeHorizontalLayout,
-    optimizeVerticalLayout 
+    optimizeVerticalLayout
   }
 }

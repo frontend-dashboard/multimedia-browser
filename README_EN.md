@@ -111,6 +111,7 @@ $ npm run fix
 ### 2. Theme System
 
 The application supports three theme modes:
+
 - **Light Theme**: Bright, clean interface style
 - **Dark Theme**: Suitable for night use, reducing eye strain
 - **System Theme**: Automatically follows the operating system's theme settings
@@ -120,6 +121,7 @@ Theme settings are saved in local storage and will be automatically applied when
 ### 3. Internationalization Support
 
 The application supports multi-language switching, including:
+
 - Simplified Chinese (zh-CN)
 - Traditional Chinese (zh-TW)
 - English (en-US)
@@ -129,6 +131,7 @@ Language settings are also saved in local storage.
 ### 4. Settings Functionality
 
 In the settings page, users can configure:
+
 - Theme preferences
 - Language selection
 - Display options (such as showing file extensions, hidden files, etc.)
@@ -168,6 +171,7 @@ After the application starts, you can view and manage local media files on the m
 ### Change Theme
 
 On the settings page, select your preferred theme mode through the dropdown menu:
+
 1. Click the "Settings" button in the navigation bar to enter the settings page
 2. Find the "Theme" option in the "Interface Settings" section
 3. Select "Light Theme", "Dark Theme", or "System Theme" from the dropdown menu
@@ -176,6 +180,7 @@ On the settings page, select your preferred theme mode through the dropdown menu
 ### Switch Language
 
 On the settings page, switch the application language through the dropdown menu:
+
 1. Find the "Language" option in the "Interface Settings" section
 2. Select the preferred language from the dropdown menu
 3. The language will be switched immediately
@@ -287,6 +292,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 Thank you to all developers and users who have contributed to this project!
 
 Thanks for the support of the following open-source projects:
+
 - Electron
 - Vue.js
 - Element Plus

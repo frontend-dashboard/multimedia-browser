@@ -6,7 +6,7 @@ class BrowserAutomation {
     this.events = new Map()
     this.browserInstances = new Map()
     this.playwright = null
-    
+
     // 注意：在纯浏览器环境中，无法导入和使用Node.js的Playwright库
     // 这里只在Electron的渲染进程中尝试使用Playwright
     // 在开发环境的浏览器中，我们将使用模拟模式
@@ -21,23 +21,28 @@ class BrowserAutomation {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
         // 尝试使用真实的Playwright浏览器
         if (this.playwright) {
-          const { browserType = 'chrome', headless = false, incognito = false, windowSize = 'default' } = params
+          const {
+            browserType = 'chrome',
+            headless = false,
+            incognito = false,
+            windowSize = 'default'
+          } = params
           const playwrightBrowserType = browserType === 'chrome' ? 'chromium' : browserType
-          
+
           // 检查Playwright是否支持指定的浏览器类型
           if (this.playwright[playwrightBrowserType]) {
             console.log(`在开发环境中使用Playwright打开${playwrightBrowserType}浏览器`)
-            
+
             // 设置浏览器启动选项
             const launchOptions = {
               headless: headless,
               slowMo: 100,
               timeout: 30000
             }
-            
+
             let browser
             let context
-            
+
             // 根据浏览器类型启动
             if (incognito) {
               // 启动普通浏览器然后创建隐身上下文
@@ -48,20 +53,20 @@ class BrowserAutomation {
               browser = await this.playwright[playwrightBrowserType].launch(launchOptions)
               context = await browser.newContext()
             }
-            
+
             // 创建新页面
             const page = await context.newPage()
-            
+
             // 根据windowSize设置窗口状态
             if (windowSize === 'maximized') {
               await page.maximize()
             } else if (windowSize === 'fullscreen') {
               await page.fullscreen()
             }
-            
+
             // 生成浏览器ID
             const browserId = uuidv4()
-            
+
             // 存储浏览器实例信息
             this.browserInstances.set(browserId, {
               browser: browser,
@@ -69,13 +74,13 @@ class BrowserAutomation {
               browserType: playwrightBrowserType,
               incognito: incognito
             })
-            
+
             // 监听浏览器关闭事件，自动从活动浏览器列表中移除
             browser.on('disconnected', () => {
               this.browserInstances.delete(browserId)
               console.log(`浏览器已关闭，从活动列表中移除: ${browserId}`)
             })
-            
+
             return { success: true, browserId: browserId }
           } else {
             console.warn(`Playwright不支持浏览器类型: ${playwrightBrowserType}`)
@@ -109,11 +114,11 @@ class BrowserAutomation {
         if (this.playwright && this.browserInstances.has(browserId)) {
           const browserInstance = this.browserInstances.get(browserId)
           const context = browserInstance.context
-          
+
           console.log(`在开发环境中使用Playwright打开URL: ${url}`)
-          
+
           let page
-          
+
           if (newTab) {
             // 在新标签页中打开
             page = await context.newPage()
@@ -122,13 +127,13 @@ class BrowserAutomation {
             const pages = await context.pages()
             page = pages.length > 0 ? pages[0] : await context.newPage()
           }
-          
+
           // 导航到URL
           await page.goto(url, {
             waitUntil: 'networkidle',
             timeout: 30000
           })
-          
+
           console.log(`URL已成功打开: ${url}`)
           return { success: true }
         } else {
@@ -180,7 +185,13 @@ class BrowserAutomation {
   }
 
   // 点击元素
-  async clickElement({ browserId, selector, waitForNavigation = false, dryRun = false, timeout = 30000 }) {
+  async clickElement({
+    browserId,
+    selector,
+    waitForNavigation = false,
+    dryRun = false,
+    timeout = 30000
+  }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
         // 尝试使用真实的Playwright浏览器执行点击操作
@@ -188,17 +199,17 @@ class BrowserAutomation {
           const browserInstance = this.browserInstances.get(browserId)
           const context = browserInstance.context
           const pages = await context.pages()
-          
+
           if (pages.length === 0) {
             return { success: false, error: '没有找到活动页面' }
           }
-          
+
           const page = pages[0]
           console.log(`在开发环境中使用Playwright${dryRun ? '检查' : '点击'}元素: ${selector}`)
-          
+
           // 等待元素出现
           await page.waitForSelector(selector, { timeout })
-          
+
           // 如果不是dryRun模式，则执行点击操作
           if (!dryRun) {
             // 如果需要等待导航完成
@@ -213,7 +224,7 @@ class BrowserAutomation {
           } else {
             console.log(`dryRun模式，已确认元素存在: ${selector}`)
           }
-          
+
           return { success: true }
         } else {
           // 如果Playwright未加载成功或浏览器实例不存在，使用模拟模式
@@ -248,18 +259,18 @@ class BrowserAutomation {
           const browserInstance = this.browserInstances.get(browserId)
           const context = browserInstance.context
           const pages = await context.pages()
-          
+
           if (pages.length === 0) {
             return { success: false, error: '没有找到活动页面' }
           }
-          
+
           const page = pages[0]
           console.log(`在开发环境中使用Playwright输入文本到元素: ${selector}`)
-          
+
           // 等待元素出现并输入文本
           await page.waitForSelector(selector, { timeout })
           await page.fill(selector, text)
-          
+
           console.log(`文本已成功输入: ${text}`)
           return { success: true }
         } else {
@@ -270,7 +281,12 @@ class BrowserAutomation {
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.inputText({ browserId, selector, text, timeout })
+        return await window.electron.browserAutomation.inputText({
+          browserId,
+          selector,
+          text,
+          timeout
+        })
       }
 
       throw new Error('输入文本失败')
@@ -281,7 +297,13 @@ class BrowserAutomation {
   }
 
   // 提取数据
-  async extractData({ browserId, selector, extractType = 'text', attribute = '', timeout = 30000 }) {
+  async extractData({
+    browserId,
+    selector,
+    extractType = 'text',
+    attribute = '',
+    timeout = 30000
+  }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
         // 尝试使用真实的Playwright浏览器执行数据提取操作
@@ -289,19 +311,21 @@ class BrowserAutomation {
           const browserInstance = this.browserInstances.get(browserId)
           const context = browserInstance.context
           const pages = await context.pages()
-          
+
           if (pages.length === 0) {
             return { success: false, error: '没有找到活动页面' }
           }
-          
+
           const page = pages[0]
-          console.log(`在开发环境中使用Playwright提取数据: 选择器=${selector}, 提取类型=${extractType}`)
-          
+          console.log(
+            `在开发环境中使用Playwright提取数据: 选择器=${selector}, 提取类型=${extractType}`
+          )
+
           // 等待元素出现
           await page.waitForSelector(selector, { timeout })
-          
+
           let extractedData
-          
+
           switch (extractType) {
             case 'text':
               extractedData = await page.textContent(selector)
@@ -318,14 +342,21 @@ class BrowserAutomation {
             default:
               extractedData = await page.textContent(selector)
           }
-          
+
           console.log(`成功提取数据，长度: ${extractedData ? extractedData.length : 0}`)
           return { success: true, data: extractedData }
         } else {
           // 如果Playwright未加载成功或浏览器实例不存在，使用模拟模式
           console.log('模拟提取数据:', selector)
           // 模拟数据返回
-          const mockData = extractType === 'text' ? '模拟提取的文本数据' : extractType === 'attribute' ? '模拟属性值' : extractType === 'html' ? '<div>模拟HTML内容</div>' : '模拟数据'
+          const mockData =
+            extractType === 'text'
+              ? '模拟提取的文本数据'
+              : extractType === 'attribute'
+                ? '模拟属性值'
+                : extractType === 'html'
+                  ? '<div>模拟HTML内容</div>'
+                  : '模拟数据'
           return { success: true, data: mockData }
         }
       }
@@ -500,16 +531,16 @@ class BrowserAutomation {
           const browserInstance = this.browserInstances.get(browserId)
           const context = browserInstance.context
           const pages = await context.pages()
-          
+
           if (pages.length === 0) {
             return { success: false, error: '没有找到活动页面' }
           }
-          
+
           console.log(`在开发环境中使用Playwright等待元素可见: ${selector}`)
-          
+
           // 使用clickElement的dryRun模式来等待元素可见
           await this.clickElement({ browserId, selector, dryRun: true, timeout })
-          
+
           console.log(`元素已可见: ${selector}`)
           return { success: true }
         } else {
@@ -663,68 +694,72 @@ class BrowserAutomation {
           const browserInstance = this.browserInstances.get(browserId)
           const context = browserInstance.context
           const pages = await context.pages()
-          
+
           if (pages.length === 0) {
             return { success: false, error: '没有找到活动页面' }
           }
-          
+
           const page = pages[0]
           console.log(`在开发环境中使用Playwright获取页面元素: ${selector}`)
-          
+
           // 等待元素出现
           await page.waitForSelector(selector, { timeout })
-          
+
           // 获取所有匹配的元素
-          const elements = await page.$$eval(selector, (nodes, extractDetails) => {
-            return nodes.map((node, index) => {
-              const baseElement = {
-                text: node.textContent?.trim() || '',
-                href: node.getAttribute('href') || '',
-                innerHTML: node.innerHTML || '',
-                id: node.id || '',
-                className: node.className || '',
-                tagName: node.tagName.toLowerCase(),
-                textContent: node.textContent || ''
-              }
-              
-              if (extractDetails) {
-                // 提取更多详细信息
-                const attributes = {}
-                for (let i = 0; i < node.attributes.length; i++) {
-                  const attr = node.attributes[i]
-                  attributes[attr.name] = attr.value
+          const elements = await page.$$eval(
+            selector,
+            (nodes, extractDetails) => {
+              return nodes.map((node, index) => {
+                const baseElement = {
+                  text: node.textContent?.trim() || '',
+                  href: node.getAttribute('href') || '',
+                  innerHTML: node.innerHTML || '',
+                  id: node.id || '',
+                  className: node.className || '',
+                  tagName: node.tagName.toLowerCase(),
+                  textContent: node.textContent || ''
                 }
-                
-                // 生成唯一选择器
-                let selector = ''
-                if (node.id) {
-                  selector = `#${node.id}`
-                } else if (node.className) {
-                  selector = `.${node.className.split(' ').join('.')}`
-                } else {
-                  selector = `${node.tagName.toLowerCase()}:nth-child(${index + 1})`
+
+                if (extractDetails) {
+                  // 提取更多详细信息
+                  const attributes = {}
+                  for (let i = 0; i < node.attributes.length; i++) {
+                    const attr = node.attributes[i]
+                    attributes[attr.name] = attr.value
+                  }
+
+                  // 生成唯一选择器
+                  let selector = ''
+                  if (node.id) {
+                    selector = `#${node.id}`
+                  } else if (node.className) {
+                    selector = `.${node.className.split(' ').join('.')}`
+                  } else {
+                    selector = `${node.tagName.toLowerCase()}:nth-child(${index + 1})`
+                  }
+
+                  return {
+                    ...baseElement,
+                    selector,
+                    attributes,
+                    outerHTML: node.outerHTML || '',
+                    position: {
+                      top: node.getBoundingClientRect().top,
+                      left: node.getBoundingClientRect().left,
+                      width: node.getBoundingClientRect().width,
+                      height: node.getBoundingClientRect().height
+                    },
+                    parentTag: node.parentElement?.tagName.toLowerCase() || '',
+                    childCount: node.children.length
+                  }
                 }
-                
-                return {
-                  ...baseElement,
-                  selector,
-                  attributes,
-                  outerHTML: node.outerHTML || '',
-                  position: {
-                    top: node.getBoundingClientRect().top,
-                    left: node.getBoundingClientRect().left,
-                    width: node.getBoundingClientRect().width,
-                    height: node.getBoundingClientRect().height
-                  },
-                  parentTag: node.parentElement?.tagName.toLowerCase() || '',
-                  childCount: node.children.length
-                }
-              }
-              
-              return baseElement
-            })
-          }, extractDetails)
-          
+
+                return baseElement
+              })
+            },
+            extractDetails
+          )
+
           console.log(`成功获取页面元素，数量: ${elements.length}`)
           return { success: true, elements }
         } else {
@@ -783,7 +818,7 @@ class BrowserAutomation {
         // 尝试使用真实的Playwright浏览器执行文件保存操作
         if (this.playwright && this.browserInstances.has(browserId)) {
           console.log(`在开发环境中保存文件: 路径=${filePath}`)
-          
+
           try {
             // 在浏览器环境中，我们不能直接写入文件系统
             // 但可以尝试触发文件下载
@@ -796,31 +831,35 @@ class BrowserAutomation {
             } else if (format === 'txt') {
               mimeType = 'text/plain'
             }
-            
+
             const blob = new Blob([data], { type: mimeType })
             const urlObject = URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = urlObject
-            
+
             // 确保文件有正确的扩展名
             let fileName = filePath.split('/').pop()
             if (format && !fileName.includes('.')) {
               fileName = `${fileName}.${format}`
             }
             a.download = fileName
-            
+
             // 模拟点击下载
             document.body.appendChild(a)
             a.click()
-            
+
             // 清理
             setTimeout(() => {
               document.body.removeChild(a)
               URL.revokeObjectURL(urlObject)
             }, 100)
-            
+
             console.log(`文件下载已触发: ${fileName}`)
-            return { success: true, message: '文件下载已触发，请在浏览器中完成保存', filePath: '/mock/' + filePath }
+            return {
+              success: true,
+              message: '文件下载已触发，请在浏览器中完成保存',
+              filePath: '/mock/' + filePath
+            }
           } catch (error) {
             console.error('文件保存失败:', error)
             throw new Error(`文件保存失败: ${error.message}`)

@@ -138,7 +138,7 @@ const browserAutomation = window.api?.browserAutomation || {
     Promise.resolve({ success: false, error: 'Browser automation API not available' }),
   // 添加事件处理方法以防止错误
   on: () => {}, // 空实现，不执行任何操作
-  off: () => {}  // 空实现，不执行任何操作
+  off: () => {} // 空实现，不执行任何操作
 }
 
 // 已移除元素选择器组件
@@ -301,22 +301,7 @@ const executeElementAction = async (element) => {
   // 优先使用element.data.type，如果不存在则回退到element.type
   const elementType = element.data?.type || element.type
 
-  // 添加事件监听器以获取页面状态更新
-  const handlePageLoaded = (url) => {
-    currentBrowserUrl.value = url
-    addLog('info', `页面已加载：${url}`)
-  }
-
-  const handlePageConsole = (message) => {
-    addLog('info', `页面控制台：${message}`)
-  }
-
-  const handlePageError = (errorMessage) => {
-    addLog('error', `页面错误：${errorMessage}`)
-  }
-
-  // 注意：当前版本的browserAutomation API没有提供on方法来监听页面事件
-  // 这些事件监听器已被移除，因为main进程中没有发送相应的事件
+  // 注意：当前版本的browserAutomation API没有提供事件监听方法
   // 如有需要监听页面事件，请在main进程中添加相关的事件发送代码
 
   try {

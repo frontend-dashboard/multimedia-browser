@@ -92,9 +92,9 @@ const api = {
       })
     },
     // 检查浏览器是否可用
-    isBrowserAvailable: (browserId) => {
-      return new Promise(resolve => {
-        // 简单实现，检查是否存在该浏览器ID
+    isBrowserAvailable: () => {
+      return new Promise((resolve) => {
+        // 简单实现
         // 实际应用中可能需要更复杂的检查逻辑
         resolve(true)
       })

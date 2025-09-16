@@ -220,7 +220,13 @@ const ElementTypes = {
     params: [
       { key: 'data', label: '数据', type: 'string', required: true, defaultValue: '' },
       { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
-      { key: 'format', label: '文件格式', type: 'select', options: ['txt', 'json', 'csv'], defaultValue: 'txt' }
+      {
+        key: 'format',
+        label: '文件格式',
+        type: 'select',
+        options: ['txt', 'json', 'csv'],
+        defaultValue: 'txt'
+      }
     ]
   },
 
