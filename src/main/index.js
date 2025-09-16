@@ -88,8 +88,11 @@ app.whenReady().then(() => {
   const browserAutomation = {
     // 运行浏览器节点
     async runBrowserNode(params) {
+      // 确保params对象存在
+      params = params || {}
+      
       const {
-        url,
+        url = 'https://www.example.com', // 确保URL永远不会是undefined
         openMode = 'useExisting',
         browserType = 'chrome',
         incognito = false,
@@ -141,8 +144,10 @@ app.whenReady().then(() => {
                     await page.setViewportSize({ width: customWidth, height: customHeight })
                   }
 
-                  // 导航到URL
-                  await page.goto(url, {
+                  // 导航到URL，最后确保URL不是undefined
+                  const finalUrl = url || 'https://www.example.com'
+                  console.log('最终使用的URL:', finalUrl)
+                  await page.goto(finalUrl, {
                     waitUntil: waitUntil,
                     timeout: timeout
                   })
@@ -210,8 +215,10 @@ app.whenReady().then(() => {
               viewport: { width: customWidth, height: customHeight }
             })
 
-            // 导航到URL
-            await page.goto(url, {
+            // 导航到URL，确保URL不为undefined
+            const finalUrl = url || 'https://www.example.com'
+            console.log(`导航到URL: ${finalUrl}`)
+            await page.goto(finalUrl, {
               waitUntil: waitUntil,
               timeout: timeout
             })
@@ -244,8 +251,10 @@ app.whenReady().then(() => {
               await page.fullscreen()
             }
 
-            // 导航到URL
-            await page.goto(url, {
+            // 导航到URL，确保URL不为undefined
+            const finalUrl = url || 'https://www.example.com'
+            console.log(`导航到URL: ${finalUrl}`)
+            await page.goto(finalUrl, {
               waitUntil: waitUntil,
               timeout: timeout
             })

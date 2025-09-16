@@ -36,6 +36,12 @@ const api = {
     },
     // 初始化浏览器
     initialize: (params) => {
+      // 确保params对象存在
+      params = params || {}
+      // 确保URL参数存在且是有效的字符串
+      if (!params.url || typeof params.url !== 'string') {
+        params.url = 'https://www.example.com'
+      }
       return ipcRenderer.invoke('browser-automation-run-node', params)
     },
     // 打开URL

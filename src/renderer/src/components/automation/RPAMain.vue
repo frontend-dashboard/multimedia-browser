@@ -238,8 +238,8 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        selector: '#kw',
-        text: '国庆',
+        selector: '#chat-input-main',
+        text: '三字经',
         clearBefore: true
       }
     },

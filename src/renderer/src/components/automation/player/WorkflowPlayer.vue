@@ -120,15 +120,25 @@ import logger from '@renderer/utils/logger.js'
 const browserAutomation = window.api?.browserAutomation || {
   // 提供降级实现，确保在API不可用时也不会崩溃
   isBrowserAvailable: () => Promise.resolve(false),
-  initialize: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  initialize: () =>
+    Promise.resolve({ success: false, error: 'Browser automation API not available' }),
   openUrl: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
-  clickElement: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
-  inputText: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
-  extractData: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
-  waitForElement: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
-  wait: (params) => new Promise(resolve => setTimeout(resolve, params?.milliseconds || 0)),
-  saveFile: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
-  getPageElements: () => Promise.resolve({ success: false, error: 'Browser automation API not available' })
+  clickElement: () =>
+    Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  inputText: () =>
+    Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  extractData: () =>
+    Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  waitForElement: () =>
+    Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  wait: (params) => new Promise((resolve) => setTimeout(resolve, params?.milliseconds || 0)),
+  saveFile: () =>
+    Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  getPageElements: () =>
+    Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  // 添加事件处理方法以防止错误
+  on: () => {}, // 空实现，不执行任何操作
+  off: () => {}  // 空实现，不执行任何操作
 }
 
 // 已移除元素选择器组件
@@ -305,10 +315,9 @@ const executeElementAction = async (element) => {
     addLog('error', `页面错误：${errorMessage}`)
   }
 
-  // 设置事件监听器
-  browserAutomation.on('pageLoaded', handlePageLoaded)
-  browserAutomation.on('pageConsole', handlePageConsole)
-  browserAutomation.on('pageError', handlePageError)
+  // 注意：当前版本的browserAutomation API没有提供on方法来监听页面事件
+  // 这些事件监听器已被移除，因为main进程中没有发送相应的事件
+  // 如有需要监听页面事件，请在main进程中添加相关的事件发送代码
 
   try {
     // 获取参数值，支持两种数据结构
@@ -318,7 +327,11 @@ const executeElementAction = async (element) => {
 
     switch (elementType) {
       case 'BROWSER_OPEN': {
-        const url = getParamValue('url', 'https://www.example.com')
+        // 获取URL参数，确保它是一个有效的字符串
+        let url = getParamValue('url', 'https://www.example.com')
+        // 确保URL永远不会是undefined或null
+        url = url || 'https://www.example.com'
+
         const browserType = getParamValue('browserType', 'chrome')
 
         // 转换浏览器类型名称以匹配Playwright的命名约定
@@ -326,20 +339,20 @@ const executeElementAction = async (element) => {
 
         addLog('info', `正在打开${browserType}浏览器：${url}`)
 
-        // 初始化浏览器
-        const initResult = await browserAutomation.initialize({
+        // 直接使用runNode方法打开浏览器，确保传递完整的参数对象
+        const runResult = await browserAutomation.runNode({
+          url: url, // 明确指定url参数
           browserType: playwrightBrowserType,
-          headless: false
+          headless: false,
+          openMode: 'new',
+          waitUntil: 'networkidle'
         })
 
-        if (initResult.success) {
-          currentBrowserId = initResult.browserId
-
-          // 打开URL
-          await browserAutomation.openUrl({ browserId: currentBrowserId, url })
-        } else {
-          throw new Error('浏览器初始化失败: ' + initResult.error)
+        if (!runResult.success) {
+          throw new Error('浏览器初始化失败: ' + runResult.error)
         }
+
+        currentBrowserId = runResult.browserId
 
         currentBrowserUrl.value = url
         showBrowserPreview.value = true
@@ -534,10 +547,7 @@ const executeElementAction = async (element) => {
     addLog('error', `执行操作失败：${error.message}`)
     throw error
   } finally {
-    // 清理事件监听器
-    browserAutomation.off('pageLoaded', handlePageLoaded)
-    browserAutomation.off('pageConsole', handlePageConsole)
-    browserAutomation.off('pageError', handlePageError)
+    // 注意：当前版本中没有注册事件监听器，因此不需要清理
   }
 }
 
