@@ -445,6 +445,25 @@ class BrowserAutomation {
   }
 
   // 已移除元素选择器相关功能
+  
+  // 保存文件
+  async saveFile({ browserId, data, filePath, format }) {
+    try {
+      if (process.env.NODE_ENV === 'development' && !this.isElectron) {
+        console.log('模拟保存文件:', filePath)
+        return { success: true, filePath: '/mock/' + filePath }
+      }
+
+      if (this.isElectron && window.electron.browserAutomation) {
+        return await window.electron.browserAutomation.saveFile({ browserId, data, filePath, format })
+      }
+
+      throw new Error('保存文件失败')
+    } catch (error) {
+      console.error('保存文件失败:', error)
+      return { success: false, error: error.message }
+    }
+  }
 }
 
 // 导出单例实例

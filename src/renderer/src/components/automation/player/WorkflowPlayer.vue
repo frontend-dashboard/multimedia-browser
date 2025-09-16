@@ -14,11 +14,7 @@
           {{ playState === 'playing' ? '暂停' : '播放' }}
         </el-button>
 
-        <el-button
-          type="danger"
-          :disabled="playState === 'stopped'"
-          @click="stopPlayback"
-        >
+        <el-button type="danger" :disabled="playState === 'stopped'" @click="stopPlayback">
           <el-icon><Stopwatch /></el-icon>
           停止
         </el-button>
@@ -42,11 +38,7 @@
           size="small"
         />
 
-        <el-switch
-          v-model="enableDebugging"
-          active-text="调试模式"
-          inactive-text="正常模式"
-        />
+        <el-switch v-model="enableDebugging" active-text="调试模式" inactive-text="正常模式" />
       </div>
     </div>
 
@@ -170,7 +162,7 @@ const canPlay = computed(() => {
 // 日志处理函数
 const handleGlobalLogUpdate = (newLog) => {
   logs.value.push(newLog)
-  
+
   // 限制日志数量
   if (logs.value.length > 2000) {
     logs.value = logs.value.slice(-1500)
@@ -180,11 +172,11 @@ const handleGlobalLogUpdate = (newLog) => {
   nextTick(() => {
     if (logContentRef.value) {
       // 检查是否需要自动滚动到底部
-      const shouldAutoScroll = 
+      const shouldAutoScroll =
         !logContentRef.value.scrollTop ||
-        logContentRef.value.scrollTop === 
+        logContentRef.value.scrollTop ===
           logContentRef.value.scrollHeight - logContentRef.value.clientHeight
-      
+
       if (shouldAutoScroll) {
         logContentRef.value.scrollTop = logContentRef.value.scrollHeight
       }
@@ -309,7 +301,7 @@ const executeElementAction = async (element) => {
     const getParamValue = (key, defaultValue = '') => {
       return element.data?.paramValues?.[key] || element.paramValues?.[key] || defaultValue
     }
-    
+
     switch (elementType) {
       case 'BROWSER_OPEN': {
         const url = getParamValue('url', 'https://www.example.com')
@@ -325,10 +317,10 @@ const executeElementAction = async (element) => {
           browserType: playwrightBrowserType,
           headless: false
         })
-        
+
         if (initResult.success) {
           currentBrowserId = initResult.browserId
-          
+
           // 打开URL
           await browserAutomation.openUrl({ browserId: currentBrowserId, url })
         } else {
@@ -362,13 +354,24 @@ const executeElementAction = async (element) => {
           throw new Error('选择器不能为空')
         }
 
-        addLog('info', `正在点击元素：${selector}${clickCount > 1 ? ` (${clickCount}次)` : ''}${waitForNavigation ? '（等待页面加载）' : ''}`)
+        addLog(
+          'info',
+          `正在点击元素：${selector}${clickCount > 1 ? ` (${clickCount}次)` : ''}${waitForNavigation ? '（等待页面加载）' : ''}`
+        )
 
         // 等待元素可见
-        await browserAutomation.waitForElement({ browserId: currentBrowserId, selector, timeout: 5000 })
+        await browserAutomation.waitForElement({
+          browserId: currentBrowserId,
+          selector,
+          timeout: 5000
+        })
 
         // 点击元素
-        await browserAutomation.clickElement({ browserId: currentBrowserId, selector, waitForNavigation })
+        await browserAutomation.clickElement({
+          browserId: currentBrowserId,
+          selector,
+          waitForNavigation
+        })
 
         addLog('success', `元素已成功点击：${selector}`)
         break
@@ -386,7 +389,11 @@ const executeElementAction = async (element) => {
         addLog('info', `正在${clearBefore ? '清空并' : ''}输入文本到 ${selector}：${text}`)
 
         // 等待元素可见
-        await browserAutomation.waitForElement({ browserId: currentBrowserId, selector, timeout: 5000 })
+        await browserAutomation.waitForElement({
+          browserId: currentBrowserId,
+          selector,
+          timeout: 5000
+        })
 
         // 输入文本
         await browserAutomation.inputText({ browserId: currentBrowserId, selector, text })
@@ -408,10 +415,19 @@ const executeElementAction = async (element) => {
         addLog('info', `正在从 ${selector} 提取 ${extractType} 数据到变量 ${variableName}`)
 
         // 等待元素可见
-        await browserAutomation.waitForElement({ browserId: currentBrowserId, selector, timeout: 5000 })
+        await browserAutomation.waitForElement({
+          browserId: currentBrowserId,
+          selector,
+          timeout: 5000
+        })
 
         // 提取数据
-        const result = await browserAutomation.extractData({ browserId: currentBrowserId, selector, extractType, attribute: attributeName })
+        const result = await browserAutomation.extractData({
+          browserId: currentBrowserId,
+          selector,
+          extractType,
+          attribute: attributeName
+        })
 
         // 模拟存储提取的数据到变量（实际应用中可能需要更复杂的变量管理系统）
         // 这里只是记录到日志中
@@ -426,7 +442,10 @@ const executeElementAction = async (element) => {
         addLog('info', `等待 ${waitSeconds} 秒`)
 
         // 实际等待指定的时间
-        await browserAutomation.wait({ browserId: currentBrowserId, milliseconds: (waitSeconds * 1000) / playbackSpeed.value })
+        await browserAutomation.wait({
+          browserId: currentBrowserId,
+          milliseconds: (waitSeconds * 1000) / playbackSpeed.value
+        })
 
         addLog('success', `等待完成`)
         break
@@ -445,11 +464,29 @@ const executeElementAction = async (element) => {
       case 'SAVE_FILE': {
         const filePath = element.paramValues?.filePath || 'output.txt'
         const format = element.paramValues?.format || 'txt'
+        const data = element.paramValues?.data || ''
 
-        // 在实际应用中，这里应该调用文件系统API来保存文件
-        // 由于在渲染进程中，我们可能需要通过IPC与主进程通信
+        // 调用文件保存API
         addLog('info', `保存文件：${filePath} (格式：${format})`)
-        addLog('info', '文件保存功能在渲染进程中受到限制，需要通过主进程API实现')
+
+        try {
+          const result = await browserAutomation.saveFile({
+            browserId: currentBrowserId,
+            data: data,
+            filePath: filePath,
+            format: format
+          })
+
+          if (result.success) {
+            addLog('success', `文件已成功保存到: ${result.filePath || filePath}`)
+          } else {
+            addLog('error', `保存文件失败: ${result.error || '未知错误'}`)
+            throw new Error(result.error || '保存文件失败')
+          }
+        } catch (error) {
+          addLog('error', `保存文件时发生错误: ${error.message}`)
+          throw error
+        }
         break
       }
 
@@ -458,7 +495,10 @@ const executeElementAction = async (element) => {
         const extractDetails = getParamValue('extractDetails', false)
         const variableName = getParamValue('variableName', 'pageElements')
 
-        addLog('info', `正在获取页面元素，选择器：${selector}${extractDetails ? '（包含详细信息）' : ''}`)
+        addLog(
+          'info',
+          `正在获取页面元素，选择器：${selector}${extractDetails ? '（包含详细信息）' : ''}`
+        )
 
         // 获取页面元素
         const result = await browserAutomation.getPageElements({
@@ -613,10 +653,10 @@ watch(
 onMounted(() => {
   // 初始时加载所有全局日志
   logs.value = logger.getLogs()
-  
+
   // 订阅全局日志更新
   logUnsubscribe = logger.subscribeToLogs(handleGlobalLogUpdate)
-  
+
   addLog('info', '播放器已初始化')
 })
 
@@ -625,7 +665,7 @@ onUnmounted(() => {
   if (typeof logUnsubscribe === 'function') {
     logUnsubscribe()
   }
-  
+
   stopTimer()
   // 确保在组件卸载时关闭浏览器
   if (currentBrowserId) {

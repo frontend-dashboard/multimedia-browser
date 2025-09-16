@@ -32,10 +32,10 @@ const ElementTypes = {
       },
       {
         key: 'incognito',
-        label: '隐身模式',
+        label: '无痕模式',
         type: 'boolean',
         defaultValue: false,
-        description: '是否以隐身模式打开浏览器'
+        description: '是否以无痕模式打开浏览器'
       },
       {
         key: 'windowSize',
@@ -223,7 +223,7 @@ const ElementTypes = {
       { key: 'format', label: '文件格式', type: 'select', options: ['txt', 'json', 'csv'], defaultValue: 'txt' }
     ]
   },
-  
+
   // 页面元素获取元件
   GET_PAGE_ELEMENTS: {
     type: 'GET_PAGE_ELEMENTS',

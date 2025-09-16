@@ -432,7 +432,7 @@ const runBrowserNode = async () => {
     const timeout = nodeData.paramValues.timeout || 30000
 
     console.log(
-      `运行浏览器: ${browserType}, 打开URL: ${url}, 隐身模式: ${incognito}, 窗口大小: ${windowSize}`
+      `运行浏览器: ${browserType}, 打开URL: ${url}, 无痕模式: ${incognito}, 窗口大小: ${windowSize}`
     )
 
     // 通过preload脚本中暴露的API调用主进程的浏览器自动化功能

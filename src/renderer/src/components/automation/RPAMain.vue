@@ -151,10 +151,10 @@ const workflow = reactive({
         },
         {
           key: 'incognito',
-          label: '隐身模式',
+          label: '无痕模式',
           type: 'boolean',
           defaultValue: false,
-          description: '是否以隐身模式打开浏览器'
+          description: '是否以无痕模式打开浏览器'
         },
         {
           key: 'windowSize',
