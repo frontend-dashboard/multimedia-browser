@@ -228,6 +228,8 @@ import { ElMessage } from 'element-plus'
 import { getIconComponent } from '../utils/iconUtils.js'
 // 导入布局工具
 import { useLayout } from '../utils/useLayout.js'
+// 导入元件类型系统
+import { Initializer } from '../elements/ElementTypes.js'
 
 // import InteractionControls from './InteractionControls.vue'
 
@@ -269,6 +271,9 @@ const {
 
 // 初始化布局工具
 const { layout: dagreLayout } = useLayout()
+
+// 初始化ElementTypes系统
+Initializer.initializeElementTypeSystem()
 
 // 组件状态
 const elements = ref([])
@@ -929,21 +934,12 @@ const handleDrop = (event) => {
       const snappedX = Math.round(x / gridSize) * gridSize
       const snappedY = Math.round(y / gridSize) * gridSize
 
-      // 创建新节点
-      const newNode = {
-        id: dragData.elementData.id,
-        type: 'custom-node',
+      // 使用ElementInitializer创建标准化节点
+      const newNode = Initializer.createWorkflowNode(dragData.elementData.type, {
         position: { x: snappedX, y: snappedY },
-        data: {
-          ...dragData.elementData,
-          selected: false,
-          paramValues: dragData.elementData.params.reduce((acc, param) => {
-            acc[param.key] = param.defaultValue
-            return acc
-          }, {})
-        },
-        selected: false
-      }
+        initialParams: dragData.elementData.params,
+        id: dragData.elementData.id
+      })
 
       // 使用 Vue Flow 提供的 addNodes 方法添加新节点
       if (addNodes) {

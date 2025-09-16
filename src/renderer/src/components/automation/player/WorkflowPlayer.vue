@@ -115,6 +115,7 @@ import { VideoPlay, VideoPause, Stopwatch, Right } from '@element-plus/icons-vue
 
 // 导入工具
 import logger from '@renderer/utils/logger.js'
+import { Initializer } from '../elements/ElementTypes'
 
 // 从全局window对象获取api，通过IPC调用main进程的真实浏览器功能
 const browserAutomation = window.api?.browserAutomation || {
@@ -269,17 +270,35 @@ const formatTime = (ms) => {
 }
 
 // 执行相关函数
+// 获取参数值的工具函数
+const getParamValue = (paramName, defaultValue, element) => {
+  return element.paramValues?.[paramName] !== undefined
+    ? element.paramValues[paramName]
+    : defaultValue
+}
+
+// 执行单个元件
 const executeElement = async (element) => {
-  if (!element) {
-    return false
-  }
-
-  currentElement.value = element
-  addLog('info', `开始执行：${element.name}`, element)
-
   try {
-    // 根据元件类型执行不同的操作
-    await executeElementAction(element)
+    currentElement.value = element
+    addLog('info', `开始执行：${element.name}`, element)
+
+    // 使用ElementInitializer执行元件
+    const executionResult = await Initializer.executeElement(element.type, {
+      element,
+      browserId: currentBrowserId,
+      browserAutomation,
+      playbackSpeed: playbackSpeed.value,
+      addLog,
+      getParamValue: (paramName, defaultValue) => getParamValue(paramName, defaultValue, element)
+    })
+
+    // 如果是打开浏览器操作，更新当前浏览器ID
+    if (element.type === 'BROWSER_OPEN' && executionResult.browserId) {
+      currentBrowserId = executionResult.browserId
+      currentBrowserUrl.value = executionResult.url
+      showBrowserPreview.value = true
+    }
 
     addLog('success', `执行成功：${element.name}`)
     executedCount.value++
@@ -293,246 +312,6 @@ const executeElement = async (element) => {
       playState.value = 'paused'
       stopTimer()
     }
-  }
-}
-
-const executeElementAction = async (element) => {
-  // 这里使用实际的浏览器自动化API来执行操作
-  // 优先使用element.data.type，如果不存在则回退到element.type
-  const elementType = element.data?.type || element.type
-
-  // 注意：当前版本的browserAutomation API没有提供事件监听方法
-  // 如有需要监听页面事件，请在main进程中添加相关的事件发送代码
-
-  try {
-    // 获取参数值，支持两种数据结构
-    const getParamValue = (key, defaultValue = '') => {
-      return element.data?.paramValues?.[key] || element.paramValues?.[key] || defaultValue
-    }
-
-    switch (elementType) {
-      case 'BROWSER_OPEN': {
-        // 获取URL参数，确保它是一个有效的字符串
-        let url = getParamValue('url', 'https://www.example.com')
-        // 确保URL永远不会是undefined或null
-        url = url || 'https://www.example.com'
-
-        const browserType = getParamValue('browserType', 'chrome')
-
-        // 转换浏览器类型名称以匹配Playwright的命名约定
-        const playwrightBrowserType = browserType === 'chrome' ? 'chromium' : browserType
-
-        addLog('info', `正在打开${browserType}浏览器：${url}`)
-
-        // 直接使用runNode方法打开浏览器，确保传递完整的参数对象
-        const runResult = await browserAutomation.runNode({
-          url: url, // 明确指定url参数
-          browserType: playwrightBrowserType,
-          headless: false,
-          openMode: 'new',
-          waitUntil: 'networkidle'
-        })
-
-        if (!runResult.success) {
-          throw new Error('浏览器初始化失败: ' + runResult.error)
-        }
-
-        currentBrowserId = runResult.browserId
-
-        currentBrowserUrl.value = url
-        showBrowserPreview.value = true
-
-        addLog('success', `浏览器已成功打开，当前URL：${url}`)
-        break
-      }
-
-      case 'BROWSER_CLOSE': {
-        addLog('info', '正在关闭浏览器')
-        if (currentBrowserId) {
-          await browserAutomation.closeBrowser(currentBrowserId)
-          currentBrowserId = null
-        }
-        showBrowserPreview.value = false
-        addLog('success', '浏览器已成功关闭')
-        break
-      }
-
-      case 'CLICK_ELEMENT': {
-        const selector = getParamValue('selector', '')
-        const waitForNavigation = getParamValue('waitForNavigation', true) !== false
-        const clickCount = getParamValue('clickCount', 1)
-
-        if (!selector) {
-          throw new Error('选择器不能为空')
-        }
-
-        addLog(
-          'info',
-          `正在点击元素：${selector}${clickCount > 1 ? ` (${clickCount}次)` : ''}${waitForNavigation ? '（等待页面加载）' : ''}`
-        )
-
-        // 等待元素可见
-        await browserAutomation.waitForElement({
-          browserId: currentBrowserId,
-          selector,
-          timeout: 5000
-        })
-
-        // 点击元素
-        await browserAutomation.clickElement({
-          browserId: currentBrowserId,
-          selector,
-          waitForNavigation
-        })
-
-        addLog('success', `元素已成功点击：${selector}`)
-        break
-      }
-
-      case 'INPUT_TEXT': {
-        const selector = getParamValue('selector', '')
-        const text = getParamValue('text', '')
-        const clearBefore = getParamValue('clearBefore', true) !== false
-
-        if (!selector) {
-          throw new Error('选择器不能为空')
-        }
-
-        addLog('info', `正在${clearBefore ? '清空并' : ''}输入文本到 ${selector}：${text}`)
-
-        // 等待元素可见
-        await browserAutomation.waitForElement({
-          browserId: currentBrowserId,
-          selector,
-          timeout: 5000
-        })
-
-        // 输入文本
-        await browserAutomation.inputText({ browserId: currentBrowserId, selector, text })
-
-        addLog('success', `文本已成功输入到：${selector}`)
-        break
-      }
-
-      case 'EXTRACT_DATA': {
-        const selector = getParamValue('selector', '')
-        const extractType = getParamValue('extractType', 'text')
-        const attributeName = getParamValue('attributeName', 'href')
-        const variableName = getParamValue('variableName', 'extractedData')
-
-        if (!selector) {
-          throw new Error('选择器不能为空')
-        }
-
-        addLog('info', `正在从 ${selector} 提取 ${extractType} 数据到变量 ${variableName}`)
-
-        // 等待元素可见
-        await browserAutomation.waitForElement({
-          browserId: currentBrowserId,
-          selector,
-          timeout: 5000
-        })
-
-        // 提取数据
-        const result = await browserAutomation.extractData({
-          browserId: currentBrowserId,
-          selector,
-          extractType,
-          attribute: attributeName
-        })
-
-        // 模拟存储提取的数据到变量（实际应用中可能需要更复杂的变量管理系统）
-        // 这里只是记录到日志中
-        addLog('success', `数据已成功提取到变量 ${variableName}`, {
-          extractedValue: result.data
-        })
-        break
-      }
-
-      case 'WAIT': {
-        const waitSeconds = getParamValue('seconds', 2)
-        addLog('info', `等待 ${waitSeconds} 秒`)
-
-        // 实际等待指定的时间
-        await browserAutomation.wait({
-          browserId: currentBrowserId,
-          milliseconds: (waitSeconds * 1000) / playbackSpeed.value
-        })
-
-        addLog('success', `等待完成`)
-        break
-      }
-
-      case 'IF_CONDITION': {
-        const condition = getParamValue('condition', 'true')
-        addLog('info', `条件判断：${condition}`)
-
-        // 在实际应用中，这里应该有更复杂的条件评估逻辑
-        // 这里只是简单的模拟
-        addLog('info', `条件评估完成`)
-        break
-      }
-
-      case 'SAVE_FILE': {
-        const filePath = element.paramValues?.filePath || 'output.txt'
-        const format = element.paramValues?.format || 'txt'
-        const data = element.paramValues?.data || ''
-
-        // 调用文件保存API
-        addLog('info', `保存文件：${filePath} (格式：${format})`)
-
-        try {
-          const result = await browserAutomation.saveFile({
-            browserId: currentBrowserId,
-            data: data,
-            filePath: filePath,
-            format: format
-          })
-
-          if (result.success) {
-            addLog('success', `文件已成功保存到: ${result.filePath || filePath}`)
-          } else {
-            addLog('error', `保存文件失败: ${result.error || '未知错误'}`)
-            throw new Error(result.error || '保存文件失败')
-          }
-        } catch (error) {
-          addLog('error', `保存文件时发生错误: ${error.message}`)
-          throw error
-        }
-        break
-      }
-
-      case 'GET_PAGE_ELEMENTS': {
-        const selector = getParamValue('selector', '*')
-        const extractDetails = getParamValue('extractDetails', false)
-        const variableName = getParamValue('variableName', 'pageElements')
-
-        addLog(
-          'info',
-          `正在获取页面元素，选择器：${selector}${extractDetails ? '（包含详细信息）' : ''}`
-        )
-
-        // 获取页面元素
-        const result = await browserAutomation.getPageElements({
-          browserId: currentBrowserId,
-          selector,
-          extractDetails
-        })
-
-        addLog('success', `已成功获取 ${result.elements.length} 个页面元素到变量 ${variableName}`)
-        break
-      }
-
-      default: {
-        addLog('warn', `未知元件类型：${element.type}`)
-        break
-      }
-    }
-  } catch (error) {
-    addLog('error', `执行操作失败：${error.message}`)
-    throw error
-  } finally {
-    // 注意：当前版本中没有注册事件监听器，因此不需要清理
   }
 }
 
