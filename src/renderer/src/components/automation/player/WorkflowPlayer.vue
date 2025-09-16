@@ -289,6 +289,8 @@ const executeElement = async (element) => {
     addLog('debug', `当前浏览器ID: ${currentBrowserId.value}`)
 
     // 检查是否需要浏览器但没有浏览器实例
+    console.log('currentBrowserId.value', currentBrowserId.value)
+    console.log('BROWSER_REQUIRED_ELEMENTS.value', BROWSER_REQUIRED_ELEMENTS)
     if (BROWSER_REQUIRED_ELEMENTS.includes(element.type) && !currentBrowserId.value) {
       addLog('debug', `元件${element.name}(${element.type})需要浏览器，但currentBrowserId为null`)
       throw new Error('请先执行"打开浏览器"元件来创建浏览器实例')
@@ -377,6 +379,8 @@ const togglePlayPause = async () => {
 
     // 清空当前执行状态
     currentElement.value = null
+    // 重置浏览器ID，确保重新开始时需要重新打开浏览器
+    currentBrowserId.value = null
 
     addLog('info', '开始执行工作流')
     await executeNextElement()
@@ -399,6 +403,8 @@ const stopPlayback = () => {
   stopTimer()
   currentElementIndex.value = -1
   currentElement.value = null
+  // 重置浏览器ID，确保重新开始时需要重新打开浏览器
+  currentBrowserId.value = null
   addLog('info', '工作流已停止')
 }
 
@@ -416,6 +422,8 @@ const stepForward = async () => {
 
     // 清空当前执行状态
     currentElement.value = null
+    // 重置浏览器ID，确保重新开始时需要重新打开浏览器
+    currentBrowserId.value = null
 
     addLog('info', '开始单步执行工作流')
   }

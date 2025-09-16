@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import fs from 'fs/promises'
 // 尝试导入Playwright
 let playwright
+
 try {
   playwright = require('playwright')
 } catch {
@@ -26,7 +27,7 @@ function createWindow() {
       webSecurity: true,
       allowRunningInsecureContent: false,
       // 启用Node.js集成，但保持上下文隔离以提高安全性
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: true
     }
   })
@@ -78,248 +79,193 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
   // 存储已打开的浏览器实例
   const activeBrowsers = new Map()
 
-  // 浏览器自动化功能
+  // 浏览器自动化API
   const browserAutomation = {
+    // 添加runNode方法作为runBrowserNode的别名，确保与preload中的调用匹配
+    async runNode(params) {
+      return await this.runBrowserNode(params)
+    },
+
     // 运行浏览器节点
     async runBrowserNode(params) {
-      // 确保params对象存在
-      params = params || {}
-
-      const {
-        url = 'https://www.example.com', // 确保URL永远不会是undefined
-        openMode = 'useExisting',
-        browserType = 'chrome',
-        incognito = false,
-        windowSize = 'default',
-        customWidth = 1280,
-        customHeight = 800,
-        waitUntil = 'networkidle',
-        timeout = 30000
-      } = params
+      const { url, browserType = 'chromium', headless = false, openMode = 'new', waitUntil = 'networkidle' } = params
 
       try {
-        // 如果Playwright已安装，使用Playwright打开浏览器
-        if (playwright) {
-          // 转换浏览器类型名称以匹配Playwright的命名约定
-          const playwrightBrowserType = browserType === 'chrome' ? 'chromium' : browserType
+        // 转换浏览器类型到Playwright支持的格式
+        let playwrightBrowserType
+        switch (browserType.toLowerCase()) {
+          case 'firefox':
+            playwrightBrowserType = 'firefox'
+            break
+          case 'webkit':
+            playwrightBrowserType = 'webkit'
+            break
+          case 'edge':
+            playwrightBrowserType = 'chromium'  // Playwright没有直接的Edge支持
+            break
+          default:
+            playwrightBrowserType = 'chromium'
+        }
 
-          // 检查Playwright是否支持指定的浏览器类型
-          if (!playwright[playwrightBrowserType]) {
-            console.warn(`Playwright不支持浏览器类型: ${playwrightBrowserType}`)
-            // 使用系统默认浏览器
-            const result = await shell.openExternal(url)
-            return {
-              success: result,
-              message: result ? '已使用系统默认浏览器打开URL' : '无法打开URL',
-              browserType: 'system'
-            }
-          }
+        // 检查是否已存在相同类型的浏览器实例，且openMode为useExisting
+        if (openMode === 'useExisting') {
+          for (const [id, instance] of activeBrowsers.entries()) {
+            if (instance.type === playwrightBrowserType && !instance.isIncognito) {
+              console.log(`复用现有浏览器实例: ${id}`)
 
-          console.log(
-            `使用Playwright打开浏览器: ${playwrightBrowserType}, URL: ${url}, 无痕模式: ${incognito}`
-          )
-
-          // 如果选择在已打开的浏览器中打开，检查是否有相同类型的浏览器实例
-          if (openMode === 'useExisting') {
-            // 查找是否有相同类型且非无痕模式的浏览器实例
-            for (const [id, instance] of activeBrowsers.entries()) {
-              if (instance.browserType === playwrightBrowserType && !instance.incognito) {
-                console.log(`使用已打开的浏览器: ${playwrightBrowserType}, URL: ${url}`)
-                try {
-                  // 创建新页面
-                  const page = await instance.context.newPage()
-
-                  // 根据windowSize设置窗口状态
-                  if (windowSize === 'maximized') {
-                    await page.maximize()
-                  } else if (windowSize === 'fullscreen') {
-                    await page.fullscreen()
-                  } else if (windowSize === 'custom') {
-                    await page.setViewportSize({ width: customWidth, height: customHeight })
-                  }
-
-                  // 导航到URL，最后确保URL不是undefined
-                  const finalUrl = url || 'https://www.example.com'
-                  console.log('最终使用的URL:', finalUrl)
-                  await page.goto(finalUrl, {
-                    waitUntil: waitUntil,
-                    timeout: timeout
-                  })
-
-                  // 监听页面关闭事件，检查是否需要自动关闭浏览器
-                  page.on('close', async () => {
-                    try {
-                      // 获取所有页面
-                      const pages = await instance.context.pages()
-                      // 如果没有页面了，自动关闭浏览器
-                      if (pages.length === 0) {
-                        console.log(`浏览器${id}中没有页面了，自动关闭`)
-                        await instance.browser.close()
-                        activeBrowsers.delete(id)
-                      }
-                    } catch (error) {
-                      console.error('检查页面数量时出错:', error)
-                    }
-                  })
-
-                  return {
-                    success: true,
-                    message: `已在现有${browserType}浏览器中打开${url}`,
-                    browserId: id,
-                    windowSize: windowSize
-                  }
-                } catch (error) {
-                  console.error('使用现有浏览器时出错:', error)
-                  // 如果出错，继续创建新浏览器
-                  break
-                }
-              }
-            }
-          }
-
-          console.log(
-            `使用Playwright打开浏览器: ${playwrightBrowserType}, URL: ${url}, 无痕模式: ${incognito}`
-          )
-
-          // 设置浏览器启动选项
-          const launchOptions = {
-            headless: false, // 显示浏览器窗口
-            slowMo: 100, // 慢动作执行
-            timeout: timeout // 设置超时时间
-          }
-
-          // 如果选择了无痕模式，使用隐身上下文
-          let browser
-          let context
-
-          // 根据浏览器类型启动
-          if (incognito) {
-            // 启动普通浏览器然后创建隐身上下文
-            browser = await playwright[playwrightBrowserType].launch(launchOptions)
-            context = await browser.newContext({ incognito: true })
-          } else {
-            // 直接启动浏览器
-            browser = await playwright[playwrightBrowserType].launch(launchOptions)
-            context = await browser.newContext()
-          }
-
-          // 设置窗口大小
-          if (windowSize === 'custom') {
-            const page = await context.newPage({
-              viewport: { width: customWidth, height: customHeight }
-            })
-
-            // 导航到URL，确保URL不为undefined
-            const finalUrl = url || 'https://www.example.com'
-            console.log(`导航到URL: ${finalUrl}`)
-            await page.goto(finalUrl, {
-              waitUntil: waitUntil,
-              timeout: timeout
-            })
-
-            console.log(`已成功打开URL: ${url}, 窗口模式: ${windowSize}`)
-
-            // 监听页面关闭事件，检查是否需要自动关闭浏览器
-            page.on('close', async () => {
-              try {
-                  // 获取所有页面
-                  const pages = await context.pages()
-                  // 如果没有页面了，自动关闭浏览器
-                  if (pages.length === 0) {
-                    console.log(`浏览器实例中没有页面了，自动关闭`)
-                    await browser.close()
-                    // 这里不能直接使用browserId，因为它还没有定义
-                    // 浏览器关闭后会触发disconnected事件，在那里删除实例
-                  }
-                } catch (error) {
-                  console.error('检查页面数量时出错:', error)
-                }
-            })
-          } else {
-            // 创建新页面
-            const page = await context.newPage()
-
-            // 根据windowSize设置窗口状态
-            if (windowSize === 'maximized') {
-              await page.maximize()
-            } else if (windowSize === 'fullscreen') {
-              await page.fullscreen()
-            }
-
-            // 导航到URL，确保URL不为undefined
-            const finalUrl = url || 'https://www.example.com'
-            console.log(`导航到URL: ${finalUrl}`)
-            await page.goto(finalUrl, {
-              waitUntil: waitUntil,
-              timeout: timeout
-            })
-
-            console.log(`已成功打开URL: ${url}, 窗口模式: ${windowSize}`)
-
-            // 监听页面关闭事件，检查是否需要自动关闭浏览器
-            page.on('close', async () => {
-              try {
-                // 获取所有页面
+              // 如果提供了URL，则导航到该URL
+              if (url) {
+                const context = instance.context
                 const pages = await context.pages()
-                // 如果没有页面了，自动关闭浏览器
-                if (pages.length === 0) {
-                  console.log(`浏览器实例中没有页面了，自动关闭`)
-                  await browser.close()
-                  // 这里不能直接使用browserId，因为它还没有定义
-                  // 浏览器关闭后会触发disconnected事件，在那里删除实例
+                if (pages.length > 0) {
+                  const page = pages[0]
+                  await page.goto(url, { waitUntil })
                 }
-              } catch (error) {
-                console.error('检查页面数量时出错:', error)
               }
+
+              return {
+                success: true,
+                message: '成功复用现有浏览器实例',
+                browserId: id,
+                url: url || 'about:blank'
+              }
+            }
+          }
+
+          // 如果没有找到匹配的浏览器实例，继续创建新的
+          console.log('未找到可复用的浏览器实例，创建新实例')
+        }
+
+        // 启动浏览器
+        console.log(`启动浏览器: ${playwrightBrowserType}, 无头模式: ${headless}`)
+        const browser = await playwright[playwrightBrowserType].launch({
+          headless: false, // 暂时强制使用有头模式，以便调试
+          slowMo: 100,     // 添加小延迟，便于观察
+          args: [
+            '--disable-blink-features=AutomationControlled',
+            '--start-maximized',
+            '--window-size=1920,1080'
+          ]
+        })
+
+        // 如果需要无头模式但没有设置窗口大小，可以在这里设置默认窗口大小
+        if (headless && !params.windowSize) {
+          params.windowSize = { width: 1920, height: 1080 }
+        }
+
+        // 处理无痕模式
+        let context
+        let isIncognito = false
+
+        if (params.isIncognito) {
+          // 创建无痕上下文
+          context = await browser.newContext({
+            viewport: params.windowSize || { width: 1920, height: 1080 }
+          })
+          isIncognito = true
+        } else {
+          // 获取默认上下文，如果没有则创建一个
+          const contexts = browser.contexts()
+          if (contexts && contexts.length > 0) {
+            context = contexts[0]
+          } else {
+            // 如果没有默认上下文，创建一个新的
+            context = await browser.newContext({
+              viewport: params.windowSize || { width: 1920, height: 1080 }
             })
           }
-
-          // 不关闭浏览器，让用户可以交互
-          // 注意：在实际应用中，您可能需要实现一个关闭机制
-
-          // 存储浏览器实例信息
-          const browserId = browser._browserContextId
-          activeBrowsers.set(browserId, {
-            browser: browser,
-            context: context,
-            browserType: playwrightBrowserType,
-            incognito: incognito
-          })
-
-          // 监听浏览器关闭事件，自动从活动浏览器列表中移除
-          browser.on('disconnected', () => {
-            activeBrowsers.delete(browserId)
-            console.log(`浏览器已关闭，从活动列表中移除: ${browserId}`)
-          })
-
-          return {
-            success: true,
-            message: `已使用${browserType}浏览器打开${url}${incognito ? '(无痕模式)' : ''}`,
-            browserId: browserId, // 返回浏览器ID以便后续操作
-            windowSize: windowSize
-          }
-        } else {
-          // 如果Playwright未安装，使用系统默认浏览器
-          console.log('使用系统默认浏览器打开URL:', url)
-          const result = await shell.openExternal(url)
-
-          return {
-            success: result,
-            message: result ? '已使用系统默认浏览器打开URL' : '无法打开URL',
-            browserType: 'system'
+          // 设置窗口大小
+          if (params.windowSize && contexts && contexts.length > 0) {
+            await browser.newContext({
+              viewport: params.windowSize
+            })
           }
         }
+
+        // 根据openMode处理窗口大小
+        let windowSize
+        if (params.windowSize && typeof params.windowSize === 'object') {
+          windowSize = params.windowSize
+        } else {
+          // 处理字符串值的窗口大小
+          switch (params.windowSize) {
+            case 'maximized':
+              windowSize = { maximize: true }
+              break
+            case 'fullscreen':
+              windowSize = { fullscreen: true }
+              break
+            default:
+              windowSize = { width: 1920, height: 1080 }
+          }
+        }
+
+        // 创建页面
+        let page
+        if (context.pages().length > 0) {
+          page = context.pages()[0]
+        } else {
+          page = await context.newPage()
+        }
+
+        // 设置窗口大小
+        if (windowSize.maximize) {
+          await page.bringToFront()
+          await page.setViewportSize({ width: 1920, height: 1080 })
+        } else if (windowSize.fullscreen) {
+          await page.bringToFront()
+          await page.setViewportSize({ width: 1920, height: 1080 })
+          // Playwright没有直接的全屏API，需要通过页面操作来实现
+        } else if (windowSize.width && windowSize.height) {
+          await page.setViewportSize({ width: windowSize.width, height: windowSize.height })
+        }
+
+        // 导航到URL
+        const navigationUrl = url || 'https://www.example.com'
+        console.log(`导航到URL: ${navigationUrl}`)
+        await page.goto(navigationUrl, { waitUntil })
+
+        // 生成唯一的浏览器ID
+        const browserId = `browser_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+        // 监听页面关闭事件，如果所有页面都关闭，则自动关闭浏览器
+        page.on('close', async () => {
+          const remainingPages = context.pages()
+          if (remainingPages.length === 0) {
+            console.log(`浏览器实例 ${browserId} 的所有页面都已关闭，正在关闭浏览器`)
+            await browser.close()
+            activeBrowsers.delete(browserId)
+          }
+        })
+
+        // 存储浏览器实例
+        activeBrowsers.set(browserId, {
+          browser,
+          context,
+          type: playwrightBrowserType,
+          isIncognito,
+          _browserContextId: browserId
+        })
+
+        console.log(`浏览器实例创建成功: ${browserId}`)
+
+        return {
+          success: true,
+          message: '成功启动浏览器',
+          browserId: browserId,
+          url: navigationUrl,
+          browserType: playwrightBrowserType
+        }
       } catch (error) {
-        console.error('运行浏览器节点时出错:', error)
+        console.error('启动浏览器时出错:', error)
         return {
           success: false,
-          error: error.message
+          message: '启动浏览器失败',
+          error: error.message,
+          browserType: browserType
         }
       }
     },
@@ -346,85 +292,60 @@ app.whenReady().then(() => {
 
     // 获取页面元素
     async getPageElements(params) {
-      const { browserId, selector = '*', extractDetails = true, variableName } = params
+      const { browserId, selector, timeout = 30000 } = params
 
       try {
-        // 检查是否有指定ID的浏览器实例
         if (activeBrowsers.has(browserId)) {
           const browserInstance = activeBrowsers.get(browserId)
           const context = browserInstance.context
-
-          // 获取当前活动页面
           const pages = await context.pages()
+
           if (pages.length === 0) {
             return { success: false, error: '没有找到活动页面' }
           }
 
-          // 获取第一个页面（可以根据需求调整为获取活动页面）
           const page = pages[0]
-
           console.log(`获取页面元素: 浏览器ID=${browserId}, 选择器=${selector}`)
 
-          // 使用选择器查找元素
+          // 等待元素出现
+          await page.waitForSelector(selector, { timeout })
+
+          // 获取所有匹配的元素
           const elements = await page.$$(selector)
+          const elementDetails = []
 
-          // 提取元素信息
-          const extractedElements = []
+          for (const element of elements) {
+            try {
+              // 获取元素的基本信息
+              const text = await element.textContent()
+              const tagName = await element.evaluate(el => el.tagName.toLowerCase())
+              const attributes = await element.evaluate(el => {
+                const attrs = {}
+                for (let i = 0; i < el.attributes.length; i++) {
+                  attrs[el.attributes[i].name] = el.attributes[i].value
+                }
+                return attrs
+              })
 
-          for (let i = 0; i < elements.length; i++) {
-            const element = elements[i]
-            const elementInfo = {
-              index: i,
-              selector: selector,
-              tagName: ''
+              // 获取元素的位置和大小
+              const boundingBox = await element.boundingBox()
+
+              elementDetails.push({
+                text,
+                tagName,
+                attributes,
+                boundingBox,
+                index: elementDetails.length
+              })
+            } catch (error) {
+              console.warn('获取元素信息时出错:', error)
             }
-
-            if (extractDetails) {
-              // 提取基本信息
-              try {
-                const tagName = await element.evaluate((el) => el.tagName.toLowerCase())
-                const text = await element.textContent()
-                const attributes = await element.evaluate((el) => {
-                  const attrs = {}
-                  for (let i = 0; i < el.attributes.length; i++) {
-                    attrs[el.attributes[i].name] = el.attributes[i].value
-                  }
-                  return attrs
-                })
-                const boundingBox = await element.boundingBox()
-                const isVisible = await element.isVisible()
-                const isEnabled = await element.isEnabled()
-
-                elementInfo.tagName = tagName
-                elementInfo.text = text.trim()
-                elementInfo.attributes = attributes
-                elementInfo.boundingBox = boundingBox
-                elementInfo.isVisible = isVisible
-                elementInfo.isEnabled = isEnabled
-              } catch (error) {
-                console.warn(`提取元素${i}的详细信息时出错:`, error)
-                // 如果提取详细信息失败，继续处理下一个元素
-              }
-            } else {
-              // 只提取基本标签名
-              try {
-                const tagName = await element.evaluate((el) => el.tagName.toLowerCase())
-                elementInfo.tagName = tagName
-              } catch (error) {
-                console.warn(`提取元素${i}的标签名时出错:`, error)
-              }
-            }
-
-            extractedElements.push(elementInfo)
           }
 
-          console.log(`成功获取${extractedElements.length}个元素信息`)
-
+          console.log(`成功获取 ${elementDetails.length} 个元素`)
           return {
             success: true,
-            elements: extractedElements,
-            elementCount: extractedElements.length,
-            variableName: variableName
+            elements: elementDetails
           }
         } else {
           console.warn(`未找到浏览器实例: ${browserId}`)
@@ -438,14 +359,8 @@ app.whenReady().then(() => {
 
     // 点击元素
     async clickElement(params) {
-      const {
-        browserId,
-        selector,
-        timeout = 30000,
-        dryRun = false,
-        waitForNavigation = false
-      } = params
-
+      const { browserId, selector, waitForNavigation = false, timeout = 60000, retryCount = 2, retryDelay = 1000, dryRun = false } = params
+      console.log('clickElement params: ', { browserId, selector, timeout })
       try {
         if (activeBrowsers.has(browserId)) {
           const browserInstance = activeBrowsers.get(browserId)
@@ -457,10 +372,46 @@ app.whenReady().then(() => {
           }
 
           const page = pages[0]
-          console.log(`点击元素: 浏览器ID=${browserId}, 选择器=${selector}, dryRun=${dryRun}`)
+          console.log(
+            `点击元素: 浏览器ID=${browserId}, 选择器=${selector}, 等待导航=${waitForNavigation}, dryRun=${dryRun}, 超时=${timeout}ms`
+          )
 
-          // 等待元素出现
-          await page.waitForSelector(selector, { timeout })
+          // 添加更多调试信息
+          const currentUrl = await page.url()
+          console.log(`当前页面URL: ${currentUrl}`)
+
+          // 尝试列出页面上的所有textarea元素，帮助诊断选择器问题
+          try {
+            const textareas = await page.$$('textarea');
+            console.log(`页面上找到 ${textareas.length} 个textarea元素`);
+
+            // 获取前3个textarea的id和class信息
+            for (let i = 0; i < Math.min(3, textareas.length); i++) {
+              const id = await textareas[i].getAttribute('id');
+              const className = await textareas[i].getAttribute('class');
+              console.log(`Textarea ${i+1}: id="${id}", class="${className}"`);
+            }
+          } catch (err) {
+            console.log('获取textarea信息时出错:', err.message);
+          }
+
+          // 等待元素出现，带重试机制
+          let retries = 0
+          let elementFound = false
+          while (retries <= retryCount && !elementFound) {
+            try {
+              await page.waitForSelector(selector, { timeout })
+              elementFound = true
+              break
+            } catch (err) {
+              retries++
+              if (retries > retryCount) {
+                throw new Error(`元素未找到（已重试${retryCount}次）: ${selector} - ${err.message}`)
+              }
+              console.log(`重试查找元素 ${selector}，第${retries}次尝试...`)
+              await new Promise(resolve => setTimeout(resolve, retryDelay))
+            }
+          }
 
           // 如果不是dryRun模式，则执行点击操作
           if (!dryRun) {
@@ -490,7 +441,7 @@ app.whenReady().then(() => {
 
     // 输入文本
     async inputText(params) {
-      const { browserId, selector, text, clearBefore = true, timeout = 30000 } = params
+      const { browserId, selector, text, clearBefore = true, timeout = 60000, retryCount = 2, retryDelay = 1000 } = params
 
       try {
         if (activeBrowsers.has(browserId)) {
@@ -503,11 +454,26 @@ app.whenReady().then(() => {
           }
 
           const page = pages[0]
-          console.log(`输入文本: 浏览器ID=${browserId}, 选择器=${selector}, 文本=${text}, clearBefore=${clearBefore}`)
+          console.log(`输入文本: 浏览器ID=${browserId}, 选择器=${selector}, 文本=${text}, clearBefore=${clearBefore}, 超时=${timeout}ms`)
 
-          // 等待元素出现
-          await page.waitForSelector(selector, { timeout })
-          
+          // 等待元素出现，带重试机制
+          let retries = 0
+          let elementFound = false
+          while (retries <= retryCount && !elementFound) {
+            try {
+              await page.waitForSelector(selector, { timeout })
+              elementFound = true
+              break
+            } catch (err) {
+              retries++
+              if (retries > retryCount) {
+                throw new Error(`元素未找到（已重试${retryCount}次）: ${selector} - ${err.message}`)
+              }
+              console.log(`重试查找元素 ${selector}，第${retries}次尝试...`)
+              await new Promise(resolve => setTimeout(resolve, retryDelay))
+            }
+          }
+
           // 根据clearBefore决定输入方式
           if (clearBefore) {
             // 清空并输入文本
@@ -606,7 +572,7 @@ app.whenReady().then(() => {
 
         // 确保content不是undefined
         const safeContent = content || ''
-        
+
         // 确保目录存在
         const dirPath = join(resolvedPath, '..')
         await fs.mkdir(dirPath, { recursive: true })
@@ -625,7 +591,7 @@ app.whenReady().then(() => {
 
   // 注册IPC处理程序
   ipcMain.handle('browser-automation-run-node', async (_, params) => {
-    return await browserAutomation.runBrowserNode(params)
+    return await browserAutomation.runNode(params)
   })
 
   ipcMain.handle('browser-automation-close-browser', async (_, browserId) => {

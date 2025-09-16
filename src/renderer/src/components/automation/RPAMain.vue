@@ -238,7 +238,7 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        selector: '#chat-textarea',
+        selector: '#kw',
         text: '三字经的正规全文',
         clearBefore: true
       }
@@ -274,7 +274,7 @@ const workflow = reactive({
         }
       ],
       paramValues: {
-        selector: '#chat-submit-button',
+        selector: '#su',
         waitForNavigation: true,
         clickCount: 1
       }
