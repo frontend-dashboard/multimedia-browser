@@ -115,7 +115,21 @@ import { VideoPlay, VideoPause, Stopwatch, Right } from '@element-plus/icons-vue
 
 // 导入工具
 import logger from '@renderer/utils/logger.js'
-import browserAutomation from '@renderer/utils/browserAutomation.js'
+
+// 从全局window对象获取api，通过IPC调用main进程的真实浏览器功能
+const browserAutomation = window.api?.browserAutomation || {
+  // 提供降级实现，确保在API不可用时也不会崩溃
+  isBrowserAvailable: () => Promise.resolve(false),
+  initialize: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  openUrl: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  clickElement: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  inputText: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  extractData: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  waitForElement: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  wait: (params) => new Promise(resolve => setTimeout(resolve, params?.milliseconds || 0)),
+  saveFile: () => Promise.resolve({ success: false, error: 'Browser automation API not available' }),
+  getPageElements: () => Promise.resolve({ success: false, error: 'Browser automation API not available' })
+}
 
 // 已移除元素选择器组件
 

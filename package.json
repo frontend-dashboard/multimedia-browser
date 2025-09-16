@@ -33,6 +33,7 @@
     "lodash": "^4.17.21",
     "pinia": "^3.0.3",
     "playwright": "^1.55.0",
+    "uuid": "^13.0.0",
     "vue-draggable-next": "^2.1.1",
     "vue-i18n": "^11.1.12",
     "vue-router": "^4.5.1"
