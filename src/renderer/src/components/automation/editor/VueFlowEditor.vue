@@ -59,6 +59,9 @@
               'custom-node-focused': data.id === focusedNodeId
             }"
           >
+            <!-- 顶部连接点（用于接收连接） -->
+            <Handle :id="`${data.id}-top`" type="target" position="top" class="handle handle-top" />
+
             <!-- 左侧连接点（用于接收连接） -->
             <Handle
               :id="`${data.id}-left`"
@@ -99,6 +102,14 @@
               type="source"
               position="right"
               class="handle handle-right"
+            />
+
+            <!-- 底部连接点（用于发送连接） -->
+            <Handle
+              :id="`${data.id}-bottom`"
+              type="source"
+              position="bottom"
+              class="handle handle-bottom"
             />
           </div>
         </template>
@@ -408,7 +419,11 @@ const handlePaneClick = () => {
 // 运行浏览器节点
 const runBrowserNode = async () => {
   try {
-    if (!selectedNode.value || !selectedNode.value.data || selectedNode.value.data.type !== 'BROWSER_OPEN') {
+    if (
+      !selectedNode.value ||
+      !selectedNode.value.data ||
+      selectedNode.value.data.type !== 'BROWSER_OPEN'
+    ) {
       return
     }
 
@@ -715,63 +730,183 @@ const centerCanvas = () => {
   }
 }
 
-// 使用 dagre 库的布局算法
-const layout = (nodes, edges, direction) => {
-  try {
-    // 调用从 useLayout composable 导入的 dagre 布局函数
-    return dagreLayout(nodes, edges, direction)
-  } catch (error) {
-    console.warn('Dagre布局失败，使用备选布局方案:', error)
-
-    // 复制节点数组以避免直接修改原始数据
-    const newNodes = [...nodes]
-
-    // 如果没有节点，直接返回
-    if (newNodes.length === 0) {
-      return newNodes
-    }
-
-    // 简单备选布局算法
-    const nodeGap = 150
-    const centerOffset = 200
-
-    newNodes.forEach((node, index) => {
-      if (direction === 'TB') {
-        // 垂直布局 (top to bottom) - 简单线性排列
-        node.position.x = centerOffset
-        node.position.y = 100 + index * nodeGap
-      } else {
-        // 水平布局 (left to right) - 简单线性排列
-        node.position.x = 100 + index * nodeGap
-        node.position.y = centerOffset
-      }
-    })
-
-    return newNodes
-  }
-}
-
 // 执行布局
 const layoutGraph = async (direction) => {
   try {
-    let workflowData = exportWorkflowData()
-    console.log('workflowData:', workflowData.elements)
-    console.log('workflowData:', workflowData.edges)
-    // 执行布局算法
-    const newNodes = layout(workflowData.elements, workflowData.edges, direction)
+    // 导出工作流数据
+    const workflowData = exportWorkflowData()
+
+    // 验证数据有效性
+    if (!workflowData.elements || !Array.isArray(workflowData.elements)) {
+      throw new Error('无效的工作流元素数据')
+    }
+
+    if (!workflowData.edges || !Array.isArray(workflowData.edges)) {
+      // 如果没有边数据，创建一个空数组
+      workflowData.edges = []
+    }
+
+    // 创建节点和边的副本，避免直接修改原始数据
+    const nodesCopy = JSON.parse(JSON.stringify(workflowData.elements))
+    const edgesCopy = JSON.parse(JSON.stringify(workflowData.edges))
+
+    // 根据方向选择布局函数
+    let newNodes
+    if (direction === 'TB') {
+      // 使用专门优化的垂直布局
+      newNodes = dagreLayout(nodesCopy, edgesCopy, direction)
+    } else {
+      // 使用专门优化的水平布局
+      newNodes = dagreLayout(nodesCopy, edgesCopy, direction)
+    }
+
+    // 验证布局结果
+    if (!newNodes || !Array.isArray(newNodes)) {
+      throw new Error('布局算法返回无效结果')
+    }
 
     // 更新节点位置
-    elements.value = newNodes
+    // 创建一个映射，以便快速查找和更新节点
+    const nodesMap = new Map(elements.value.map((node) => [node.id, node]))
+
+    // 逐个更新节点位置，保留原始对象引用
+    newNodes.forEach((layoutNode) => {
+      const existingNode = nodesMap.get(layoutNode.id)
+      if (existingNode) {
+        // 只更新位置信息，保持其他属性不变
+        existingNode.position = {
+          x: layoutNode.position.x || 0,
+          y: layoutNode.position.y || 0
+        }
+        // 更新连接点位置
+        if (layoutNode.sourcePosition) {
+          existingNode.sourcePosition = layoutNode.sourcePosition
+        }
+        if (layoutNode.targetPosition) {
+          existingNode.targetPosition = layoutNode.targetPosition
+        }
+      }
+    })
+
+    // 更新现有边的连接点方向，确保连接线方向符合当前布局
+    edges.value.forEach((edge) => {
+      const sourceNode = nodesMap.get(edge.source)
+      const targetNode = nodesMap.get(edge.target)
+
+      if (sourceNode && targetNode) {
+        // 根据布局方向设置边的连接点
+        if (direction === 'TB') {
+          // 垂直布局时，使用上下连接点
+          edge.sourceHandle = `${edge.source}-bottom`
+          edge.targetHandle = `${edge.target}-top`
+        } else {
+          // 水平布局时，使用左右连接点
+          edge.sourceHandle = `${edge.source}-right`
+          edge.targetHandle = `${edge.target}-left`
+        }
+      }
+    })
+
+    // 强制Vue响应式更新
+    elements.value = [...elements.value]
+    edges.value = [...edges.value]
 
     // 使用nextTick确保DOM更新后再调整视图
     await nextTick()
 
     // 调整视图以适应所有节点
     if (vueFlowRef.value) {
-      vueFlowRef.value.fitView()
+      // 添加延迟以确保所有DOM操作完成
+      setTimeout(() => {
+        if (vueFlowRef.value) {
+          // 设置适当的padding，使布局看起来更美观
+          vueFlowRef.value.fitView({ padding: 50 })
+        }
+      }, 100)
     }
+
+    console.log(`成功应用${direction === 'TB' ? '垂直' : '水平'}布局`)
   } catch (error) {
     console.error('执行布局时出错:', error)
+
+    // 备选布局方案 - 当主要布局失败时使用
+    try {
+      const workflowData = exportWorkflowData()
+
+      // 简单备选布局算法 - 优化版
+      const nodeGap = direction === 'TB' ? 180 : 200
+      const centerOffset = 250
+      const startPos = 100
+
+      // 尝试根据连接关系进行排序，使相关节点更接近
+      let sortedNodes = [...workflowData.elements]
+
+      if (workflowData.edges && workflowData.edges.length > 0) {
+        // 简单的拓扑排序尝试
+        const sourceNodes = new Set(workflowData.edges.map((e) => e.source))
+        const targetNodes = new Set(workflowData.edges.map((e) => e.target))
+
+        // 找出起始节点（只有作为源节点，不是目标节点的节点）
+        const startNodes = [...sourceNodes].filter((id) => !targetNodes.has(id))
+
+        if (startNodes.length > 0) {
+          // 优先放置起始节点
+          const ordered = []
+          const remaining = new Set(sortedNodes.map((n) => n.id))
+
+          // 先添加所有起始节点
+          startNodes.forEach((id) => {
+            if (remaining.has(id)) {
+              ordered.push(sortedNodes.find((n) => n.id === id))
+              remaining.delete(id)
+            }
+          })
+
+          // 然后添加剩余节点
+          remaining.forEach((id) => {
+            ordered.push(sortedNodes.find((n) => n.id === id))
+          })
+
+          sortedNodes = ordered
+        }
+      }
+
+      // 创建节点的副本并应用备选布局
+      const fallbackNodes = sortedNodes.map((node, index) => {
+        const newNode = { ...node }
+
+        if (direction === 'TB') {
+          // 垂直布局 (top to bottom) - 优化版线性排列
+          newNode.position = {
+            x: centerOffset,
+            y: startPos + index * nodeGap
+          }
+        } else {
+          // 水平布局 (left to right) - 优化版线性排列
+          newNode.position = {
+            x: startPos + index * nodeGap,
+            y: centerOffset
+          }
+        }
+
+        return newNode
+      })
+
+      // 更新节点位置
+      elements.value = fallbackNodes
+
+      // 调整视图
+      await nextTick()
+      if (vueFlowRef.value) {
+        vueFlowRef.value.fitView({ padding: 50 })
+      }
+
+      console.log(`成功应用备选${direction === 'TB' ? '垂直' : '水平'}布局`)
+    } catch (fallbackError) {
+      console.error('备选布局也失败:', fallbackError)
+      // 显示错误消息给用户
+      ElMessage.error('布局失败，请尝试重新调整节点位置')
+    }
   }
 }
 
@@ -1068,20 +1203,7 @@ defineExpose({
 .handle:hover,
 .custom-node:hover .handle {
   opacity: 1;
-  transform: scale(1.1);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-/* 重置左侧连接点悬停的transform */
-.handle-left:hover,
-.custom-node:hover .handle-left {
-  transform: translateY(-50%) scale(1.1);
-}
-
-/* 重置右侧连接点悬停的transform */
-.handle-right:hover,
-.custom-node:hover .handle-right {
-  transform: translateY(-50%) scale(1.1);
 }
 
 /* 节点状态样式 */
