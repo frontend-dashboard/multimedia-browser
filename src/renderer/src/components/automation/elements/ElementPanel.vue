@@ -417,6 +417,13 @@ const allElements = [
     category: 'data'
   },
   {
+    type: 'GET_PAGE_ELEMENTS',
+    name: '获取页面元素',
+    description: '获取页面中指定选择器的所有元素信息',
+    icon: 'DataAnalysis',
+    category: 'data'
+  },
+  {
     type: 'SAVE_DATA',
     name: '保存数据',
     description: '将数据保存到变量或文件',

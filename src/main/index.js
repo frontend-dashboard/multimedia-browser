@@ -329,6 +329,98 @@ app.whenReady().then(() => {
         console.error('关闭浏览器时出错:', error)
         return { success: false, error: error.message }
       }
+    },
+
+    // 获取页面元素
+    async getPageElements(params) {
+      const { browserId, selector = '*', extractDetails = true, variableName } = params
+
+      try {
+        // 检查是否有指定ID的浏览器实例
+        if (activeBrowsers.has(browserId)) {
+          const browserInstance = activeBrowsers.get(browserId)
+          const context = browserInstance.context
+          
+          // 获取当前活动页面
+          const pages = await context.pages()
+          if (pages.length === 0) {
+            return { success: false, error: '没有找到活动页面' }
+          }
+          
+          // 获取第一个页面（可以根据需求调整为获取活动页面）
+          const page = pages[0]
+          
+          console.log(`获取页面元素: 浏览器ID=${browserId}, 选择器=${selector}`)
+          
+          // 使用选择器查找元素
+          const elements = await page.$$(selector)
+          
+          // 提取元素信息
+          const extractedElements = []
+          
+          for (let i = 0; i < elements.length; i++) {
+            const element = elements[i]
+            const elementInfo = {
+              index: i,
+              selector: selector,
+              tagName: ''
+            }
+            
+            if (extractDetails) {
+              // 提取基本信息
+              try {
+                const tagName = await element.evaluate(el => el.tagName.toLowerCase())
+                const text = await element.textContent()
+                const attributes = await element.evaluate(el => {
+                  const attrs = {};
+                  for (let i = 0; i < el.attributes.length; i++) {
+                    attrs[el.attributes[i].name] = el.attributes[i].value;
+                  }
+                  return attrs;
+                })
+                const boundingBox = await element.boundingBox()
+                const isVisible = await element.isVisible()
+                const isEnabled = await element.isEnabled()
+                
+                elementInfo.tagName = tagName
+                elementInfo.text = text.trim()
+                elementInfo.attributes = attributes
+                elementInfo.boundingBox = boundingBox
+                elementInfo.isVisible = isVisible
+                elementInfo.isEnabled = isEnabled
+              } catch (error) {
+                console.warn(`提取元素${i}的详细信息时出错:`, error)
+                // 如果提取详细信息失败，继续处理下一个元素
+              }
+            } else {
+              // 只提取基本标签名
+              try {
+                const tagName = await element.evaluate(el => el.tagName.toLowerCase())
+                elementInfo.tagName = tagName
+              } catch (error) {
+                console.warn(`提取元素${i}的标签名时出错:`, error)
+              }
+            }
+            
+            extractedElements.push(elementInfo)
+          }
+          
+          console.log(`成功获取${extractedElements.length}个元素信息`)
+          
+          return {
+            success: true,
+            elements: extractedElements,
+            elementCount: extractedElements.length,
+            variableName: variableName
+          }
+        } else {
+          console.warn(`未找到浏览器实例: ${browserId}`)
+          return { success: false, error: '未找到指定的浏览器实例' }
+        }
+      } catch (error) {
+        console.error('获取页面元素时出错:', error)
+        return { success: false, error: error.message }
+      }
     }
   }
 
@@ -339,6 +431,11 @@ app.whenReady().then(() => {
 
   ipcMain.handle('browser-automation-close-browser', async (_, browserId) => {
     return await browserAutomation.closeBrowser(browserId)
+  })
+
+  // 处理获取页面元素
+  ipcMain.handle('browser-automation-get-page-elements', async (_, params) => {
+    return await browserAutomation.getPageElements(params)
   })
 
   // 处理打开目录对话框

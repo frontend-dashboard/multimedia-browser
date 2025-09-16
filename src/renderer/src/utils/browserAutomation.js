@@ -383,6 +383,46 @@ class BrowserAutomation {
   getBrowser() {
     return this.browser
   }
+
+  // 获取页面元素信息
+  async getPageElements(params = {}) {
+    try {
+      const { browserId = '', selector = '*', extractDetails = false } = params
+
+      if (process.env.NODE_ENV === 'development' && !this.isElectron) {
+        console.log('模拟获取页面元素:', selector, { extractDetails })
+        // 返回模拟数据
+        return {
+          success: true,
+          elements: [
+            {
+              tagName: 'div',
+              text: '模拟元素1',
+              attributes: { class: 'test-class', id: 'test-id-1' }
+            },
+            {
+              tagName: 'span',
+              text: '模拟元素2',
+              attributes: { class: 'test-span' }
+            }
+          ]
+        }
+      }
+
+      if (this.isElectron && window.electron.browserAutomation) {
+        return await window.electron.browserAutomation.getPageElements({
+          browserId,
+          selector,
+          extractDetails
+        })
+      }
+
+      throw new Error('获取页面元素失败')
+    } catch (error) {
+      console.error('获取页面元素失败:', error)
+      return { success: false, error: error.message }
+    }
+  }
 }
 
 // 导出单例实例

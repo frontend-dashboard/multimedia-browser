@@ -433,6 +433,25 @@ const executeElementAction = async (element) => {
         break
       }
 
+      case 'GET_PAGE_ELEMENTS': {
+        const browserId = getParamValue('browserId', '')
+        const selector = getParamValue('selector', '*')
+        const extractDetails = getParamValue('extractDetails', false)
+        const variableName = getParamValue('variableName', 'pageElements')
+
+        addLog('info', `正在获取页面元素，选择器：${selector}${extractDetails ? '（包含详细信息）' : ''}`)
+
+        // 获取页面元素
+        const result = await browserAutomation.getPageElements({
+          browserId,
+          selector,
+          extractDetails
+        })
+
+        addLog('success', `已成功获取 ${result.elements.length} 个页面元素到变量 ${variableName}`)
+        break
+      }
+
       default: {
         addLog('warn', `未知元件类型：${element.type}`)
         break

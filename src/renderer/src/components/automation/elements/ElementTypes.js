@@ -220,12 +220,46 @@ const ElementTypes = {
     params: [
       { key: 'data', label: '数据', type: 'string', required: true, defaultValue: '' },
       { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
+      { key: 'format', label: '文件格式', type: 'select', options: ['txt', 'json', 'csv'], defaultValue: 'txt' }
+    ]
+  },
+  
+  // 页面元素获取元件
+  GET_PAGE_ELEMENTS: {
+    type: 'GET_PAGE_ELEMENTS',
+    name: '获取页面元素',
+    description: '获取当前页面中的所有或指定的元素信息',
+    icon: 'Filter',
+    params: [
       {
-        key: 'format',
-        label: '文件格式',
-        type: 'select',
-        options: ['txt', 'json', 'csv'],
-        defaultValue: 'txt'
+        key: 'browserId',
+        label: '浏览器ID',
+        type: 'string',
+        required: true,
+        defaultValue: '',
+        description: '打开的浏览器实例ID，用于识别目标浏览器'
+      },
+      {
+        key: 'selector',
+        label: '元素选择器',
+        type: 'string',
+        defaultValue: '*',
+        description: 'CSS选择器，默认为"*"获取所有元素'
+      },
+      {
+        key: 'extractDetails',
+        label: '提取详细信息',
+        type: 'boolean',
+        defaultValue: true,
+        description: '是否提取元素的详细信息（如属性、文本内容等）'
+      },
+      {
+        key: 'variableName',
+        label: '变量名',
+        type: 'string',
+        required: true,
+        defaultValue: 'pageElements',
+        description: '存储提取的元素信息的变量名称'
       }
     ]
   }
