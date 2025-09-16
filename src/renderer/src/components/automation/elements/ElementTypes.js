@@ -972,7 +972,7 @@ const ElementInitializer = {
         })
 
         // 输入文本
-        await browserAutomation.inputText({ browserId, selector, text })
+        await browserAutomation.inputText({ browserId, selector, text, clearBefore })
 
         addLog('success', `文本已成功输入到：${selector}`)
         return { success: true }

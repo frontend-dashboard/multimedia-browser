@@ -228,17 +228,18 @@ app.whenReady().then(() => {
             // 监听页面关闭事件，检查是否需要自动关闭浏览器
             page.on('close', async () => {
               try {
-                // 获取所有页面
-                const pages = await context.pages()
-                // 如果没有页面了，自动关闭浏览器
-                if (pages.length === 0) {
-                  console.log(`浏览器${browserId}中没有页面了，自动关闭`)
-                  await browser.close()
-                  activeBrowsers.delete(browserId)
+                  // 获取所有页面
+                  const pages = await context.pages()
+                  // 如果没有页面了，自动关闭浏览器
+                  if (pages.length === 0) {
+                    console.log(`浏览器实例中没有页面了，自动关闭`)
+                    await browser.close()
+                    // 这里不能直接使用browserId，因为它还没有定义
+                    // 浏览器关闭后会触发disconnected事件，在那里删除实例
+                  }
+                } catch (error) {
+                  console.error('检查页面数量时出错:', error)
                 }
-              } catch (error) {
-                console.error('检查页面数量时出错:', error)
-              }
             })
           } else {
             // 创建新页面
@@ -268,9 +269,10 @@ app.whenReady().then(() => {
                 const pages = await context.pages()
                 // 如果没有页面了，自动关闭浏览器
                 if (pages.length === 0) {
-                  console.log(`浏览器${browserId}中没有页面了，自动关闭`)
+                  console.log(`浏览器实例中没有页面了，自动关闭`)
                   await browser.close()
-                  activeBrowsers.delete(browserId)
+                  // 这里不能直接使用browserId，因为它还没有定义
+                  // 浏览器关闭后会触发disconnected事件，在那里删除实例
                 }
               } catch (error) {
                 console.error('检查页面数量时出错:', error)
@@ -488,7 +490,7 @@ app.whenReady().then(() => {
 
     // 输入文本
     async inputText(params) {
-      const { browserId, selector, text, timeout = 30000 } = params
+      const { browserId, selector, text, clearBefore = true, timeout = 30000 } = params
 
       try {
         if (activeBrowsers.has(browserId)) {
@@ -501,11 +503,19 @@ app.whenReady().then(() => {
           }
 
           const page = pages[0]
-          console.log(`输入文本: 浏览器ID=${browserId}, 选择器=${selector}, 文本=${text}`)
+          console.log(`输入文本: 浏览器ID=${browserId}, 选择器=${selector}, 文本=${text}, clearBefore=${clearBefore}`)
 
-          // 等待元素出现并输入文本
+          // 等待元素出现
           await page.waitForSelector(selector, { timeout })
-          await page.fill(selector, text)
+          
+          // 根据clearBefore决定输入方式
+          if (clearBefore) {
+            // 清空并输入文本
+            await page.fill(selector, text)
+          } else {
+            // 不清空，直接添加文本
+            await page.type(selector, text)
+          }
 
           console.log(`成功输入文本: ${text}`)
           return { success: true }
@@ -594,12 +604,15 @@ app.whenReady().then(() => {
         const resolvedPath = filePath.replace(/^~/, process.env.HOME || process.env.USERPROFILE)
         console.log(`保存文件到: ${resolvedPath}`)
 
+        // 确保content不是undefined
+        const safeContent = content || ''
+        
         // 确保目录存在
         const dirPath = join(resolvedPath, '..')
         await fs.mkdir(dirPath, { recursive: true })
 
         // 写入文件
-        await fs.writeFile(resolvedPath, content, 'utf8')
+        await fs.writeFile(resolvedPath, safeContent, 'utf8')
 
         console.log(`文件保存成功: ${resolvedPath}`)
         return { success: true, filePath: resolvedPath }

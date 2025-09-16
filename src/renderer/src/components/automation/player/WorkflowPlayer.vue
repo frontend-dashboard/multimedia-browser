@@ -171,8 +171,8 @@ const startTime = ref(0)
 const elapsedTime = ref(0)
 let timeInterval = null
 
-// 浏览器状态
-let currentBrowserId = null
+// 浏览器状态 - 使用ref使其成为响应式变量
+const currentBrowserId = ref(null)
 
 // 执行日志相关变量
 const logs = ref([])
@@ -278,15 +278,26 @@ const getParamValue = (paramName, defaultValue, element) => {
 }
 
 // 执行单个元件
+// 需要浏览器的元件类型列表
+const BROWSER_REQUIRED_ELEMENTS = ['CLICK_ELEMENT', 'INPUT_TEXT', 'EXTRACT_DATA', 'WAIT']
+
 const executeElement = async (element) => {
   try {
     currentElement.value = element
     addLog('info', `开始执行：${element.name}`, element)
+    // 添加调试日志跟踪currentBrowserId
+    addLog('debug', `当前浏览器ID: ${currentBrowserId.value}`)
+
+    // 检查是否需要浏览器但没有浏览器实例
+    if (BROWSER_REQUIRED_ELEMENTS.includes(element.type) && !currentBrowserId.value) {
+      addLog('debug', `元件${element.name}(${element.type})需要浏览器，但currentBrowserId为null`)
+      throw new Error('请先执行"打开浏览器"元件来创建浏览器实例')
+    }
 
     // 使用ElementInitializer执行元件
     const executionResult = await Initializer.executeElement(element.type, {
       element,
-      browserId: currentBrowserId,
+      browserId: currentBrowserId.value,
       browserAutomation,
       playbackSpeed: playbackSpeed.value,
       addLog,
@@ -295,7 +306,8 @@ const executeElement = async (element) => {
 
     // 如果是打开浏览器操作，更新当前浏览器ID
     if (element.type === 'BROWSER_OPEN' && executionResult.browserId) {
-      currentBrowserId = executionResult.browserId
+      addLog('debug', `浏览器打开成功，设置currentBrowserId为: ${executionResult.browserId}`)
+      currentBrowserId.value = executionResult.browserId
       currentBrowserUrl.value = executionResult.url
       showBrowserPreview.value = true
     }
@@ -456,11 +468,11 @@ onUnmounted(() => {
 
   stopTimer()
   // 确保在组件卸载时关闭浏览器
-  if (currentBrowserId) {
-    browserAutomation.closeBrowser(currentBrowserId).catch((err) => {
+  if (currentBrowserId.value) {
+    browserAutomation.closeBrowser(currentBrowserId.value).catch((err) => {
       console.error('关闭浏览器时出错:', err)
     })
-    currentBrowserId = null
+    currentBrowserId.value = null
   }
   addLog('info', '播放器已卸载')
 })
