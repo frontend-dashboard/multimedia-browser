@@ -1,412 +1,432 @@
-// 浏览器自动化工具类 - 基于Playwright
-// 注意：在Electron中，这个类的实现会分为渲染进程和主进程两部分
-// 渲染进程中只包含API接口定义和事件系统，实际功能由主进程通过IPC实现
-
 class BrowserAutomation {
   constructor() {
-    this.isInitialized = false
-    this.eventHandlers = {}
-    this.browserType = 'chromium'
-    this.browser = null
-    this.page = null
-
-    // 在Electron渲染进程中，尝试通过window.electron获取主进程API
-    this.isElectron = typeof window !== 'undefined' && window.electron
+    this.isElectron = typeof window !== 'undefined' && window.process?.type === 'renderer';
+    this.events = new Map();
+    this.browserInstances = new Map();
   }
 
   // 初始化浏览器
-  async initialize(options = {}) {
+  async initialize() {
     try {
-      // 在开发模式下，如果不是Electron环境，提供模拟实现
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟初始化浏览器，选项:', options)
-        this.isInitialized = true
-        return true
+        console.log('模拟浏览器初始化');
+        return { success: true, browserId: 'mock-browser' };
       }
 
-      // 在Electron环境中，通过IPC调用主进程的初始化方法
       if (this.isElectron && window.electron.browserAutomation) {
-        const result = await window.electron.browserAutomation.initialize(options)
-        this.isInitialized = result.success
-        return result.success
+        return await window.electron.browserAutomation.initialize();
       }
 
-      throw new Error('浏览器自动化功能不可用')
+      throw new Error('浏览器初始化失败');
     } catch (error) {
-      console.error('初始化浏览器失败:', error)
-      return false
+      console.error('浏览器初始化失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
-  // 打开指定URL
-  async openUrl(url) {
+  // 打开URL
+  async openUrl({ browserId, url, newTab = false }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟打开URL:', url)
-        this.emit('pageLoaded', url)
-        return { success: true, url }
+        console.log('模拟打开URL:', url);
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.openUrl(url)
+        return await window.electron.browserAutomation.openUrl({ browserId, url, newTab });
       }
 
-      throw new Error('打开URL失败')
+      throw new Error('打开URL失败');
     } catch (error) {
-      console.error('打开URL失败:', error)
-      return { success: false, error: error.message }
+      console.error('打开URL失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 关闭浏览器
-  async close() {
+  async closeBrowser(browserId) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟关闭浏览器')
-        this.isInitialized = false
-        return { success: true }
+        console.log('模拟关闭浏览器');
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        const result = await window.electron.browserAutomation.close()
-        this.isInitialized = !result.success
-        return result
+        return await window.electron.browserAutomation.closeBrowser(browserId);
       }
 
-      throw new Error('关闭浏览器失败')
+      throw new Error('关闭浏览器失败');
     } catch (error) {
-      console.error('关闭浏览器失败:', error)
-      return { success: false, error: error.message }
+      console.error('关闭浏览器失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 点击元素
-  async clickElement(selector, options = {}) {
+  async clickElement({ browserId, selector, waitForNavigation = false }) {
     try {
-      const { waitForNavigation = true, clickCount = 1 } = options
-
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟点击元素:', selector, { waitForNavigation, clickCount })
-        if (waitForNavigation) {
-          // 模拟导航延迟
-          await new Promise((resolve) => setTimeout(resolve, 500))
-          this.emit('pageLoaded', 'https://example.com/navigated')
-        }
-        return { success: true, selector }
+        console.log('模拟点击元素:', selector);
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.clickElement(selector, {
-          waitForNavigation,
-          clickCount
-        })
+        return await window.electron.browserAutomation.clickElement({ browserId, selector, waitForNavigation });
       }
 
-      throw new Error('点击元素失败')
+      throw new Error('点击元素失败');
     } catch (error) {
-      console.error(`点击元素失败 (${selector}):`, error)
-      return { success: false, error: error.message, selector }
+      console.error('点击元素失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 输入文本
-  async inputText(selector, text, options = {}) {
+  async inputText({ browserId, selector, text }) {
     try {
-      const { clearBefore = true } = options
-
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟输入文本:', selector, text, { clearBefore })
-        return { success: true, selector, text }
+        console.log('模拟输入文本到元素:', selector);
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.inputText(selector, text, {
-          clearBefore
-        })
+        return await window.electron.browserAutomation.inputText({ browserId, selector, text });
       }
 
-      throw new Error('输入文本失败')
+      throw new Error('输入文本失败');
     } catch (error) {
-      console.error(`输入文本失败 (${selector}):`, error)
-      return { success: false, error: error.message, selector, text }
+      console.error('输入文本失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 提取数据
-  async extractData(selector, extractType = 'text', attributeName = 'href') {
+  async extractData({ browserId, selector, extractType = 'text', attribute = '' }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟提取数据:', selector, extractType, attributeName)
-        // 返回模拟数据
-        const mockData = {
-          text: '模拟文本内容',
-          attribute: 'https://example.com',
-          html: '<div>模拟HTML内容</div>',
-          value: '模拟输入值'
-        }
-        return { success: true, data: mockData[extractType] || mockData.text }
+        console.log('模拟提取数据:', selector);
+        // 模拟数据返回
+        const mockData = extractType === 'text' ? '模拟提取的文本数据' : 
+                       extractType === 'attribute' ? '模拟属性值' : 
+                       extractType === 'html' ? '<div>模拟HTML内容</div>' : 
+                       '模拟数据';
+        return { success: true, data: mockData };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.extractData(
-          selector,
-          extractType,
-          attributeName
-        )
+        return await window.electron.browserAutomation.extractData({ browserId, selector, extractType, attribute });
       }
 
-      throw new Error('提取数据失败')
+      throw new Error('提取数据失败');
     } catch (error) {
-      console.error(`提取数据失败 (${selector}):`, error)
-      return { success: false, error: error.message, selector }
+      console.error('提取数据失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 选择下拉菜单选项
-  async selectOption(selector, value) {
+  async selectOption({ browserId, selector, value, label }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟选择选项:', selector, value)
-        return { success: true, selector, value }
+        console.log('模拟选择下拉菜单选项:', value || label);
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.selectOption(selector, value)
+        return await window.electron.browserAutomation.selectOption({ browserId, selector, value, label });
       }
 
-      throw new Error('选择选项失败')
+      throw new Error('选择下拉菜单选项失败');
     } catch (error) {
-      console.error(`选择选项失败 (${selector}):`, error)
-      return { success: false, error: error.message, selector, value }
+      console.error('选择下拉菜单选项失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 滚动页面
-  async scrollPage(x = 0, y = 500) {
+  async scrollPage({ browserId, selector, x = 0, y = 0, behavior = 'smooth' }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟滚动页面:', x, y)
-        return { success: true, x, y }
+        console.log('模拟滚动页面');
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.scrollPage(x, y)
+        return await window.electron.browserAutomation.scrollPage({ browserId, selector, x, y, behavior });
       }
 
-      throw new Error('滚动页面失败')
+      throw new Error('滚动页面失败');
     } catch (error) {
-      console.error('滚动页面失败:', error)
-      return { success: false, error: error.message, x, y }
+      console.error('滚动页面失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 刷新页面
-  async refreshPage() {
+  async refreshPage(browserId) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟刷新页面')
-        this.emit('pageLoaded', 'https://example.com/refreshed')
-        return { success: true }
+        console.log('模拟刷新页面');
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.refreshPage()
+        return await window.electron.browserAutomation.refreshPage(browserId);
       }
 
-      throw new Error('刷新页面失败')
+      throw new Error('刷新页面失败');
     } catch (error) {
-      console.error('刷新页面失败:', error)
-      return { success: false, error: error.message }
+      console.error('刷新页面失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 悬停元素
-  async hoverElement(selector) {
+  async hoverElement({ browserId, selector }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟悬停元素:', selector)
-        return { success: true, selector }
+        console.log('模拟悬停元素:', selector);
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.hoverElement(selector)
+        return await window.electron.browserAutomation.hoverElement({ browserId, selector });
       }
 
-      throw new Error('悬停元素失败')
+      throw new Error('悬停元素失败');
     } catch (error) {
-      console.error(`悬停元素失败 (${selector}):`, error)
-      return { success: false, error: error.message, selector }
+      console.error('悬停元素失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
-  // 获取当前页面URL
-  getCurrentUrl() {
-    if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-      return 'https://example.com'
-    }
+  // 获取当前URL
+  async getCurrentUrl(browserId) {
+    try {
+      if (process.env.NODE_ENV === 'development' && !this.isElectron) {
+        console.log('模拟获取当前URL');
+        return { success: true, url: 'https://example.com/mock-url' };
+      }
 
-    if (this.isElectron && window.electron.browserAutomation) {
-      return window.electron.browserAutomation.getCurrentUrl() || null
-    }
+      if (this.isElectron && window.electron.browserAutomation) {
+        return await window.electron.browserAutomation.getCurrentUrl(browserId);
+      }
 
-    return null
+      throw new Error('获取当前URL失败');
+    } catch (error) {
+      console.error('获取当前URL失败:', error);
+      return { success: false, error: error.message };
+    }
   }
 
   // 获取页面标题
-  async getPageTitle() {
+  async getPageTitle(browserId) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        return '模拟页面标题'
+        console.log('模拟获取页面标题');
+        return { success: true, title: '模拟页面标题' };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.getPageTitle()
+        return await window.electron.browserAutomation.getPageTitle(browserId);
       }
 
-      return null
+      throw new Error('获取页面标题失败');
     } catch (error) {
-      console.error('获取页面标题失败:', error)
-      return null
+      console.error('获取页面标题失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
-  // 截图功能
-  async takeScreenshot(path = null) {
+  // 截图
+  async takeScreenshot({ browserId, selector = '', path = '' }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟截图:', path)
-        return Buffer.from('模拟截图数据')
+        console.log('模拟截图');
+        return { success: true, screenshotPath: '/mock/screenshot.png' };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.takeScreenshot(path)
+        return await window.electron.browserAutomation.takeScreenshot({ browserId, selector, path });
       }
 
-      throw new Error('截图失败')
+      throw new Error('截图失败');
     } catch (error) {
-      console.error('截图失败:', error)
-      return null
+      console.error('截图失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 等待元素可见
-  async waitForElementVisible(selector, timeout = 5000) {
+  async waitForElement({ browserId, selector, timeout = 5000 }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟等待元素可见:', selector, timeout)
-        // 模拟等待
-        await new Promise((resolve) => setTimeout(resolve, 100))
-        return { success: true, selector }
+        console.log('模拟等待元素可见:', selector);
+        return { success: true };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.waitForElementVisible(selector, timeout)
+        return await window.electron.browserAutomation.waitForElement({ browserId, selector, timeout });
       }
 
-      throw new Error('等待元素可见失败')
+      throw new Error('等待元素可见失败');
     } catch (error) {
-      console.error(`等待元素可见失败 (${selector}):`, error)
-      return { success: false, error: error.message, selector }
+      console.error('等待元素可见失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 等待特定时间
-  async waitForTimeout(milliseconds) {
+  async wait({ browserId, milliseconds }) {
     try {
-      // 在任何环境中都可以直接实现等待
-      await new Promise((resolve) => setTimeout(resolve, milliseconds))
-      return { success: true, milliseconds }
+      if (process.env.NODE_ENV === 'development' && !this.isElectron) {
+        console.log('模拟等待:', milliseconds, '毫秒');
+        return new Promise(resolve => {
+          setTimeout(() => resolve({ success: true }), milliseconds);
+        });
+      }
+
+      if (this.isElectron && window.electron.browserAutomation) {
+        return await window.electron.browserAutomation.wait({ browserId, milliseconds });
+      }
+
+      throw new Error('等待失败');
     } catch (error) {
-      console.error(`等待超时失败:`, error)
-      return { success: false, error: error.message, milliseconds }
+      console.error('等待失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
   // 执行JavaScript代码
-  async evaluate(expression, ...args) {
+  async executeJavaScript({ browserId, code, args = [] }) {
     try {
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟执行JavaScript:', expression, args)
-        return { success: true, result: '模拟执行结果' }
+        console.log('模拟执行JavaScript代码');
+        return { success: true, result: '模拟JavaScript执行结果' };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
-        return await window.electron.browserAutomation.evaluate(expression, ...args)
+        return await window.electron.browserAutomation.executeJavaScript({ browserId, code, args });
       }
 
-      throw new Error('执行JavaScript失败')
+      throw new Error('执行JavaScript代码失败');
     } catch (error) {
-      console.error(`执行JavaScript失败:`, error)
-      return { success: false, error: error.message }
+      console.error('执行JavaScript代码失败:', error);
+      return { success: false, error: error.message };
     }
   }
 
-  // 事件系统 - 订阅事件
-  on(eventName, handler) {
-    if (!this.eventHandlers[eventName]) {
-      this.eventHandlers[eventName] = []
+  // 事件系统
+  on(event, callback) {
+    if (!this.events.has(event)) {
+      this.events.set(event, []);
     }
-    this.eventHandlers[eventName].push(handler)
+    this.events.get(event).push(callback);
   }
 
-  // 事件系统 - 取消订阅
-  off(eventName, handler) {
-    if (this.eventHandlers[eventName]) {
-      this.eventHandlers[eventName] = this.eventHandlers[eventName].filter((h) => h !== handler)
-    }
-  }
-
-  // 事件系统 - 触发事件
-  emit(eventName, ...args) {
-    if (this.eventHandlers[eventName]) {
-      this.eventHandlers[eventName].forEach((handler) => {
-        try {
-          handler(...args)
-        } catch (error) {
-          console.error(`事件处理失败 (${eventName}):`, error)
-        }
-      })
+  off(event, callback) {
+    if (this.events.has(event)) {
+      const callbacks = this.events.get(event);
+      const index = callbacks.indexOf(callback);
+      if (index > -1) {
+        callbacks.splice(index, 1);
+      }
     }
   }
 
-  // 检查浏览器是否已初始化
-  isReady() {
-    return this.isInitialized
+  emit(event, data) {
+    if (this.events.has(event)) {
+      this.events.get(event).forEach(callback => callback(data));
+    }
   }
 
-  // 获取页面实例（仅供高级使用）
-  getPage() {
-    return this.page
-  }
-
-  // 获取浏览器实例（仅供高级使用）
-  getBrowser() {
-    return this.browser
-  }
-
-  // 获取页面元素信息
-  async getPageElements(params = {}) {
+  // 检查浏览器是否可用
+  isBrowserAvailable(browserId) {
     try {
-      const { browserId = '', selector = '*', extractDetails = false } = params
-
       if (process.env.NODE_ENV === 'development' && !this.isElectron) {
-        console.log('模拟获取页面元素:', selector, { extractDetails })
-        // 返回模拟数据
-        return {
-          success: true,
-          elements: [
-            {
-              tagName: 'div',
-              text: '模拟元素1',
-              attributes: { class: 'test-class', id: 'test-id-1' }
-            },
-            {
-              tagName: 'span',
-              text: '模拟元素2',
-              attributes: { class: 'test-span' }
+        return true;
+      }
+
+      if (this.isElectron && window.electron.browserAutomation) {
+        return window.electron.browserAutomation.isBrowserAvailable(browserId);
+      }
+
+      return false;
+    } catch (error) {
+      console.error('检查浏览器可用性失败:', error);
+      return false;
+    }
+  }
+
+  // 获取页面实例
+  async getPage(browserId) {
+    try {
+      if (process.env.NODE_ENV === 'development' && !this.isElectron) {
+        console.log('模拟获取页面实例');
+        return { success: true, page: { id: 'mock-page' } };
+      }
+
+      if (this.isElectron && window.electron.browserAutomation) {
+        return await window.electron.browserAutomation.getPage(browserId);
+      }
+
+      throw new Error('获取页面实例失败');
+    } catch (error) {
+      console.error('获取页面实例失败:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // 获取浏览器实例
+  async getBrowser(browserId) {
+    try {
+      if (process.env.NODE_ENV === 'development' && !this.isElectron) {
+        console.log('模拟获取浏览器实例');
+        return { success: true, browser: { id: browserId } };
+      }
+
+      if (this.isElectron && window.electron.browserAutomation) {
+        return await window.electron.browserAutomation.getBrowser(browserId);
+      }
+
+      throw new Error('获取浏览器实例失败');
+    } catch (error) {
+      console.error('获取浏览器实例失败:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // 获取页面元素
+  async getPageElements({ browserId, selector, extractDetails = false }) {
+    try {
+      if (process.env.NODE_ENV === 'development' && !this.isElectron) {
+        console.log('模拟获取页面元素:', selector);
+        // 模拟返回元素列表
+        const mockElements = [
+          {
+            tagName: 'div',
+            textContent: '模拟元素1',
+            id: 'element-1',
+            className: 'test-class',
+            selector: '#element-1',
+            attributes: {
+              id: 'element-1',
+              class: 'test-class'
             }
-          ]
-        }
+          },
+          {
+            tagName: 'button',
+            textContent: '点击按钮',
+            id: '',
+            className: 'btn btn-primary',
+            selector: '.btn.btn-primary',
+            attributes: {
+              class: 'btn btn-primary',
+              type: 'button'
+            }
+          }
+        ];
+        return { success: true, elements: mockElements };
       }
 
       if (this.isElectron && window.electron.browserAutomation) {
@@ -414,17 +434,19 @@ class BrowserAutomation {
           browserId,
           selector,
           extractDetails
-        })
+        });
       }
 
-      throw new Error('获取页面元素失败')
+      throw new Error('获取页面元素失败');
     } catch (error) {
-      console.error('获取页面元素失败:', error)
-      return { success: false, error: error.message }
+      console.error('获取页面元素失败:', error);
+      return { success: false, error: error.message };
     }
   }
+
+  // 已移除元素选择器相关功能
 }
 
 // 导出单例实例
-export const browserAutomation = new BrowserAutomation()
-export default browserAutomation
+export const browserAutomation = new BrowserAutomation();
+export default browserAutomation;

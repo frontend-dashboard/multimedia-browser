@@ -105,6 +105,8 @@
           <p v-if="currentBrowserUrl">当前URL: {{ currentBrowserUrl }}</p>
         </div>
       </div>
+
+
     </div>
   </div>
 </template>
@@ -118,6 +120,8 @@ import logger from '@renderer/utils/logger.js'
 
 // 导入浏览器自动化工具
 import browserAutomation from '@renderer/utils/browserAutomation.js'
+
+// 已移除元素选择器组件
 
 // Props
 const props = defineProps({
@@ -146,14 +150,43 @@ const startTime = ref(0)
 const elapsedTime = ref(0)
 let timeInterval = null
 
+// 浏览器状态
+let currentBrowserId = null
+
 // 执行日志
 const logs = ref([])
 const logContentRef = ref(null)
+let logUnsubscribe = null
 
 // 是否可以播放
 const canPlay = computed(() => {
   return props.workflow.elements && props.workflow.elements.length > 0
 })
+
+// 监听全局日志更新
+const handleGlobalLogUpdate = (newLog) => {
+  logs.value.push(newLog)
+  
+  // 限制日志数量
+  if (logs.value.length > 2000) {
+    logs.value = logs.value.slice(-1500)
+  }
+
+  // 自动滚动到底部
+  nextTick(() => {
+    if (logContentRef.value) {
+      // 检查是否需要自动滚动到底部
+      const shouldAutoScroll = 
+        !logContentRef.value.scrollTop ||
+        logContentRef.value.scrollTop === 
+          logContentRef.value.scrollHeight - logContentRef.value.clientHeight
+      
+      if (shouldAutoScroll) {
+        logContentRef.value.scrollTop = logContentRef.value.scrollHeight
+      }
+    }
+  })
+}
 
 // 获取播放状态文本
 const getPlayStateText = (state) => {
@@ -175,18 +208,8 @@ const formatTime = (ms) => {
   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-// 添加日志 - 同时发送到全局日志系统和组件内部日志
+// 添加日志 - 只发送到全局日志系统，不再添加到组件内部日志
 const addLog = (level, message, details = null) => {
-  const timestamp = new Date().toLocaleTimeString()
-
-  // 添加到组件内部日志（用于界面显示）
-  logs.value.push({
-    timestamp,
-    level,
-    message,
-    details
-  })
-
   // 发送到全局日志系统
   switch (level) {
     case 'debug':
@@ -205,17 +228,11 @@ const addLog = (level, message, details = null) => {
       logger.error(message, details)
       break
   }
-
-  // 自动滚动到底部
-  nextTick(() => {
-    if (logContentRef.value) {
-      logContentRef.value.scrollTop = logContentRef.value.scrollHeight
-    }
-  })
 }
 
 // 清除日志
 const clearLog = () => {
+  logger.clearLogs()
   logs.value = []
 }
 
@@ -305,13 +322,19 @@ const executeElementAction = async (element) => {
         addLog('info', `正在打开${browserType}浏览器：${url}`)
 
         // 初始化浏览器
-        await browserAutomation.initialize({
+        const initResult = await browserAutomation.initialize({
           browserType: playwrightBrowserType,
           headless: false
         })
-
-        // 打开URL
-        await browserAutomation.openUrl(url)
+        
+        if (initResult.success) {
+          currentBrowserId = initResult.browserId
+          
+          // 打开URL
+          await browserAutomation.openUrl({ browserId: currentBrowserId, url })
+        } else {
+          throw new Error('浏览器初始化失败: ' + initResult.error)
+        }
 
         currentBrowserUrl.value = url
         showBrowserPreview.value = true
@@ -322,7 +345,10 @@ const executeElementAction = async (element) => {
 
       case 'BROWSER_CLOSE': {
         addLog('info', '正在关闭浏览器')
-        await browserAutomation.close()
+        if (currentBrowserId) {
+          await browserAutomation.closeBrowser(currentBrowserId)
+          currentBrowserId = null
+        }
         showBrowserPreview.value = false
         addLog('success', '浏览器已成功关闭')
         break
@@ -340,13 +366,10 @@ const executeElementAction = async (element) => {
         addLog('info', `正在点击元素：${selector}${clickCount > 1 ? ` (${clickCount}次)` : ''}${waitForNavigation ? '（等待页面加载）' : ''}`)
 
         // 等待元素可见
-        await browserAutomation.waitForElementVisible(selector, 5000)
+        await browserAutomation.waitForElement({ browserId: currentBrowserId, selector, timeout: 5000 })
 
         // 点击元素
-        await browserAutomation.clickElement(selector, {
-          waitForNavigation,
-          clickCount
-        })
+        await browserAutomation.clickElement({ browserId: currentBrowserId, selector, waitForNavigation })
 
         addLog('success', `元素已成功点击：${selector}`)
         break
@@ -364,12 +387,10 @@ const executeElementAction = async (element) => {
         addLog('info', `正在${clearBefore ? '清空并' : ''}输入文本到 ${selector}：${text}`)
 
         // 等待元素可见
-        await browserAutomation.waitForElementVisible(selector, 5000)
+        await browserAutomation.waitForElement({ browserId: currentBrowserId, selector, timeout: 5000 })
 
         // 输入文本
-        await browserAutomation.inputText(selector, text, {
-          clearBefore
-        })
+        await browserAutomation.inputText({ browserId: currentBrowserId, selector, text })
 
         addLog('success', `文本已成功输入到：${selector}`)
         break
@@ -388,10 +409,10 @@ const executeElementAction = async (element) => {
         addLog('info', `正在从 ${selector} 提取 ${extractType} 数据到变量 ${variableName}`)
 
         // 等待元素可见
-        await browserAutomation.waitForElementVisible(selector, 5000)
+        await browserAutomation.waitForElement({ browserId: currentBrowserId, selector, timeout: 5000 })
 
         // 提取数据
-        const result = await browserAutomation.extractData(selector, extractType, attributeName)
+        const result = await browserAutomation.extractData({ browserId: currentBrowserId, selector, extractType, attribute: attributeName })
 
         // 模拟存储提取的数据到变量（实际应用中可能需要更复杂的变量管理系统）
         // 这里只是记录到日志中
@@ -406,7 +427,7 @@ const executeElementAction = async (element) => {
         addLog('info', `等待 ${waitSeconds} 秒`)
 
         // 实际等待指定的时间
-        await browserAutomation.waitForTimeout((waitSeconds * 1000) / playbackSpeed.value)
+        await browserAutomation.wait({ browserId: currentBrowserId, milliseconds: (waitSeconds * 1000) / playbackSpeed.value })
 
         addLog('success', `等待完成`)
         break
@@ -434,7 +455,6 @@ const executeElementAction = async (element) => {
       }
 
       case 'GET_PAGE_ELEMENTS': {
-        const browserId = getParamValue('browserId', '')
         const selector = getParamValue('selector', '*')
         const extractDetails = getParamValue('extractDetails', false)
         const variableName = getParamValue('variableName', 'pageElements')
@@ -443,7 +463,7 @@ const executeElementAction = async (element) => {
 
         // 获取页面元素
         const result = await browserAutomation.getPageElements({
-          browserId,
+          browserId: currentBrowserId,
           selector,
           extractDetails
         })
@@ -596,16 +616,28 @@ watch(
 
 // 生命周期钩子
 onMounted(() => {
+  // 初始时加载所有全局日志
+  logs.value = logger.getLogs()
+  
+  // 订阅全局日志更新
+  logUnsubscribe = logger.subscribeToLogs(handleGlobalLogUpdate)
+  
   addLog('info', '播放器已初始化')
 })
 // 生命周期钩子
 onUnmounted(() => {
+  // 取消日志订阅
+  if (typeof logUnsubscribe === 'function') {
+    logUnsubscribe()
+  }
+  
   stopTimer()
   // 确保在组件卸载时关闭浏览器
-  if (browserAutomation.isReady()) {
-    browserAutomation.close().catch((err) => {
+  if (currentBrowserId) {
+    browserAutomation.closeBrowser(currentBrowserId).catch((err) => {
       console.error('关闭浏览器时出错:', err)
     })
+    currentBrowserId = null
   }
   addLog('info', '播放器已卸载')
 })

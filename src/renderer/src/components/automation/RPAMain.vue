@@ -62,7 +62,7 @@
       </div>
 
       <!-- 右侧面板 - 标签页切换 -->
-      <div class="right-panel" :style="{ display: 'none' }">
+      <div class="right-panel">
         <!-- 标签页导航 -->
         <div class="right-panel-tabs">
           <div
@@ -70,25 +70,16 @@
             :class="{ active: activeTab === 'player' }"
             @click="switchTab('player')"
           >
-            播放器
-          </div>
-          <div
-            class="tab-item"
-            :class="{ active: activeTab === 'logs' }"
-            @click="switchTab('logs')"
-          >
-            日志查看
+            播放器 & 日志
           </div>
         </div>
 
         <!-- 标签页内容 -->
         <div class="right-panel-content">
           <WorkflowPlayer
-            v-if="activeTab === 'player'"
             ref="workflowPlayerRef"
             :workflow="workflow"
           />
-          <LogViewer v-else-if="activeTab === 'logs'" />
         </div>
       </div>
     </div>
@@ -116,7 +107,6 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import ElementPanel from './elements/ElementPanel.vue'
 import VueFlowEditor from './editor/VueFlowEditor.vue'
 import WorkflowPlayer from './player/WorkflowPlayer.vue'
-import LogViewer from '../LogViewer.vue'
 
 // 导入元件类型定义
 import ElementTypes from './elements/ElementTypes.js'
@@ -311,7 +301,7 @@ let themeCleanup = null
 // 切换标签页
 const switchTab = (tabName) => {
   activeTab.value = tabName
-  logger.info(`切换到${tabName === 'player' ? '播放器' : '日志查看器'}标签页`)
+  logger.info(`切换到播放器 & 日志标签页`)
 }
 
 // 格式化日期
