@@ -427,7 +427,7 @@ app.whenReady().then(() => {
 
     // 点击元素
     async clickElement(params) {
-      const { browserId, selector, timeout = 30000 } = params
+      const { browserId, selector, timeout = 30000, dryRun = false, waitForNavigation = false } = params
 
       try {
         if (activeBrowsers.has(browserId)) {
@@ -440,13 +440,26 @@ app.whenReady().then(() => {
           }
 
           const page = pages[0]
-          console.log(`点击元素: 浏览器ID=${browserId}, 选择器=${selector}`)
+          console.log(`点击元素: 浏览器ID=${browserId}, 选择器=${selector}, dryRun=${dryRun}`)
 
-          // 等待元素出现并点击
+          // 等待元素出现
           await page.waitForSelector(selector, { timeout })
-          await page.click(selector)
-
-          console.log(`成功点击元素: ${selector}`)
+          
+          // 如果不是dryRun模式，则执行点击操作
+          if (!dryRun) {
+            // 如果需要等待导航完成
+            if (waitForNavigation) {
+              const navigationPromise = page.waitForNavigation({ waitUntil: 'networkidle' })
+              await page.click(selector)
+              await navigationPromise
+            } else {
+              await page.click(selector)
+            }
+            console.log(`成功点击元素: ${selector}`)
+          } else {
+            console.log(`dryRun模式，已确认元素存在: ${selector}`)
+          }
+          
           return { success: true }
         } else {
           console.warn(`未找到浏览器实例: ${browserId}`)
@@ -493,7 +506,7 @@ app.whenReady().then(() => {
 
     // 提取数据
     async extractData(params) {
-      const { browserId, selector, extractType = 'text', timeout = 30000 } = params
+      const { browserId, selector, extractType = 'text', timeout = 30000, attribute, attributeName } = params
 
       try {
         if (activeBrowsers.has(browserId)) {
@@ -523,9 +536,9 @@ app.whenReady().then(() => {
               extractedData = await page.innerHTML(selector)
               break
             case 'attribute': {
-              // 如果是属性，需要指定属性名
-              const attributeName = params.attributeName || 'href'
-              extractedData = await page.getAttribute(selector, attributeName)
+              // 如果是属性，优先使用attribute参数，其次使用attributeName参数
+              const attrName = attribute || attributeName || 'href'
+              extractedData = await page.getAttribute(selector, attrName)
               break
             }
             case 'value':

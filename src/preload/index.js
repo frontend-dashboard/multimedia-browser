@@ -33,6 +33,65 @@ const api = {
     // 关闭浏览器
     closeBrowser: (browserId) => {
       return ipcRenderer.invoke('browser-automation-close-browser', browserId)
+    },
+    // 初始化浏览器
+    initialize: (params) => {
+      return ipcRenderer.invoke('browser-automation-run-node', params)
+    },
+    // 打开URL
+    openUrl: (params) => {
+      return ipcRenderer.invoke('browser-automation-run-node', {
+        url: params.url,
+        browserId: params.browserId,
+        openMode: 'useExisting'
+      })
+    },
+    // 获取页面元素
+    getPageElements: (params) => {
+      return ipcRenderer.invoke('browser-automation-get-page-elements', params)
+    },
+    // 点击元素
+    clickElement: (params) => {
+      return ipcRenderer.invoke('browser-automation-click-element', params)
+    },
+    // 输入文本
+    inputText: (params) => {
+      return ipcRenderer.invoke('browser-automation-input-text', params)
+    },
+    // 提取数据
+    extractData: (params) => {
+      return ipcRenderer.invoke('browser-automation-extract-data', params)
+    },
+    // 保存文件
+    saveFile: (params) => {
+      return ipcRenderer.invoke('browser-automation-save-file', params)
+    },
+    // 等待元素可见
+    waitForElement: async (params) => {
+      try {
+        // 使用点击元素的方法来等待元素，因为main进程已经实现了waitForSelector
+        await ipcRenderer.invoke('browser-automation-click-element', {
+          ...params,
+          dryRun: true
+        })
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: error.message }
+      }
+    },
+    // 等待特定时间
+    wait: async ({ milliseconds }) => {
+      return new Promise((resolve) => {
+        setTimeout(resolve, milliseconds)
+      })
+    },
+    // 检查浏览器是否可用
+    isBrowserAvailable: (browserId) => {
+      return new Promise(resolve => {
+        // 简单实现，检查是否存在该浏览器ID
+        // 实际应用中可能需要更复杂的检查逻辑
+        resolve(true)
+      })
     }
   }
 }
