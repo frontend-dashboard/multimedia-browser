@@ -95,6 +95,7 @@ app.whenReady().then(() => {
         url,
         browserType = 'chromium',
         headless = false,
+        incognito = false,
         openMode = 'new',
         waitUntil = 'networkidle'
       } = params
@@ -147,7 +148,7 @@ app.whenReady().then(() => {
 
         // 启动浏览器
         console.log(
-          `启动浏览器: ${playwrightBrowserType}, 无头模式: ${headless}, 隐身模式: ${params.incognito}，窗口大小: ${params.windowSize}`
+          `启动浏览器: ${playwrightBrowserType}, 无头模式: ${headless}, 隐身模式: ${incognito}，窗口大小: ${params.windowSize}`
         )
         const browser = await playwright[playwrightBrowserType].launch({
           headless: headless, // 使用传入的无头模式参数
@@ -168,9 +169,10 @@ app.whenReady().then(() => {
         let context
         let isIncognito = false
 
-        if (params.incognito) {
-          // 创建无痕上下文
+        if (incognito) {
+          // 创建真正的无痕上下文
           context = await browser.newContext({
+            incognito: true, // 明确启用无痕模式
             viewport: params.windowSize || { width: 1920, height: 1080 }
           })
           isIncognito = true
