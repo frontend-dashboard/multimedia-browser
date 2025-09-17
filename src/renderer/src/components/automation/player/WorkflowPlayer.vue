@@ -21,6 +21,8 @@
               <el-icon><Stopwatch /></el-icon>
               停止
             </el-button>
+            <!-- 是否显示日志 -->
+            <el-switch v-model="showLog" active-text="显示日志" inactive-text="隐藏日志" />
           </div>
 
           <div class="control-group">
@@ -59,7 +61,7 @@
         </div>
 
         <!-- 执行日志 -->
-        <div class="execution-log">
+        <div v-if="showLog" class="execution-log">
           <div class="log-header">
             <h3>执行日志</h3>
             <el-button size="small" @click="clearLog">清空</el-button>
@@ -139,6 +141,7 @@ const totalElements = computed(() => props.workflow.elements.length)
 const enableDebugging = ref(false)
 const currentBrowserUrl = ref('')
 const isDebuggingEnabled = ref(true)
+const showLog = ref(false)
 
 // 调试模式开启/关闭
 const toggleDebugging = () => {
@@ -518,7 +521,8 @@ onUnmounted(() => {
   background-color: var(--el-bg-color);
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
-  height: 153px;
+  height: calc(100vh - 500px);
+  min-height: 300px;
   overflow: auto;
 }
 
@@ -582,10 +586,9 @@ onUnmounted(() => {
 /* 运行面板 */
 .run-panel {
   position: absolute;
-  bottom: -8px;
+  bottom: 5px;
   left: 0;
   width: 100%;
-  height: 300px;
   flex-shrink: 0;
   background-color: var(--el-fill-color);
   border-left: 1px solid var(--el-border-color);
