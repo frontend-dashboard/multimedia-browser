@@ -134,6 +134,29 @@ app.whenReady().then(() => {
       return await browserAutomation.runBrowserNode(params)
     }),
 
+    // 打开系统默认浏览器
+    openDefaultBrowser: withErrorHandling(async (params) => {
+      const { url = 'https://www.example.com' } = params
+      
+      try {
+        console.log(`使用系统默认浏览器打开URL: ${url}`)
+        await shell.openExternal(url)
+        
+        return {
+          success: true,
+          message: '已使用系统默认浏览器打开URL',
+          url: url,
+          browserType: 'system-default'
+        }
+      } catch (error) {
+        console.error('打开系统默认浏览器失败:', error)
+        return {
+          success: false,
+          error: `打开系统默认浏览器失败: ${error.message}`
+        }
+      }
+    }),
+
     // 运行浏览器节点
     runBrowserNode: withErrorHandling(async function (params) {
       const {
@@ -149,11 +172,18 @@ app.whenReady().then(() => {
       // 创建可变的窗口大小变量
       let windowSize = windowSizeParam
 
+      // 检查Playwright是否可用
+      if (!playwright) {
+        console.warn('Playwright未安装，将使用系统默认浏览器替代')
+        return await browserAutomation.openDefaultBrowser(params)
+      }
+
       // 转换浏览器类型到Playwright支持的格式
+      const browserTypeLower = browserType.toLowerCase();
       const playwrightBrowserType =
-        browserType.toLowerCase() === 'firefox'
+        browserTypeLower === 'firefox'
           ? 'firefox'
-          : browserType.toLowerCase() === 'webkit'
+          : browserTypeLower === 'webkit' || browserTypeLower === 'safari'
             ? 'webkit'
             : 'chromium' // Edge也使用chromium
 
@@ -195,8 +225,6 @@ app.whenReady().then(() => {
       const keepOpen = params.keepOpen !== false // 默认为true，除非明确设置为false
       // 辅助函数：设置浏览器图标启动参数
       function setupBrowserIconArgs(args, browserType) {
-        if (browserType !== 'chromium') return args
-
         try {
           const os = require('os')
           const platform = os.platform()
@@ -217,22 +245,38 @@ app.whenReady().then(() => {
           console.log(`图标文件是否存在: ${fileExists}`)
 
           if (fileExists) {
-            // 根据平台添加图标相关参数
-            if (platform === 'darwin') {
-              args.push(`--app=${url || 'about:blank'}`)
-              args.push(`--icon=${iconPath}`)
-              args.push('--use-mock-keychain')
-              args.push('--no-first-run')
-              args.push('--disable-features=AlternatePageFavicon')
-            } else {
-              args.push(`--app-icon=${iconPath}`)
-              args.push(`--window-icon=${iconPath}`)
+            if (browserType === 'chromium') {
+              // Chromium 特有参数
+              if (platform === 'darwin') {
+                args.push(`--app=${url || 'about:blank'}`)
+                args.push(`--icon=${iconPath}`)
+                args.push('--use-mock-keychain')
+                args.push('--no-first-run')
+                args.push('--disable-features=AlternatePageFavicon')
+              } else {
+                args.push(`--app-icon=${iconPath}`)
+                args.push(`--window-icon=${iconPath}`)
+              }
+              args.push(`--class=MultimediaBrowser`)
+              args.push('--disable-extensions')
+              args.push('--disable-default-apps')
+            } else if (browserType === 'firefox') {
+              // Firefox 特有参数
+              if (platform === 'linux') {
+                args.push(`-icon ${iconPath}`)
+              }
+              // Firefox不支持像Chromium那样的图标参数，这里可以添加Firefox特有的其他参数
+            } else if (browserType === 'webkit') {
+              // WebKit/Safari 特有参数
+              if (platform === 'darwin') {
+                // macOS上的WebKit特有参数
+                args.push(`--app=${url || 'about:blank'}`);
+                // WebKit/Safari在macOS上设置图标通常通过其他方式
+                // 可以考虑通过NSWorkspace API来设置，或者使用launchOptions
+              }
+              args.push('--disable-gpu');
+              args.push('--process-per-tab');
             }
-
-            // 通用参数
-            args.push(`--class=MultimediaBrowser`)
-            args.push('--disable-extensions')
-            args.push('--disable-default-apps')
           } else {
             console.warn('警告: 图标文件不存在，无法设置浏览器图标')
           }
@@ -243,15 +287,35 @@ app.whenReady().then(() => {
         return args
       }
 
-      // 准备浏览器启动参数
-      const launchArgs = setupBrowserIconArgs(
-        [
+      // 为不同浏览器类型准备特定的启动参数
+      let baseArgs = [];
+      if (playwrightBrowserType === 'chromium') {
+        baseArgs = [
           '--disable-blink-features=AutomationControlled',
           '--start-maximized',
           `--window-size=${windowSize}`
-        ],
-        playwrightBrowserType
-      )
+        ];
+      } else if (playwrightBrowserType === 'firefox') {
+        baseArgs = [
+          `--width=${parseWindowSize(windowSize).width || 1920}`,
+          `--height=${parseWindowSize(windowSize).height || 1080}`
+          // Firefox不支持disable-blink-features参数
+        ];
+      } else if (playwrightBrowserType === 'webkit') {
+        const parsedSize = parseWindowSize(windowSize);
+        baseArgs = [
+          // WebKit特有参数
+          `--window-size=${windowSize}`,
+          '--enable-features=WebKitFormValidation',
+          '--no-experiments',
+          '--disable-gpu',
+          '--force-cpu-draw',
+          `--default-window-size=${parsedSize.width},${parsedSize.height}`
+        ];
+      }
+
+      // 应用图标设置并获取最终启动参数
+      const launchArgs = setupBrowserIconArgs(baseArgs, playwrightBrowserType)
 
       // 打印最终的启动参数，以便调试
       console.log('浏览器启动参数:', launchArgs)
