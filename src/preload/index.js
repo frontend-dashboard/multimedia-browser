@@ -104,6 +104,23 @@ const api = {
 
 // 安全地向渲染器进程暴露API
 try {
+  // 创建自定义的事件监听器系统，以便更安全地处理事件
+  const eventListeners = new Map()
+  
+  // 监听浏览器关闭事件
+  ipcRenderer.on('browser-closed', (event, data) => {
+    if (eventListeners.has('browser-closed')) {
+      const listeners = eventListeners.get('browser-closed')
+      listeners.forEach(listener => {
+        try {
+          listener(data)
+        } catch (error) {
+          console.error('处理浏览器关闭事件时出错:', error)
+        }
+      })
+    }
+  })
+  
   contextBridge.exposeInMainWorld('electron', {
     // 只暴露需要的Electron API
     ipcRenderer: {
@@ -116,6 +133,22 @@ try {
       versions: process.versions
     }
   })
+  
+  // 扩展api对象，添加事件监听功能
+  api.onBrowserClosed = (callback) => {
+    if (!eventListeners.has('browser-closed')) {
+      eventListeners.set('browser-closed', new Set())
+    }
+    eventListeners.get('browser-closed').add(callback)
+    
+    // 返回取消监听的函数
+    return () => {
+      if (eventListeners.has('browser-closed')) {
+        eventListeners.get('browser-closed').delete(callback)
+      }
+    }
+  }
+  
   contextBridge.exposeInMainWorld('api', api)
 } catch (error) {
   console.error('Failed to expose APIs to renderer process:', error)

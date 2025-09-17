@@ -91,7 +91,13 @@ app.whenReady().then(() => {
 
     // 运行浏览器节点
     async runBrowserNode(params) {
-      const { url, browserType = 'chromium', headless = false, openMode = 'new', waitUntil = 'networkidle' } = params
+      const {
+        url,
+        browserType = 'chromium',
+        headless = false,
+        openMode = 'new',
+        waitUntil = 'networkidle'
+      } = params
 
       try {
         // 转换浏览器类型到Playwright支持的格式
@@ -104,7 +110,7 @@ app.whenReady().then(() => {
             playwrightBrowserType = 'webkit'
             break
           case 'edge':
-            playwrightBrowserType = 'chromium'  // Playwright没有直接的Edge支持
+            playwrightBrowserType = 'chromium' // Playwright没有直接的Edge支持
             break
           default:
             playwrightBrowserType = 'chromium'
@@ -143,7 +149,7 @@ app.whenReady().then(() => {
         console.log(`启动浏览器: ${playwrightBrowserType}, 无头模式: ${headless}`)
         const browser = await playwright[playwrightBrowserType].launch({
           headless: false, // 暂时强制使用有头模式，以便调试
-          slowMo: 100,     // 添加小延迟，便于观察
+          slowMo: 100, // 添加小延迟，便于观察
           args: [
             '--disable-blink-features=AutomationControlled',
             '--start-maximized',
@@ -238,6 +244,16 @@ app.whenReady().then(() => {
             console.log(`浏览器实例 ${browserId} 的所有页面都已关闭，正在关闭浏览器`)
             await browser.close()
             activeBrowsers.delete(browserId)
+
+            // 通知所有渲染进程浏览器已关闭
+            try {
+              const windows = BrowserWindow.getAllWindows()
+              windows.forEach((window) => {
+                window.webContents.send('browser-closed', { browserId })
+              })
+            } catch (error) {
+              console.error('发送浏览器关闭通知失败:', error)
+            }
           }
         })
 
@@ -279,6 +295,16 @@ app.whenReady().then(() => {
           await browserInstance.browser.close()
           activeBrowsers.delete(browserId)
           console.log(`成功关闭浏览器实例: ${browserId}`)
+
+          // 通知所有渲染进程浏览器已关闭
+          try {
+            const windows = BrowserWindow.getAllWindows()
+            windows.forEach((window) => {
+              window.webContents.send('browser-closed', { browserId })
+            })
+          } catch (error) {
+            console.error('发送浏览器关闭通知失败:', error)
+          }
           return { success: true }
         } else {
           console.warn(`未找到浏览器实例: ${browserId}`)
@@ -318,8 +344,8 @@ app.whenReady().then(() => {
             try {
               // 获取元素的基本信息
               const text = await element.textContent()
-              const tagName = await element.evaluate(el => el.tagName.toLowerCase())
-              const attributes = await element.evaluate(el => {
+              const tagName = await element.evaluate((el) => el.tagName.toLowerCase())
+              const attributes = await element.evaluate((el) => {
                 const attrs = {}
                 for (let i = 0; i < el.attributes.length; i++) {
                   attrs[el.attributes[i].name] = el.attributes[i].value
@@ -359,7 +385,15 @@ app.whenReady().then(() => {
 
     // 点击元素
     async clickElement(params) {
-      const { browserId, selector, waitForNavigation = false, timeout = 60000, retryCount = 2, retryDelay = 1000, dryRun = false } = params
+      const {
+        browserId,
+        selector,
+        waitForNavigation = false,
+        timeout = 60000,
+        retryCount = 2,
+        retryDelay = 1000,
+        dryRun = false
+      } = params
       console.log('clickElement params: ', { browserId, selector, timeout })
       try {
         if (activeBrowsers.has(browserId)) {
@@ -382,17 +416,17 @@ app.whenReady().then(() => {
 
           // 尝试列出页面上的所有textarea元素，帮助诊断选择器问题
           try {
-            const textareas = await page.$$('textarea');
-            console.log(`页面上找到 ${textareas.length} 个textarea元素`);
+            const textareas = await page.$$('textarea')
+            console.log(`页面上找到 ${textareas.length} 个textarea元素`)
 
             // 获取前3个textarea的id和class信息
             for (let i = 0; i < Math.min(3, textareas.length); i++) {
-              const id = await textareas[i].getAttribute('id');
-              const className = await textareas[i].getAttribute('class');
-              console.log(`Textarea ${i+1}: id="${id}", class="${className}"`);
+              const id = await textareas[i].getAttribute('id')
+              const className = await textareas[i].getAttribute('class')
+              console.log(`Textarea ${i + 1}: id="${id}", class="${className}"`)
             }
           } catch (err) {
-            console.log('获取textarea信息时出错:', err.message);
+            console.log('获取textarea信息时出错:', err.message)
           }
 
           // 等待元素出现，带重试机制
@@ -409,7 +443,7 @@ app.whenReady().then(() => {
                 throw new Error(`元素未找到（已重试${retryCount}次）: ${selector} - ${err.message}`)
               }
               console.log(`重试查找元素 ${selector}，第${retries}次尝试...`)
-              await new Promise(resolve => setTimeout(resolve, retryDelay))
+              await new Promise((resolve) => setTimeout(resolve, retryDelay))
             }
           }
 
@@ -441,7 +475,15 @@ app.whenReady().then(() => {
 
     // 输入文本
     async inputText(params) {
-      const { browserId, selector, text, clearBefore = true, timeout = 60000, retryCount = 2, retryDelay = 1000 } = params
+      const {
+        browserId,
+        selector,
+        text,
+        clearBefore = true,
+        timeout = 60000,
+        retryCount = 2,
+        retryDelay = 1000
+      } = params
 
       try {
         if (activeBrowsers.has(browserId)) {
@@ -454,7 +496,9 @@ app.whenReady().then(() => {
           }
 
           const page = pages[0]
-          console.log(`输入文本: 浏览器ID=${browserId}, 选择器=${selector}, 文本=${text}, clearBefore=${clearBefore}, 超时=${timeout}ms`)
+          console.log(
+            `输入文本: 浏览器ID=${browserId}, 选择器=${selector}, 文本=${text}, clearBefore=${clearBefore}, 超时=${timeout}ms`
+          )
 
           // 等待元素出现，带重试机制
           let retries = 0
@@ -470,7 +514,7 @@ app.whenReady().then(() => {
                 throw new Error(`元素未找到（已重试${retryCount}次）: ${selector} - ${err.message}`)
               }
               console.log(`重试查找元素 ${selector}，第${retries}次尝试...`)
-              await new Promise(resolve => setTimeout(resolve, retryDelay))
+              await new Promise((resolve) => setTimeout(resolve, retryDelay))
             }
           }
 

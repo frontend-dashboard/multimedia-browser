@@ -154,12 +154,14 @@ const elapsedTime = ref(0)
 let timeInterval = null
 
 // 浏览器状态 - 使用ref使其成为响应式变量
-const currentBrowserId = ref(null)
+  const currentBrowserId = ref(null)
 
-// 执行日志相关变量
-const logs = ref([])
-const logContentRef = ref(null)
-let logUnsubscribe = null
+  // 执行日志相关变量
+  const logs = ref([])
+  const logContentRef = ref(null)
+  let logUnsubscribe = null
+  // 浏览器关闭事件监听器取消函数
+  let browserClosedUnsubscribe = null
 
 // 计算属性
 const canPlay = computed(() => {
@@ -378,12 +380,24 @@ const togglePlayPause = async () => {
   }
 }
 
-const stopPlayback = () => {
+const stopPlayback = (options = {}) => {
+  console.log('stopPlayback')
   playState.value = 'stopped'
   stopTimer()
   currentElementIndex.value = -1
   currentElement.value = null
-  // 重置浏览器ID，确保重新开始时需要重新打开浏览器
+  // 关闭浏览器（除非明确指定跳过）
+  if (currentBrowserId.value && !options.skipCloseBrowser) {
+    browserAutomation.closeBrowser(currentBrowserId.value).catch((err) => {
+      console.error('关闭浏览器时出错:', err)
+      addLog('error', `关闭浏览器时出错: ${err.message}`)
+    })
+    addLog('info', `浏览器实例 ${currentBrowserId.value} 已关闭`)
+  } else if (currentBrowserId.value && options.skipCloseBrowser) {
+    // 浏览器已关闭，只记录日志并重置ID
+    addLog('debug', `浏览器实例 ${currentBrowserId.value} 已被外部关闭，跳过关闭操作`)
+  }
+  // 无论是否关闭浏览器，都需要重置ID
   currentBrowserId.value = null
   addLog('info', '工作流已停止')
 }
@@ -407,6 +421,43 @@ onMounted(() => {
   // 订阅全局日志更新
   logUnsubscribe = logger.subscribeToLogs(handleGlobalLogUpdate)
 
+  // 监听浏览器关闭事件
+  const handleBrowserClosed = (data) => {
+    try {
+      addLog('debug', `收到浏览器关闭事件，关闭的浏览器ID: ${data?.browserId || '未知'}`)
+      addLog('debug', `当前工作流使用的浏览器ID: ${currentBrowserId.value || '无'}`)
+      
+      // 如果收到的浏览器ID与当前使用的匹配，或者当前正在运行但没有浏览器ID
+      if ((data?.browserId && data.browserId === currentBrowserId.value) ||
+          (playState.value !== 'stopped' && !currentBrowserId.value)) {
+        addLog('info', `检测到浏览器实例 ${data?.browserId || '当前使用的浏览器'} 已关闭，自动停止工作流`)
+        // 浏览器已关闭，调用stopPlayback时不需要再次关闭浏览器
+        stopPlayback({ skipCloseBrowser: true })
+      }
+    } catch (error) {
+      addLog('error', `处理浏览器关闭事件时出错: ${error.message}`)
+      console.error('浏览器关闭事件处理错误:', error)
+      // 出错时也尝试停止工作流，确保状态正确
+      stopPlayback({ skipCloseBrowser: true })
+    }
+  }
+
+  // 使用api.onBrowserClosed方法监听浏览器关闭事件
+  if (window.api?.onBrowserClosed) {
+    browserClosedUnsubscribe = window.api.onBrowserClosed(handleBrowserClosed)
+    addLog('debug', '已注册浏览器关闭事件监听器')
+  } else {
+    addLog('warn', '无法注册浏览器关闭事件监听器，api.onBrowserClosed不可用')
+    // 降级方案：尝试使用electron.ipcRenderer
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.on('browser-closed', (event, data) => handleBrowserClosed(data))
+      addLog('debug', '已使用降级方案注册浏览器关闭事件监听器')
+    }
+  }
+
+  // 存储事件处理器以便在卸载时移除
+  window._browserClosedHandler = handleBrowserClosed
+
   addLog('info', '运行器已初始化')
 })
 
@@ -414,6 +465,17 @@ onUnmounted(() => {
   // 取消日志订阅
   if (typeof logUnsubscribe === 'function') {
     logUnsubscribe()
+  }
+
+  // 移除浏览器关闭事件监听
+  if (typeof browserClosedUnsubscribe === 'function') {
+    browserClosedUnsubscribe()
+    browserClosedUnsubscribe = null
+    addLog('debug', '已取消浏览器关闭事件监听器')
+  } else if (window.electron?.ipcRenderer && window._browserClosedHandler) {
+    window.electron.ipcRenderer.off('browser-closed', window._browserClosedHandler)
+    delete window._browserClosedHandler
+    addLog('debug', '已取消降级方案的浏览器关闭事件监听器')
   }
 
   stopTimer()
