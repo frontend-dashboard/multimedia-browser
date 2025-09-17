@@ -1,8 +1,9 @@
 <template>
-  <div class="workflow-player">
-    <!-- 播放器控制面板 -->
+  <div v-if="isDebuggingEnabled" class="workflow-player">
+    <!-- 运行器控制面板 -->
     <div class="player-controls">
       <div class="control-group">
+        <!-- 运行/暂停按钮 -->
         <el-button
           :type="playState === 'stopped' || playState === 'paused' ? 'primary' : 'default'"
           :disabled="!canPlay"
@@ -11,38 +12,26 @@
           <el-icon>
             <component :is="playState === 'playing' ? VideoPause : VideoPlay" />
           </el-icon>
-          {{ playState === 'playing' ? '暂停' : '播放' }}
+          {{ playState === 'playing' ? '暂停' : '运行' }}
         </el-button>
-
+        <!-- 停止 -->
         <el-button type="danger" :disabled="playState === 'stopped'" @click="stopPlayback">
           <el-icon><Stopwatch /></el-icon>
           停止
         </el-button>
-
-        <el-button
-          :disabled="playState !== 'paused' && playState !== 'stopped'"
-          @click="stepForward"
-        >
-          <el-icon><Right /></el-icon>
-          单步执行
-        </el-button>
       </div>
 
       <div class="control-group">
-        <el-input-number
-          v-model="playbackSpeed"
-          :min="0.1"
-          :max="5"
-          :step="0.1"
-          label="播放速度"
-          size="small"
-        />
-
         <el-switch v-model="enableDebugging" active-text="调试模式" inactive-text="正常模式" />
+
+        <!-- 调试模式关闭 -->
+        <el-button link @click="toggleDebugging">
+          <el-icon><Close /></el-icon>
+        </el-button>
       </div>
     </div>
 
-    <!-- 播放状态显示 -->
+    <!-- 运行状态显示 -->
     <div class="player-status">
       <div class="status-info">
         <span class="status-label">当前状态：</span>
@@ -90,28 +79,12 @@
         </div>
       </div>
     </div>
-
-    <!-- 浏览器预览 -->
-    <div v-if="showBrowserPreview" class="browser-preview">
-      <div class="preview-header">
-        <h3>浏览器预览</h3>
-        <el-button size="small" @click="closeBrowserPreview">关闭</el-button>
-      </div>
-
-      <div class="preview-content">
-        <!-- 在实际应用中，这里会嵌入一个浏览器视图 -->
-        <div class="browser-placeholder">
-          <p>浏览器预览区域</p>
-          <p v-if="currentBrowserUrl">当前URL: {{ currentBrowserUrl }}</p>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { VideoPlay, VideoPause, Stopwatch, Right } from '@element-plus/icons-vue'
+import { VideoPlay, VideoPause, Stopwatch } from '@element-plus/icons-vue'
 
 // 导入工具
 import logger from '@renderer/utils/logger.js'
@@ -142,8 +115,6 @@ const browserAutomation = window.api?.browserAutomation || {
   off: () => {} // 空实现，不执行任何操作
 }
 
-// 已移除元素选择器组件
-
 // Props
 const props = defineProps({
   workflow: {
@@ -155,16 +126,20 @@ const props = defineProps({
   }
 })
 
-// 播放状态相关变量
+// 运行状态相关变量
 const playState = ref('stopped') // stopped, playing, paused
 const currentElement = ref(null)
 const currentElementIndex = ref(-1)
 const executedCount = ref(0)
 const totalElements = computed(() => props.workflow.elements.length)
-const playbackSpeed = ref(1)
 const enableDebugging = ref(false)
-const showBrowserPreview = ref(false)
 const currentBrowserUrl = ref('')
+const isDebuggingEnabled = ref(true)
+
+// 调试模式开启/关闭
+const toggleDebugging = () => {
+  isDebuggingEnabled.value = !isDebuggingEnabled.value
+}
 
 // 执行时间相关变量
 const startTime = ref(0)
@@ -254,7 +229,7 @@ const stopTimer = () => {
 const getPlayStateText = (state) => {
   const stateMap = {
     stopped: '已停止',
-    playing: '播放中',
+    playing: '运行中',
     paused: '已暂停'
   }
 
@@ -301,7 +276,6 @@ const executeElement = async (element) => {
       element,
       browserId: currentBrowserId.value,
       browserAutomation,
-      playbackSpeed: playbackSpeed.value,
       addLog,
       getParamValue: (paramName, defaultValue) => getParamValue(paramName, defaultValue, element)
     })
@@ -311,7 +285,6 @@ const executeElement = async (element) => {
       addLog('debug', `浏览器打开成功，设置currentBrowserId为: ${executionResult.browserId}`)
       currentBrowserId.value = executionResult.browserId
       currentBrowserUrl.value = executionResult.url
-      showBrowserPreview.value = true
     }
 
     addLog('success', `执行成功：${element.name}`)
@@ -357,7 +330,7 @@ const executeNextElement = async () => {
       // 继续执行下一个元件
       setTimeout(() => {
         executeNextElement()
-      }, 500 / playbackSpeed.value) // 元件间的延迟
+      }, 500) // 元件间的延迟
     }
   } else {
     // 工作流执行完成
@@ -370,7 +343,7 @@ const executeNextElement = async () => {
 // 用户交互函数
 const togglePlayPause = async () => {
   if (playState.value === 'stopped') {
-    // 开始播放
+    // 开始运行
     playState.value = 'playing'
     currentElementIndex.value = -1
     executedCount.value = 0
@@ -385,12 +358,12 @@ const togglePlayPause = async () => {
     addLog('info', '开始执行工作流')
     await executeNextElement()
   } else if (playState.value === 'playing') {
-    // 暂停播放
+    // 暂停运行
     playState.value = 'paused'
     stopTimer()
     addLog('info', '工作流暂停执行')
   } else if (playState.value === 'paused') {
-    // 继续播放
+    // 继续运行
     playState.value = 'playing'
     startTimer()
     addLog('info', '工作流继续执行')
@@ -406,44 +379,6 @@ const stopPlayback = () => {
   // 重置浏览器ID，确保重新开始时需要重新打开浏览器
   currentBrowserId.value = null
   addLog('info', '工作流已停止')
-}
-
-const stepForward = async () => {
-  if (playState.value === 'playing') {
-    return
-  }
-
-  // 如果是停止状态，初始化执行环境
-  if (playState.value === 'stopped') {
-    currentElementIndex.value = -1
-    executedCount.value = 0
-    elapsedTime.value = 0
-    startTimer()
-
-    // 清空当前执行状态
-    currentElement.value = null
-    // 重置浏览器ID，确保重新开始时需要重新打开浏览器
-    currentBrowserId.value = null
-
-    addLog('info', '开始单步执行工作流')
-  }
-
-  // 设置为暂停状态
-  playState.value = 'paused'
-
-  // 执行下一个元件
-  await executeNextElement()
-
-  // 如果所有元件都执行完了，停止计时器
-  if (executedCount.value >= totalElements.value) {
-    stopTimer()
-    playState.value = 'stopped'
-    addLog('success', '工作流执行完成')
-  }
-}
-
-const closeBrowserPreview = () => {
-  showBrowserPreview.value = false
 }
 
 // 监听器
@@ -465,7 +400,7 @@ onMounted(() => {
   // 订阅全局日志更新
   logUnsubscribe = logger.subscribeToLogs(handleGlobalLogUpdate)
 
-  addLog('info', '播放器已初始化')
+  addLog('info', '运行器已初始化')
 })
 
 onUnmounted(() => {
@@ -482,7 +417,7 @@ onUnmounted(() => {
     })
     currentBrowserId.value = null
   }
-  addLog('info', '播放器已卸载')
+  addLog('info', '运行器已卸载')
 })
 </script>
 
@@ -574,12 +509,13 @@ onUnmounted(() => {
 }
 
 .log-content {
-  flex: 1;
   padding: 12px;
   overflow-y: auto;
   background-color: var(--el-bg-color);
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
+  height: 153px;
+  overflow: auto;
 }
 
 .log-item {
@@ -637,53 +573,6 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   overflow-x: auto;
-}
-
-/* 浏览器预览样式 */
-.browser-preview {
-  height: 300px;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--el-bg-color);
-}
-
-.preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
-}
-
-.preview-header h3 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-
-.preview-content {
-  flex: 1;
-  background-color: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
-  margin: 12px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.browser-placeholder {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-text-color-disabled);
-  background-color: var(--el-bg-color);
-}
-
-.browser-placeholder p {
-  margin: 4px 0;
 }
 
 /* 自定义滚动条 */

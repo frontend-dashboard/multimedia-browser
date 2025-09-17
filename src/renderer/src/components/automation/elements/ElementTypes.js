@@ -872,13 +872,12 @@ const ElementInitializer = {
    * @param {Object} context - 执行上下文，包含：
    *   - browserId: 浏览器实例ID
    *   - browserAutomation: 浏览器自动化API
-   *   - playbackSpeed: 播放速度
    *   - addLog: 日志记录函数
    *   - getParamValue: 参数获取函数
    * @returns {Object} 执行结果
    */
   executeElement: async (elementType, context) => {
-    const { browserId, browserAutomation, playbackSpeed = 1, addLog, getParamValue } = context
+    const { browserId, browserAutomation, addLog, getParamValue } = context
 
     // 检查元件类型是否存在
     const typeDef = ElementTypes[elementType]
@@ -1018,7 +1017,7 @@ const ElementInitializer = {
         // 实际等待指定的时间
         await browserAutomation.wait({
           browserId,
-          milliseconds: (waitSeconds * 1000) / playbackSpeed
+          milliseconds: waitSeconds * 1000
         })
 
         addLog('success', `等待完成`)
