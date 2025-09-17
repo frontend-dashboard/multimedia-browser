@@ -1022,13 +1022,13 @@ onUnmounted(() => {
 /* 主工具栏样式 */
 .main-toolbar {
   height: 60px;
-  background-color: var(--el-fill-color);
+  background-color: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   z-index: 100;
 }
 
@@ -1109,7 +1109,7 @@ onUnmounted(() => {
 .right-panel-tabs {
   display: flex;
   height: 40px;
-  background-color: var(--el-bg-color-dark);
+  background-color: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color);
 }
 
@@ -1126,7 +1126,7 @@ onUnmounted(() => {
 }
 
 .tab-item:hover {
-  background-color: var(--el-bg-color-dark);
+  background-color: var(--el-bg-color);
   color: var(--el-text-color-primary);
 }
 
@@ -1146,7 +1146,7 @@ onUnmounted(() => {
 
 .rpa-statusbar {
   height: 36px;
-  background-color: var(--el-bg-color-dark);
+  background-color: var(--el-bg-color);
   border-top: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;

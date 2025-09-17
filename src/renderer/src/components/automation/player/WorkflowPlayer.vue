@@ -542,11 +542,11 @@ onUnmounted(() => {
 }
 
 .status-playing {
-  color: #67c23a;
+  color: var(--el-text-color-primary);
 }
 
 .status-paused {
-  color: #e6a23c;
+  color: var(--el-text-color-primary);
 }
 
 /* 执行日志样式 */
@@ -577,7 +577,7 @@ onUnmounted(() => {
   flex: 1;
   padding: 12px;
   overflow-y: auto;
-  background-color: #fafafa;
+  background-color: var(--el-bg-color);
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
 }
@@ -605,23 +605,23 @@ onUnmounted(() => {
 }
 
 .log-level-info {
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .log-level-success {
-  background-color: #f0f9eb;
-  color: #67c23a;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .log-level-warning {
-  background-color: #fdf6ec;
-  color: #e6a23c;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .log-level-error {
-  background-color: #fef0f0;
-  color: #f56c6c;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .log-message {
@@ -665,7 +665,7 @@ onUnmounted(() => {
 
 .preview-content {
   flex: 1;
-  background-color: white;
+  background-color: var(--el-bg-color);
   border: 1px solid var(--el-border-color);
   margin: 12px;
   border-radius: 4px;
@@ -679,7 +679,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   color: var(--el-text-color-disabled);
-  background-color: #f5f5f5;
+  background-color: var(--el-bg-color);
 }
 
 .browser-placeholder p {

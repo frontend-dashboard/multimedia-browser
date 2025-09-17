@@ -1040,7 +1040,7 @@ defineExpose({
 
 .editor-toolbar {
   height: 40px;
-  background-color: var(--el-bg-color-dark);
+  background-color: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;
@@ -1146,7 +1146,7 @@ defineExpose({
   position: relative;
   border-radius: 8px;
   border: 1px solid var(--el-border-color);
-  background-color: var(--el-bg-color-dark);
+  background-color: var(--el-bg-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   min-width: 180px;
@@ -1226,7 +1226,7 @@ defineExpose({
   display: flex;
   align-items: center;
   padding: 10px 12px;
-  background-color: var(--el-bg-color-dark);
+  background-color: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color);
   border-radius: 8px 8px 0 0;
 }
@@ -1267,7 +1267,7 @@ defineExpose({
 }
 
 .node-action:hover {
-  background-color: var(--el-bg-color-dark);
+  background-color: var(--el-bg-color);
   color: var(--el-text-color-primary);
 }
 
@@ -1279,7 +1279,7 @@ defineExpose({
 /* 节点参数样式 */
 .node-params {
   padding: 10px 12px;
-  background-color: var(--el-bg-color-dark);
+  background-color: var(--el-bg-color);
 }
 
 /* 节点参数项样式 */

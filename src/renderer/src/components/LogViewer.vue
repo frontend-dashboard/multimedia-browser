@@ -218,7 +218,7 @@ watch([filterLevel, searchText], () => {
   flex: 1;
   padding: 12px;
   overflow-y: auto;
-  background-color: #fafafa;
+  background-color: var(--el-bg-color);
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
 }
@@ -255,23 +255,23 @@ watch([filterLevel, searchText], () => {
 }
 
 .log-level-debug {
-  background-color: #f4f4f5;
-  color: #6b7280;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
 }
 
 .log-level-info {
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .log-level-warn {
-  background-color: #fdf6ec;
-  color: #e6a23c;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .log-level-error {
-  background-color: #fef0f0;
-  color: #f56c6c;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .log-message {

@@ -302,8 +302,8 @@ const handleClick = () => {
 }
 
 .file-preview-card.selected {
-  border-color: #6988e6 !important;
-  box-shadow: 0 0 8px rgba(105, 136, 230, 0.3);
+  border-color: var(--el-color-primary) !important;
+  box-shadow: 0 0 8px rgba(var(--el-color-primary-rgb), 0.3);
 }
 
 .preview-container {
@@ -345,7 +345,7 @@ const handleClick = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background-color: var(--el-fill-color-light);
+  background-color: var(--el-bg-color);
 }
 
 /* 封面加载失败时的后备图标 */
@@ -355,7 +355,7 @@ const handleClick = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--el-fill-color-light);
+  background-color: var(--el-bg-color);
 }
 
 .preview-icon {
@@ -369,7 +369,7 @@ const handleClick = () => {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: var(--el-color-primary);
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
