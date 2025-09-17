@@ -154,14 +154,14 @@ const elapsedTime = ref(0)
 let timeInterval = null
 
 // 浏览器状态 - 使用ref使其成为响应式变量
-  const currentBrowserId = ref(null)
+const currentBrowserId = ref(null)
 
-  // 执行日志相关变量
-  const logs = ref([])
-  const logContentRef = ref(null)
-  let logUnsubscribe = null
-  // 浏览器关闭事件监听器取消函数
-  let browserClosedUnsubscribe = null
+// 执行日志相关变量
+const logs = ref([])
+const logContentRef = ref(null)
+let logUnsubscribe = null
+// 浏览器关闭事件监听器取消函数
+let browserClosedUnsubscribe = null
 
 // 计算属性
 const canPlay = computed(() => {
@@ -426,11 +426,16 @@ onMounted(() => {
     try {
       addLog('debug', `收到浏览器关闭事件，关闭的浏览器ID: ${data?.browserId || '未知'}`)
       addLog('debug', `当前工作流使用的浏览器ID: ${currentBrowserId.value || '无'}`)
-      
+
       // 如果收到的浏览器ID与当前使用的匹配，或者当前正在运行但没有浏览器ID
-      if ((data?.browserId && data.browserId === currentBrowserId.value) ||
-          (playState.value !== 'stopped' && !currentBrowserId.value)) {
-        addLog('info', `检测到浏览器实例 ${data?.browserId || '当前使用的浏览器'} 已关闭，自动停止工作流`)
+      if (
+        (data?.browserId && data.browserId === currentBrowserId.value) ||
+        (playState.value !== 'stopped' && !currentBrowserId.value)
+      ) {
+        addLog(
+          'info',
+          `检测到浏览器实例 ${data?.browserId || '当前使用的浏览器'} 已关闭，自动停止工作流`
+        )
         // 浏览器已关闭，调用stopPlayback时不需要再次关闭浏览器
         stopPlayback({ skipCloseBrowser: true })
       }

@@ -97,10 +97,14 @@ app.whenReady().then(() => {
         headless = false,
         incognito = false,
         openMode = 'new',
-        waitUntil = 'networkidle'
+        waitUntil = 'networkidle',
+        windowSizeParam = '1920,1080'
       } = params
 
       try {
+        // 创建可变的窗口大小变量
+        let windowSize = windowSizeParam
+
         // 转换浏览器类型到Playwright支持的格式
         let playwrightBrowserType
         switch (browserType.toLowerCase()) {
@@ -148,7 +152,7 @@ app.whenReady().then(() => {
 
         // 启动浏览器
         console.log(
-          `启动浏览器: ${playwrightBrowserType}, 无头模式: ${headless}, 隐身模式: ${incognito}，窗口大小: ${params.windowSize}`
+          `启动浏览器: ${playwrightBrowserType}, 无头模式: ${headless}, 隐身模式: ${incognito}，窗口大小: ${windowSize}`
         )
         const browser = await playwright[playwrightBrowserType].launch({
           headless: headless, // 使用传入的无头模式参数
@@ -156,13 +160,13 @@ app.whenReady().then(() => {
           args: [
             '--disable-blink-features=AutomationControlled',
             '--start-maximized',
-            '--window-size=1920,1080'
+            `--window-size=${windowSize}`
           ]
         })
 
         // 如果需要无头模式但没有设置窗口大小，可以在这里设置默认窗口大小
-        if (headless && !params.windowSize) {
-          params.windowSize = { width: 1920, height: 1080 }
+        if (headless && !windowSize) {
+          windowSize = '1920,1080'
         }
 
         // 处理无痕模式
@@ -171,9 +175,18 @@ app.whenReady().then(() => {
 
         if (incognito) {
           // 创建真正的无痕上下文
+          // 解析windowSize字符串为viewport对象
+          let viewportSize = { width: 1920, height: 1080 }
+          if (windowSize) {
+            const [width, height] = windowSize.split(',').map(Number)
+            if (!isNaN(width) && !isNaN(height)) {
+              viewportSize = { width, height }
+            }
+          }
+
           context = await browser.newContext({
             incognito: true, // 明确启用无痕模式
-            viewport: params.windowSize || { width: 1920, height: 1080 }
+            viewport: viewportSize
           })
           isIncognito = true
         } else {
@@ -183,33 +196,51 @@ app.whenReady().then(() => {
             context = contexts[0]
           } else {
             // 如果没有默认上下文，创建一个新的
+            // 解析windowSize字符串为viewport对象
+            let viewportSize = { width: 1920, height: 1080 }
+            if (windowSize) {
+              const [width, height] = windowSize.split(',').map(Number)
+              if (!isNaN(width) && !isNaN(height)) {
+                viewportSize = { width, height }
+              }
+            }
+
             context = await browser.newContext({
-              viewport: params.windowSize || { width: 1920, height: 1080 }
+              viewport: viewportSize
             })
           }
           // 设置窗口大小
-          if (params.windowSize && contexts && contexts.length > 0) {
+          if (windowSize && contexts && contexts.length > 0) {
+            // 解析windowSize字符串为viewport对象
+            let viewportSize = { width: 1920, height: 1080 }
+            if (windowSize) {
+              const [width, height] = windowSize.split(',').map(Number)
+              if (!isNaN(width) && !isNaN(height)) {
+                viewportSize = { width, height }
+              }
+            }
+
             await browser.newContext({
-              viewport: params.windowSize
+              viewport: viewportSize
             })
           }
         }
 
         // 根据openMode处理窗口大小
-        let windowSize
-        if (params.windowSize && typeof params.windowSize === 'object') {
-          windowSize = params.windowSize
+        let processedWindowSize
+        if (windowSize && typeof windowSize === 'object') {
+          processedWindowSize = windowSize
         } else {
           // 处理字符串值的窗口大小
-          switch (params.windowSize) {
+          switch (windowSize) {
             case 'maximized':
-              windowSize = { maximize: true }
+              processedWindowSize = { maximize: true }
               break
             case 'fullscreen':
-              windowSize = { fullscreen: true }
+              processedWindowSize = { fullscreen: true }
               break
             default:
-              windowSize = { width: 1920, height: 1080 }
+              processedWindowSize = { width: 1920, height: 1080 }
           }
         }
 
@@ -222,15 +253,18 @@ app.whenReady().then(() => {
         }
 
         // 设置窗口大小
-        if (windowSize.maximize) {
+        if (processedWindowSize.maximize) {
           await page.bringToFront()
           await page.setViewportSize({ width: 1920, height: 1080 })
-        } else if (windowSize.fullscreen) {
+        } else if (processedWindowSize.fullscreen) {
           await page.bringToFront()
           await page.setViewportSize({ width: 1920, height: 1080 })
           // Playwright没有直接的全屏API，需要通过页面操作来实现
-        } else if (windowSize.width && windowSize.height) {
-          await page.setViewportSize({ width: windowSize.width, height: windowSize.height })
+        } else if (processedWindowSize.width && processedWindowSize.height) {
+          await page.setViewportSize({
+            width: processedWindowSize.width,
+            height: processedWindowSize.height
+          })
         }
 
         // 导航到URL

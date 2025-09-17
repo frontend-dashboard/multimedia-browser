@@ -4,7 +4,7 @@
     <div class="main-toolbar">
       <div class="toolbar-left">
         <!-- 返回， 只有在不是首页时才显示 -->
-        <el-button icon="Back" type="primary" @click="goBack" v-if="!isHome">返回</el-button>
+        <el-button v-if="!isHome" icon="Back" type="primary" @click="goBack">返回</el-button>
         <h1 class="app-title">RPA网页自动化工具</h1>
         <div class="app-subtitle"></div>
       </div>

@@ -3,7 +3,7 @@ import { RouterView, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { getThemeClass } from '@renderer/utils/themeUtils.js'
 
-const props = defineProps({
+defineProps({
   showNavBar: {
     type: [Boolean, String],
     default: true,
