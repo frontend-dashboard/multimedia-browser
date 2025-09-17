@@ -193,7 +193,7 @@ watch([filterLevel, searchText], () => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: var(--color-background-soft);
+  background-color: var(--color-background);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -281,7 +281,7 @@ watch([filterLevel, searchText], () => {
 .log-details {
   margin: 8px 0 0 0;
   padding: 8px;
-  background-color: var(--color-background-soft);
+  background-color: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   font-size: 12px;

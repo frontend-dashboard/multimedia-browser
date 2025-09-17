@@ -303,7 +303,7 @@ onUnmounted(() => {
 
 .about-card {
   width: 100%;
-  background-color: var(--color-background-soft);
+  background-color: var(--color-background);
   margin-top: 10px;
 }
 

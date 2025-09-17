@@ -44,7 +44,7 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background-color: var(--color-background-soft);
+  background-color: var(--color-background);
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 

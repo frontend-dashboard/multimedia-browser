@@ -3,6 +3,8 @@
     <!-- 主工具栏 -->
     <div class="main-toolbar">
       <div class="toolbar-left">
+        <!-- 返回， 只有在不是首页时才显示 -->
+        <el-button icon="Back" type="primary" @click="goBack" v-if="!isHome">返回</el-button>
         <h1 class="app-title">RPA网页自动化工具</h1>
       </div>
       <div class="toolbar-center">
@@ -45,7 +47,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-button type="success" @click="playWorkflow">运行</el-button>
+        <!-- <el-button type="success" @click="playWorkflow">运行</el-button> -->
       </div>
     </div>
 
@@ -101,6 +103,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import ElementPanel from './elements/ElementPanel.vue'
 import VueFlowEditor from './editor/VueFlowEditor.vue'
 import WorkflowPlayer from './player/WorkflowPlayer.vue'
@@ -113,6 +116,10 @@ import { saveAndApplyTheme, setupSystemThemeListener } from '@renderer/utils/the
 
 // 导入Element Plus图标
 import { ArrowDown, Monitor, Moon, Sunny } from '@element-plus/icons-vue'
+
+// 判断当前是否为首页
+const isHome = ref(false)
+const router = useRouter()
 
 // 工作流数据
 const workflow = reactive({
@@ -812,6 +819,12 @@ const lastModified = ref(null)
 // 主题相关状态
 const currentTheme = ref(localStorage.getItem('theme') || 'light')
 let themeCleanup = null
+
+// 回退
+const goBack = () => {
+  router.back()
+  logger.info(`回退到上一页`)
+}
 
 // 切换标签页
 const switchTab = (tabName) => {

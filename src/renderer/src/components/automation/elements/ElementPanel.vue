@@ -191,7 +191,7 @@ const filteredElements = computed(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background-soft);
+  background-color: var(--color-background);
   border-right: 1px solid var(--color-border);
 }
 

@@ -11,7 +11,6 @@
   --color-warning: #e6a23c;
   --color-danger: #f56c6c;
   --color-background: #ffffff;
-  --color-background-soft: #f5f7fa;
   --color-background-mute: #f8f9fa;
   --color-text: #303133;
   --color-text-primary: #303133;
@@ -30,14 +29,7 @@ code {
   padding: 3px 5px;
   border-radius: 2px;
   background-color: var(--color-background-mute);
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    SF Mono,
-    Menlo,
-    Consolas,
-    Liberation Mono,
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
   font-size: 85%;
 }
 
