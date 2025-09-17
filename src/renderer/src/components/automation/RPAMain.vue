@@ -64,11 +64,7 @@
         <VueFlowEditor ref="vueFlowEditorRef" :workflow="workflow" />
 
         <!-- 运行面板 -->
-        <div class="run-panel">
-          <div class="right-panel-content">
-            <WorkflowPlayer ref="workflowPlayerRef" :workflow="workflow" />
-          </div>
-        </div>
+        <WorkflowPlayer ref="workflowPlayerRef" :workflow="workflow" />
       </div>
     </div>
 
@@ -1010,29 +1006,6 @@ onUnmounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-/* 运行面板 */
-.run-panel {
-  position: absolute;
-  bottom: -8px;
-  left: 0;
-  width: 100%;
-  height: 300px;
-  flex-shrink: 0;
-  background-color: var(--el-fill-color);
-  border-left: 1px solid var(--el-border-color);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.right-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
 .rpa-statusbar {
   height: 36px;
   background-color: var(--el-bg-color);
@@ -1056,12 +1029,6 @@ onUnmounted(() => {
 }
 
 /* 响应式设计 - 根据不同屏幕尺寸优化布局 */
-/* 大屏幕优化 */
-@media (max-width: 1400px) {
-  .right-panel {
-    width: 340px;
-  }
-}
 
 /* 中等屏幕优化 */
 @media (max-width: 1200px) {

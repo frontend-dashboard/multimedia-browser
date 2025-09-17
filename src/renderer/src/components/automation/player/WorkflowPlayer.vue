@@ -1,81 +1,85 @@
 <template>
-  <div v-if="isDebuggingEnabled" class="workflow-player">
-    <!-- 运行器控制面板 -->
-    <div class="player-controls">
-      <div class="control-group">
-        <!-- 运行/暂停按钮 -->
-        <el-button
-          :type="playState === 'stopped' || playState === 'paused' ? 'primary' : 'default'"
-          :disabled="!canPlay"
-          @click="togglePlayPause"
-        >
-          <el-icon>
-            <component :is="playState === 'playing' ? VideoPause : VideoPlay" />
-          </el-icon>
-          {{ playState === 'playing' ? '暂停' : '运行' }}
-        </el-button>
-        <!-- 停止 -->
-        <el-button type="danger" :disabled="playState === 'stopped'" @click="stopPlayback">
-          <el-icon><Stopwatch /></el-icon>
-          停止
-        </el-button>
-      </div>
+  <div v-if="isDebuggingEnabled" class="run-panel">
+    <div class="run-panel-content">
+      <div class="workflow-player">
+        <!-- 运行器控制面板 -->
+        <div class="player-controls">
+          <div class="control-group">
+            <!-- 运行/暂停按钮 -->
+            <el-button
+              :type="playState === 'stopped' || playState === 'paused' ? 'primary' : 'default'"
+              :disabled="!canPlay"
+              @click="togglePlayPause"
+            >
+              <el-icon>
+                <component :is="playState === 'playing' ? VideoPause : VideoPlay" />
+              </el-icon>
+              {{ playState === 'playing' ? '暂停' : '运行' }}
+            </el-button>
+            <!-- 停止 -->
+            <el-button type="danger" :disabled="playState === 'stopped'" @click="stopPlayback">
+              <el-icon><Stopwatch /></el-icon>
+              停止
+            </el-button>
+          </div>
 
-      <div class="control-group">
-        <el-switch v-model="enableDebugging" active-text="调试模式" inactive-text="正常模式" />
+          <div class="control-group">
+            <el-switch v-model="enableDebugging" active-text="调试模式" inactive-text="正常模式" />
 
-        <!-- 调试模式关闭 -->
-        <el-button link @click="toggleDebugging">
-          <el-icon><Close /></el-icon>
-        </el-button>
-      </div>
-    </div>
+            <!-- 调试模式关闭 -->
+            <el-button link @click="toggleDebugging">
+              <el-icon><Close /></el-icon>
+            </el-button>
+          </div>
+        </div>
 
-    <!-- 运行状态显示 -->
-    <div class="player-status">
-      <div class="status-info">
-        <span class="status-label">当前状态：</span>
-        <span class="status-value" :class="'status-' + playState">
-          {{ getPlayStateText(playState) }}
-        </span>
-      </div>
+        <!-- 运行状态显示 -->
+        <div class="player-status">
+          <div class="status-info">
+            <span class="status-label">当前状态：</span>
+            <span class="status-value" :class="'status-' + playState">
+              {{ getPlayStateText(playState) }}
+            </span>
+          </div>
 
-      <div v-if="currentElement" class="status-info">
-        <span class="status-label">当前执行：</span>
-        <span class="status-value">{{ currentElement.name }}</span>
-      </div>
+          <div v-if="currentElement" class="status-info">
+            <span class="status-label">当前执行：</span>
+            <span class="status-value">{{ currentElement.name }}</span>
+          </div>
 
-      <div class="status-info">
-        <span class="status-label">已执行：</span>
-        <span class="status-value">{{ executedCount }}/{{ totalElements }}</span>
-      </div>
+          <div class="status-info">
+            <span class="status-label">已执行：</span>
+            <span class="status-value">{{ executedCount }}/{{ totalElements }}</span>
+          </div>
 
-      <div class="status-info">
-        <span class="status-label">执行时间：</span>
-        <span class="status-value">{{ formatTime(elapsedTime) }}</span>
-      </div>
-    </div>
+          <div class="status-info">
+            <span class="status-label">执行时间：</span>
+            <span class="status-value">{{ formatTime(elapsedTime) }}</span>
+          </div>
+        </div>
 
-    <!-- 执行日志 -->
-    <div class="execution-log">
-      <div class="log-header">
-        <h3>执行日志</h3>
-        <el-button size="small" @click="clearLog">清空</el-button>
-      </div>
+        <!-- 执行日志 -->
+        <div class="execution-log">
+          <div class="log-header">
+            <h3>执行日志</h3>
+            <el-button size="small" @click="clearLog">清空</el-button>
+          </div>
 
-      <div ref="logContentRef" class="log-content">
-        <div
-          v-for="(log, index) in logs"
-          :key="index"
-          class="log-item"
-          :class="'log-level-' + log.level"
-        >
-          <span class="log-time">{{ log.timestamp }}</span>
-          <span class="log-level">{{ log.level }}</span>
-          <span class="log-message">{{ log.message }}</span>
-          <template v-if="log.details">
-            <pre class="log-details">{{ JSON.stringify(log.details, null, 2) }}</pre>
-          </template>
+          <div ref="logContentRef" class="log-content">
+            <div
+              v-for="(log, index) in logs"
+              :key="index"
+              class="log-item"
+              :class="'log-level-' + log.level"
+            >
+              <span class="log-time">{{ log.timestamp }}</span>
+              <span class="log-level">{{ log.level }}</span>
+              <span class="log-message">{{ log.message }}</span>
+              <template v-if="log.details">
+                <pre class="log-details">{{ JSON.stringify(log.details, null, 2) }}</pre>
+              </template>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -573,6 +577,29 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   overflow-x: auto;
+}
+
+/* 运行面板 */
+.run-panel {
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100%;
+  height: 300px;
+  flex-shrink: 0;
+  background-color: var(--el-fill-color);
+  border-left: 1px solid var(--el-border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.run-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 自定义滚动条 */
