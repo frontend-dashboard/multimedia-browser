@@ -44,8 +44,8 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background-color: var(--color-background);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .navbar-brand {
@@ -62,7 +62,7 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 .app-name {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--el-text-color-primary);
 }
 
 /* 重置el-menu边框样式 */

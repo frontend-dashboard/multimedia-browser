@@ -491,7 +491,7 @@ onUnmounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background);
+  background-color: var(--el-bg-color);
 }
 
 /* 控制面板样式 */
@@ -500,8 +500,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
   gap: 16px;
 }
 
@@ -516,8 +516,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 8px 16px;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
   gap: 24px;
   font-size: 14px;
 }
@@ -529,16 +529,16 @@ onUnmounted(() => {
 }
 
 .status-label {
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
 }
 
 .status-value {
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
   font-weight: 500;
 }
 
 .status-stopped {
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
 }
 
 .status-playing {
@@ -554,7 +554,7 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .log-header {
@@ -562,15 +562,15 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .log-header h3 {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .log-content {
@@ -586,12 +586,12 @@ onUnmounted(() => {
   margin-bottom: 8px;
   padding: 6px 8px;
   border-radius: 4px;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
 }
 
 .log-time {
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   margin-right: 8px;
 }
 
@@ -625,17 +625,17 @@ onUnmounted(() => {
 }
 
 .log-message {
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .log-details {
   margin: 8px 0 0 0;
   padding: 8px;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
   border-radius: 4px;
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   overflow-x: auto;
 }
 
@@ -644,7 +644,7 @@ onUnmounted(() => {
   height: 300px;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background);
+  background-color: var(--el-bg-color);
 }
 
 .preview-header {
@@ -652,21 +652,21 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .preview-header h3 {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .preview-content {
   flex: 1;
   background-color: white;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--el-border-color);
   margin: 12px;
   border-radius: 4px;
   overflow: hidden;
@@ -678,7 +678,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-disabled);
+  color: var(--el-text-color-disabled);
   background-color: #f5f5f5;
 }
 
@@ -692,15 +692,15 @@ onUnmounted(() => {
 }
 
 .log-content::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: var(--el-bg-color);
 }
 
 .log-content::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--el-border-color);
   border-radius: 3px;
 }
 
 .log-content::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-disabled);
+  background: var(--el-text-color-disabled);
 }
 </style>

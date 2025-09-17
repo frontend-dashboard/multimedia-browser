@@ -36,8 +36,8 @@ const cachedViews = computed(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background);
-  color: var(--color-text);
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
 }
 
 .main-content {

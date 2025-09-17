@@ -294,7 +294,7 @@ onUnmounted(() => {
 .header-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--el-text-color-primary);
 }
 
 .mt-4 {
@@ -303,7 +303,7 @@ onUnmounted(() => {
 
 .about-card {
   width: 100%;
-  background-color: var(--color-background);
+  background-color: var(--el-bg-color);
   margin-top: 10px;
 }
 
@@ -317,7 +317,7 @@ onUnmounted(() => {
 
 /* 覆盖element-plus的一些样式以适应我们的主题 */
 .el-divider--content-center .el-divider__text {
-  color: var(--color-text);
+  color: var(--el-text-color-primary);
 }
 
 /* 确保响应式布局 */

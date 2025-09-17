@@ -23,26 +23,26 @@ defineOptions({
 
 .rpa-view-header {
   padding: 16px 20px;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .rpa-view-header-title {
   font-size: 24px;
   font-weight: bold;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
   margin-bottom: 4px;
 }
 
 .rpa-view-header-subtitle {
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
 }
 
 .rpa-view-content {
   flex: 1;
   overflow: hidden;
-  background: var(--color-background);
+  background: var(--el-bg-color);
 }
 
 /* 隐藏滚动条但保留滚动功能 */

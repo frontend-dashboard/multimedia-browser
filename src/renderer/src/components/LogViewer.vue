@@ -182,8 +182,8 @@ watch([filterLevel, searchText], () => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -193,15 +193,15 @@ watch([filterLevel, searchText], () => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .log-header h3 {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .log-actions {
@@ -228,7 +228,7 @@ watch([filterLevel, searchText], () => {
   justify-content: center;
   align-items: center;
   height: 200px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   font-style: italic;
 }
 
@@ -236,12 +236,12 @@ watch([filterLevel, searchText], () => {
   margin-bottom: 8px;
   padding: 6px 8px;
   border-radius: 4px;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
 }
 
 .log-time {
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   margin-right: 8px;
 }
 
@@ -275,17 +275,17 @@ watch([filterLevel, searchText], () => {
 }
 
 .log-message {
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .log-details {
   margin: 8px 0 0 0;
   padding: 8px;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
   border-radius: 4px;
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   overflow-x: auto;
 }
 </style>

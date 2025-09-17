@@ -95,14 +95,14 @@ const { t } = useI18n()
   justify-content: center;
   font-size: 1.8rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--el-text-color-primary);
 }
 
 .welcome-content {
   text-align: center;
   padding: 20px 0;
   font-size: 1.2rem;
-  color: var(--color-text-2);
+  color: var(--el-text-color-secondary);
 }
 
 .features {
@@ -130,13 +130,13 @@ const { t } = useI18n()
 .feature-card h3 {
   font-size: 1.5rem;
   margin-bottom: 15px;
-  color: var(--color-text);
+  color: var(--el-text-color-primary);
   text-align: center;
 }
 
 .feature-card p {
   font-size: 1rem;
-  color: var(--color-text-2);
+  color: var(--el-text-color-secondary);
   margin-bottom: 20px;
   text-align: center;
 }
@@ -153,7 +153,7 @@ const { t } = useI18n()
 
 .tips-list li {
   margin-bottom: 5px;
-  color: var(--color-text-2);
+  color: var(--el-text-color-secondary);
 }
 
 @media (max-width: 768px) {

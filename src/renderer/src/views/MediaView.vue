@@ -400,7 +400,7 @@ onMounted(() => {
 
 .preview-icon {
   height: 100%;
-  color: var(--color-text-2);
+  color: var(--el-text-color-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -421,7 +421,7 @@ onMounted(() => {
 
 .file-size {
   font-size: 0.9rem;
-  color: var(--color-text-2);
+  color: var(--el-text-color-secondary);
   margin: 0;
 }
 
@@ -449,7 +449,7 @@ onMounted(() => {
 
 .file-preview-section {
   flex-shrink: 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 /* 滚动容器基础样式 */

@@ -191,20 +191,20 @@ const filteredElements = computed(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background);
-  border-right: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border-right: 1px solid var(--el-border-color);
 }
 
 .element-panel-header {
   padding: 16px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .element-panel-header h3 {
   margin: 0 0 12px 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .element-categories {
@@ -231,16 +231,16 @@ const filteredElements = computed(() => {
   display: flex;
   align-items: center;
   padding: 12px;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
   border-radius: 6px;
   cursor: grab;
   transition: all 0.2s ease;
 }
 
 .element-item:hover {
-  background-color: var(--color-background-hover);
-  border-color: var(--color-primary);
+  background-color: var(--el-fill-color-hover);
+  border-color: var(--el-color-primary);
   transform: translateX(2px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -249,7 +249,7 @@ const filteredElements = computed(() => {
   font-size: 24px;
   margin-right: 12px;
   margin-bottom: 0;
-  color: var(--color-primary);
+  color: var(--el-color-primary);
 }
 
 .element-info {
@@ -258,8 +258,8 @@ const filteredElements = computed(() => {
 }
 
 .element-item:hover {
-  background-color: var(--color-background-hover);
-  border-color: var(--color-primary);
+  background-color: var(--el-fill-color-hover);
+  border-color: var(--el-color-primary);
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -271,7 +271,7 @@ const filteredElements = computed(() => {
 .element-icon {
   font-size: 24px;
   margin-bottom: 8px;
-  color: var(--color-primary);
+  color: var(--el-color-primary);
 }
 
 .element-info {
@@ -282,12 +282,12 @@ const filteredElements = computed(() => {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 4px;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .element-description {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   line-height: 1.3;
 }
 
@@ -297,15 +297,15 @@ const filteredElements = computed(() => {
 }
 
 .element-list::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: var(--el-bg-color);
 }
 
 .element-list::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--el-border-color);
   border-radius: 3px;
 }
 
 .element-list::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-disabled);
+  background: var(--el-text-color-disabled);
 }
 </style>

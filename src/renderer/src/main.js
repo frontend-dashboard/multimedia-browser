@@ -8,6 +8,8 @@ import ElementPlus from 'element-plus'
 // 导入Element Plus的基本样式和暗黑模式样式
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
+// 导入自定义主题变量，确保Element Plus变量被正确定义
+import './assets/element-variables.css'
 import * as ElIcons from '@element-plus/icons-vue'
 import i18n from './i18n'
 

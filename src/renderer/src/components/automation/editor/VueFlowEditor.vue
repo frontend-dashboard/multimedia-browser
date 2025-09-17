@@ -1035,13 +1035,13 @@ defineExpose({
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background-light);
+  background-color: var(--el-fill-color);
 }
 
 .editor-toolbar {
   height: 40px;
-  background-color: var(--color-background-900);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color-dark);
+  border-bottom: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;
   padding: 0 12px;
@@ -1051,7 +1051,7 @@ defineExpose({
 .toolbar-separator {
   width: 1px;
   height: 20px;
-  background-color: var(--color-border);
+  background-color: var(--el-border-color);
   margin: 0 4px;
 }
 
@@ -1064,7 +1064,7 @@ defineExpose({
 .vue-flow-workspace {
   height: 100%;
   width: 100%;
-  background-color: var(--color-background-light);
+  background-color: var(--el-fill-color);
 }
 
 .editor-properties {
@@ -1072,8 +1072,8 @@ defineExpose({
   top: 50px;
   right: 10px;
   width: 300px;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
   border-radius: 6px;
   padding: 12px;
   z-index: 1000;
@@ -1090,7 +1090,7 @@ defineExpose({
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .editor-properties {
@@ -1101,7 +1101,7 @@ defineExpose({
 .element-properties h4 {
   margin: 0 0 8px 0;
   font-size: 13px;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .property-group {
@@ -1111,7 +1111,7 @@ defineExpose({
 .property-group h5 {
   margin: 0 0 8px 0;
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   text-transform: uppercase;
 }
 
@@ -1145,8 +1145,8 @@ defineExpose({
 .custom-node {
   position: relative;
   border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-background-800);
+  border: 1px solid var(--el-border-color);
+  background-color: var(--el-bg-color-dark);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   min-width: 180px;
@@ -1171,7 +1171,7 @@ defineExpose({
   position: absolute;
   width: 14px;
   height: 14px;
-  background-color: var(--color-primary);
+  background-color: var(--el-color-primary);
   border: 2px solid white;
   border-radius: 50%;
   cursor: crosshair;
@@ -1204,20 +1204,20 @@ defineExpose({
 
 /* 节点状态样式 */
 .custom-node:hover {
-  border-color: var(--color-primary);
+  border-color: var(--el-color-primary);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   transform: translateY(-1px);
 }
 
 .custom-node-selected {
-  border-color: var(--color-primary) !important;
+  border-color: var(--el-color-primary) !important;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
   background-color: rgba(59, 130, 246, 0.05);
 }
 
 .custom-node-focused {
   box-shadow:
-    0 0 0 2px var(--color-primary),
+    0 0 0 2px var(--el-color-primary),
     0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
@@ -1226,14 +1226,14 @@ defineExpose({
   display: flex;
   align-items: center;
   padding: 10px 12px;
-  background-color: var(--color-background-700);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color-dark);
+  border-bottom: 1px solid var(--el-border-color);
   border-radius: 8px 8px 0 0;
 }
 
 .node-icon {
   margin-right: 8px;
-  color: var(--color-primary);
+  color: var(--el-color-primary);
   font-size: 16px;
 }
 
@@ -1241,7 +1241,7 @@ defineExpose({
   flex: 1;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1255,7 +1255,7 @@ defineExpose({
 
 .node-action {
   cursor: pointer;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   padding: 4px;
   border-radius: 4px;
   transition: all 0.2s ease;
@@ -1267,8 +1267,8 @@ defineExpose({
 }
 
 .node-action:hover {
-  background-color: var(--color-background-600);
-  color: var(--color-text-primary);
+  background-color: var(--el-bg-color-dark);
+  color: var(--el-text-color-primary);
 }
 
 .node-remove:hover {
@@ -1279,7 +1279,7 @@ defineExpose({
 /* 节点参数样式 */
 .node-params {
   padding: 10px 12px;
-  background-color: var(--color-background-800);
+  background-color: var(--el-bg-color-dark);
 }
 
 /* 节点参数项样式 */
@@ -1297,7 +1297,7 @@ defineExpose({
 
 .param-label {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   font-weight: 500;
   white-space: nowrap;
   margin-right: 8px;
@@ -1307,18 +1307,18 @@ defineExpose({
 
 .param-value {
   font-size: 12px;
-  color: var(--color-text-tertiary);
+  color: var(--el-text-color-placeholder);
   word-break: break-all;
   text-align: right;
 }
 
 .param-more {
   font-size: 11px;
-  color: var(--color-text-tertiary);
+  color: var(--el-text-color-placeholder);
   text-align: center;
   margin-top: 6px;
   padding-top: 4px;
-  border-top: 1px dotted var(--color-border);
+  border-top: 1px dotted var(--el-border-color);
 }
 
 /* 连接线样式 */
@@ -1331,12 +1331,12 @@ defineExpose({
 }
 
 .connection-path:hover {
-  stroke: var(--color-primary);
+  stroke: var(--el-color-primary);
   stroke-width: 3;
 }
 
 .connection-path-selected {
-  stroke: var(--color-primary) !important;
+  stroke: var(--el-color-primary) !important;
   stroke-width: 3 !important;
 }
 

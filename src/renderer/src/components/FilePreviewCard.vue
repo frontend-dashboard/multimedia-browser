@@ -310,7 +310,7 @@ const handleClick = () => {
   position: relative;
   width: 100%;
   height: 160px;
-  background-color: var(--color-background-mute);
+  background-color: var(--el-bg-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -345,7 +345,7 @@ const handleClick = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background-color: var(--color-background-mute);
+  background-color: var(--el-fill-color-light);
 }
 
 /* 封面加载失败时的后备图标 */
@@ -355,14 +355,14 @@ const handleClick = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--color-background-mute);
+  background-color: var(--el-fill-color-light);
 }
 
 .preview-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-2);
+  color: var(--el-text-color-secondary);
 }
 
 .file-type-badge {
@@ -380,13 +380,13 @@ const handleClick = () => {
 .file-info {
   padding: 12px;
   text-align: center;
-  background-color: var(--color-background);
+  background-color: var(--el-bg-color);
 }
 
 .file-name {
   margin: 0 0 4px 0;
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--el-text-color-primary);
   font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
@@ -395,7 +395,7 @@ const handleClick = () => {
 
 .file-meta {
   margin: 0;
-  color: var(--color-text-2);
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 

@@ -1,34 +1,12 @@
 @charset "UTF-8";
+@use 'element-plus/theme-chalk/src/index.scss';
 /* 主样式文件 */
 @use './base.scss';
-/* CSS变量定义 - 适配Element Plus主题系统 */
-:root {
-  /* 明亮模式变量 - 与Element Plus默认主题保持一致 */
-  --color-primary: #409eff;
-  --color-primary-light: #66b1ff;
-  --color-primary-dark: #3a8ee6;
-  --color-success: #67c23a;
-  --color-warning: #e6a23c;
-  --color-danger: #f56c6c;
-  --color-background: #ffffff;
-  --color-background-mute: #f8f9fa;
-  --color-text: #303133;
-  --color-text-primary: #303133;
-  --color-text-secondary: #606266;
-  --color-text-placeholder: #909399;
-  --color-text-disabled: #c0c4cc;
-  --color-border: #e4e7ed;
-  --color-border-light: #ebeef5;
-  --color-border-lighter: #f2f6fc;
-  --color-background-hover: #f0f2f5;
-  /* 暗黑模式变量会由Element Plus自动处理 */
-}
-
 code {
   font-weight: 600;
   padding: 3px 5px;
   border-radius: 2px;
-  background-color: var(--color-background-mute);
+  background-color: var(--el-bg-color);
   font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
   font-size: 85%;
 }
@@ -47,16 +25,16 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-background-mute);
+  background: var(--el-bg-color);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--el-border-color);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-3);
+  background: var(--el-text-color-secondary);
 }
 
 /* 工具类 */

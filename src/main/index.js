@@ -27,7 +27,7 @@ function createWindow() {
       webSecurity: true,
       allowRunningInsecureContent: false,
       // 启用Node.js集成，但保持上下文隔离以提高安全性
-      nodeIntegration: false,
+      nodeIntegration: true,
       contextIsolation: true
     }
   })

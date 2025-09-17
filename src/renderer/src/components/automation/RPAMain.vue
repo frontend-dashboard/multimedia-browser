@@ -6,6 +6,7 @@
         <!-- 返回， 只有在不是首页时才显示 -->
         <el-button icon="Back" type="primary" @click="goBack" v-if="!isHome">返回</el-button>
         <h1 class="app-title">RPA网页自动化工具</h1>
+        <div class="app-subtitle"></div>
       </div>
       <div class="toolbar-center">
         <el-button type="primary" @click="newWorkflow">新建流程</el-button>
@@ -1004,8 +1005,8 @@ onUnmounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background);
-  color: var(--color-text);
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
@@ -1021,8 +1022,8 @@ onUnmounted(() => {
 /* 主工具栏样式 */
 .main-toolbar {
   height: 60px;
-  background-color: var(--color-background-light);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-fill-color);
+  border-bottom: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1041,12 +1042,12 @@ onUnmounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: var(--color-primary);
+  color: var(--el-color-primary);
 }
 
 .app-subtitle {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
 }
 
 .toolbar-center {
@@ -1065,7 +1066,7 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   overflow: hidden;
-  background-color: var(--color-background);
+  background-color: var(--el-bg-color);
 }
 
 /* 左侧面板 - 元件库 */
@@ -1073,8 +1074,8 @@ onUnmounted(() => {
   width: 260px;
   height: 100%;
   flex-shrink: 0;
-  background-color: var(--color-background-light);
-  border-right: 1px solid var(--color-border);
+  background-color: var(--el-fill-color);
+  border-right: 1px solid var(--el-border-color);
   overflow-y: auto;
   transition: all 0.3s ease;
 }
@@ -1086,7 +1087,7 @@ onUnmounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background-light);
+  background-color: var(--el-fill-color);
   margin: 8px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -1097,8 +1098,8 @@ onUnmounted(() => {
   width: 380px;
   height: 100%;
   flex-shrink: 0;
-  background-color: var(--color-background-light);
-  border-left: 1px solid var(--color-border);
+  background-color: var(--el-fill-color);
+  border-left: 1px solid var(--el-border-color);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1108,8 +1109,8 @@ onUnmounted(() => {
 .right-panel-tabs {
   display: flex;
   height: 40px;
-  background-color: var(--color-background-950);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--el-bg-color-dark);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .tab-item {
@@ -1119,21 +1120,21 @@ onUnmounted(() => {
   justify-content: center;
   cursor: pointer;
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
   transition: all 0.2s ease;
   user-select: none;
 }
 
 .tab-item:hover {
-  background-color: var(--color-background-900);
-  color: var(--color-text-primary);
+  background-color: var(--el-bg-color-dark);
+  color: var(--el-text-color-primary);
 }
 
 .tab-item.active {
-  background-color: var(--color-background-light);
-  color: var(--color-primary);
+  background-color: var(--el-fill-color);
+  color: var(--el-color-primary);
   font-weight: 500;
-  border-bottom: 2px solid var(--color-primary);
+  border-bottom: 2px solid var(--el-color-primary);
 }
 
 .right-panel-content {
@@ -1145,13 +1146,13 @@ onUnmounted(() => {
 
 .rpa-statusbar {
   height: 36px;
-  background-color: var(--color-background-950);
-  border-top: 1px solid var(--color-border);
+  background-color: var(--el-bg-color-dark);
+  border-top: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;
   padding: 0 24px;
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--el-text-color-secondary);
 }
 
 .status-item {
