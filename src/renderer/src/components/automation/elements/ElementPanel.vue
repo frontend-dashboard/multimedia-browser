@@ -80,6 +80,32 @@ const activeCategory = ref('browser')
 // 拖拽事件处理函数
 const handleElementDragStart = (event, element) => {
   try {
+    // 获取元件参数定义
+    const params = getElementParams(element.type)
+
+    // 构建默认参数值对象
+    const paramValues = {}
+    params.forEach((param) => {
+      if (Object.prototype.hasOwnProperty.call(param, 'defaultValue')) {
+        paramValues[param.key] = param.defaultValue
+      } else {
+        // 根据类型设置默认值
+        switch (param.type) {
+          case 'boolean':
+            paramValues[param.key] = false
+            break
+          case 'string':
+            paramValues[param.key] = ''
+            break
+          case 'number':
+            paramValues[param.key] = 0
+            break
+          default:
+            paramValues[param.key] = ''
+        }
+      }
+    })
+
     // 构建WorkflowEditor期望的数据格式
     const dragData = {
       type: 'element',
@@ -90,7 +116,9 @@ const handleElementDragStart = (event, element) => {
         description: element.description,
         icon: element.icon,
         // 根据不同元件类型定义不同的参数，使属性面板能够显示和编辑
-        params: getElementParams(element.type)
+        params: params,
+        // 添加参数值对象，确保参数面板能够正确绑定和显示参数值
+        paramValues: paramValues
       }
     }
 

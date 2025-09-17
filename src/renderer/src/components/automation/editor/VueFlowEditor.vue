@@ -435,6 +435,7 @@ const runBrowserNode = async () => {
     const nodeData = selectedNode.value.data
     const url = nodeData.paramValues.url || 'https://www.example.com'
     const browserType = nodeData.paramValues.browserType || 'chrome'
+    const headless = nodeData.paramValues.headless || false
     const incognito = nodeData.paramValues.incognito || false
     const windowSize = nodeData.paramValues.windowSize || 'default'
     const customWidth = nodeData.paramValues.customWidth || 1280
@@ -443,7 +444,7 @@ const runBrowserNode = async () => {
     const timeout = nodeData.paramValues.timeout || 30000
 
     console.log(
-      `运行浏览器: ${browserType}, 打开URL: ${url}, 无痕模式: ${incognito}, 窗口大小: ${windowSize}`
+      `运行浏览器: ${browserType}, 打开URL: ${url}, 无头模式: ${headless}, 隐身模式: ${incognito}, 窗口大小: ${windowSize}`
     )
 
     // 通过preload脚本中暴露的API调用主进程的浏览器自动化功能
@@ -452,6 +453,7 @@ const runBrowserNode = async () => {
         const result = await window.api.browserAutomation.runNode({
           url,
           browserType,
+          headless,
           incognito,
           windowSize,
           customWidth,
@@ -937,7 +939,7 @@ const handleDrop = (event) => {
       // 使用ElementInitializer创建标准化节点
       const newNode = Initializer.createWorkflowNode(dragData.elementData.type, {
         position: { x: snappedX, y: snappedY },
-        initialParams: dragData.elementData.params,
+        initialParams: dragData.elementData.paramValues,
         id: dragData.elementData.id
       })
 

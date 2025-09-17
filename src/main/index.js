@@ -146,9 +146,11 @@ app.whenReady().then(() => {
         }
 
         // 启动浏览器
-        console.log(`启动浏览器: ${playwrightBrowserType}, 无头模式: ${headless}`)
+        console.log(
+          `启动浏览器: ${playwrightBrowserType}, 无头模式: ${headless}, 隐身模式: ${params.incognito}，窗口大小: ${params.windowSize}`
+        )
         const browser = await playwright[playwrightBrowserType].launch({
-          headless: false, // 暂时强制使用有头模式，以便调试
+          headless: headless, // 使用传入的无头模式参数
           slowMo: 100, // 添加小延迟，便于观察
           args: [
             '--disable-blink-features=AutomationControlled',
@@ -166,7 +168,7 @@ app.whenReady().then(() => {
         let context
         let isIncognito = false
 
-        if (params.isIncognito) {
+        if (params.incognito) {
           // 创建无痕上下文
           context = await browser.newContext({
             viewport: params.windowSize || { width: 1920, height: 1080 }

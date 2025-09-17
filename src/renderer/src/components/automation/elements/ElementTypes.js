@@ -51,11 +51,18 @@ const ElementTypes = {
         description: '选择要使用的浏览器类型'
       },
       {
-        key: 'incognito',
-        label: '无痕模式',
+        key: 'headless',
+        label: '无头模式',
         type: 'boolean',
         defaultValue: false,
-        description: '是否以无痕模式打开浏览器'
+        description: '是否以无头模式运行（无界面）'
+      },
+      {
+        key: 'incognito',
+        label: '隐身模式',
+        type: 'boolean',
+        defaultValue: false,
+        description: '是否以隐身模式运行（隐私浏览）'
       },
       {
         key: 'windowSize',
@@ -836,7 +843,10 @@ const ElementInitializer = {
         description: typeDef.description,
         icon: typeDef.icon,
         category: typeDef.category,
-        params: typeDef.params,
+        params: typeDef.params.map((param) => ({
+          ...param,
+          name: param.label // 保持向后兼容性
+        })),
         paramValues,
         selected: false,
         createdAt: Date.now()
@@ -893,12 +903,19 @@ const ElementInitializer = {
         const browserType = getParamValue('browserType', 'chrome')
         const playwrightBrowserType = browserType === 'chrome' ? 'chromium' : browserType
 
-        addLog('info', `正在打开${browserType}浏览器：${url}`)
+        const headless = getParamValue('headless', false)
+        const incognito = getParamValue('incognito', false)
+
+        addLog(
+          'info',
+          `正在打开${browserType}浏览器：${url}，无头模式：${headless}，隐身模式：${incognito}`
+        )
 
         const runResult = await browserAutomation.runNode({
           url: url,
           browserType: playwrightBrowserType,
-          headless: false,
+          headless: headless,
+          incognito: incognito,
           openMode: 'new',
           waitUntil: 'networkidle'
         })

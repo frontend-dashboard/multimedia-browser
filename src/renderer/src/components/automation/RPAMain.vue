@@ -48,7 +48,6 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <!-- <el-button type="success" @click="playWorkflow">运行</el-button> -->
       </div>
     </div>
 
@@ -112,56 +111,102 @@ const workflow = reactive({
   description: '展示所有RPA元件类型的示例工作流',
   elements: [
     {
-      id: 'element_browser_open',
+      id: 'element_1758099841644',
       type: 'BROWSER_OPEN',
       name: '打开浏览器',
       icon: 'ChromeFilled',
-      position: { x: 50, y: 146.75 },
+      position: { x: 80, y: 180 },
       params: [
         {
           key: 'url',
           label: 'URL地址',
           type: 'string',
           required: true,
-          defaultValue: 'https://www.example.com'
+          defaultValue: 'https://www.example.com',
+          name: 'URL地址'
         },
         {
           key: 'openMode',
           label: '打开方式',
           type: 'select',
           options: ['useExisting', 'newBrowser'],
-          defaultValue: 'useExisting'
+          defaultValue: 'useExisting',
+          description: '在已打开的浏览器中打开，若没有则打开一个；或在新的浏览器中打开',
+          name: '打开方式'
         },
         {
           key: 'browserType',
           label: '浏览器类型',
           type: 'select',
           options: ['chrome', 'firefox', 'safari'],
-          defaultValue: 'chrome'
+          defaultValue: 'chrome',
+          description: '选择要使用的浏览器类型',
+          name: '浏览器类型'
         },
-        { key: 'incognito', label: '无痕模式', type: 'boolean', defaultValue: false },
+        {
+          key: 'headless',
+          label: '无头模式',
+          type: 'boolean',
+          defaultValue: false,
+          description: '是否以无头模式运行（无界面）',
+          name: '无头模式'
+        },
+        {
+          key: 'incognito',
+          label: '隐身模式',
+          type: 'boolean',
+          defaultValue: false,
+          description: '是否以隐身模式运行（隐私浏览）',
+          name: '隐身模式'
+        },
         {
           key: 'windowSize',
           label: '窗口大小',
           type: 'select',
           options: ['default', 'maximized', 'fullscreen', 'custom'],
-          defaultValue: 'default'
+          defaultValue: 'default',
+          description: '浏览器窗口的打开方式',
+          name: '窗口大小'
         },
-        { key: 'customWidth', label: '自定义宽度', type: 'number', defaultValue: 1280 },
-        { key: 'customHeight', label: '自定义高度', type: 'number', defaultValue: 800 },
+        {
+          key: 'customWidth',
+          label: '自定义宽度',
+          type: 'number',
+          defaultValue: 1280,
+          description: '自定义窗口宽度（仅在窗口大小选择"custom"时生效）',
+          name: '自定义宽度'
+        },
+        {
+          key: 'customHeight',
+          label: '自定义高度',
+          type: 'number',
+          defaultValue: 800,
+          description: '自定义窗口高度（仅在窗口大小选择"custom"时生效）',
+          name: '自定义高度'
+        },
         {
           key: 'waitUntil',
           label: '等待加载完成',
           type: 'select',
           options: ['load', 'domcontentloaded', 'networkidle', 'commit'],
-          defaultValue: 'networkidle'
+          defaultValue: 'networkidle',
+          description: '页面加载完成的判断条件',
+          name: '等待加载完成'
         },
-        { key: 'timeout', label: '超时时间(ms)', type: 'number', defaultValue: 30000 }
+        {
+          key: 'timeout',
+          label: '超时时间(ms)',
+          type: 'number',
+          defaultValue: 30000,
+          description: '页面加载的最大等待时间',
+          name: '超时时间(ms)'
+        }
       ],
       paramValues: {
         url: 'https://www.baidu.com',
-        openMode: 'newBrowser',
+        openMode: 'useExisting',
         browserType: 'chrome',
+        headless: false,
         incognito: false,
         windowSize: 'default',
         customWidth: 1280,
@@ -175,7 +220,7 @@ const workflow = reactive({
       type: 'BROWSER_NAVIGATE',
       name: '导航到URL',
       icon: 'ArrowRight',
-      position: { x: 350, y: 161.25 },
+      position: { x: 360, y: 160 },
       params: [
         {
           key: 'url',
@@ -193,7 +238,7 @@ const workflow = reactive({
       type: 'BROWSER_REFRESH',
       name: '刷新页面',
       icon: 'Refresh',
-      position: { x: 5767.5, y: 50 },
+      position: { x: 5760, y: 60 },
       params: [{ key: 'waitForLoad', label: '等待加载', type: 'boolean', defaultValue: true }],
       paramValues: { waitForLoad: true }
     },
@@ -202,7 +247,7 @@ const workflow = reactive({
       type: 'BROWSER_CLOSE',
       name: '关闭浏览器',
       icon: 'Close',
-      position: { x: 6071, y: 201.25 },
+      position: { x: 6080, y: 200 },
       params: [],
       paramValues: {}
     },
@@ -211,7 +256,7 @@ const workflow = reactive({
       type: 'INPUT_TEXT',
       name: '输入文本',
       icon: 'Edit',
-      position: { x: 650, y: 274.5 },
+      position: { x: 660, y: 280 },
       params: [
         { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' },
         { key: 'text', label: '输入文本', type: 'string', required: true, defaultValue: '' },
@@ -224,7 +269,7 @@ const workflow = reactive({
       type: 'CLICK_ELEMENT',
       name: '点击元素',
       icon: 'Pointer',
-      position: { x: 950, y: 274.5 },
+      position: { x: 960, y: 280 },
       params: [
         { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' },
         { key: 'waitForNavigation', label: '等待页面加载', type: 'boolean', defaultValue: true },
@@ -237,7 +282,7 @@ const workflow = reactive({
       type: 'SELECT_OPTION',
       name: '选择选项',
       icon: 'Select',
-      position: { x: 1250, y: 274.5 },
+      position: { x: 1260, y: 280 },
       params: [
         { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' },
         { key: 'optionText', label: '选项文本', type: 'string', defaultValue: '' },
@@ -250,7 +295,7 @@ const workflow = reactive({
       type: 'SCROLL_PAGE',
       name: '滚动页面',
       icon: 'RefreshRight',
-      position: { x: 1550, y: 289 },
+      position: { x: 1560, y: 280 },
       params: [
         {
           key: 'scrollType',
@@ -269,7 +314,7 @@ const workflow = reactive({
       type: 'HOVER_ELEMENT',
       name: '悬停元素',
       icon: 'Mouse',
-      position: { x: 1850, y: 305.5 },
+      position: { x: 1860, y: 300 },
       params: [
         { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' }
       ],
@@ -280,7 +325,7 @@ const workflow = reactive({
       type: 'EXTRACT_DATA',
       name: '提取数据',
       icon: 'DataAnalysis',
-      position: { x: 2150, y: 274.5 },
+      position: { x: 2160, y: 280 },
       params: [
         { key: 'selector', label: '选择器', type: 'string', required: true, defaultValue: '' },
         {
@@ -311,7 +356,7 @@ const workflow = reactive({
       type: 'GET_PAGE_ELEMENTS',
       name: '获取页面元素',
       icon: 'DataAnalysis',
-      position: { x: 2450, y: 274.5 },
+      position: { x: 2460, y: 280 },
       params: [
         { key: 'browserId', label: '浏览器ID', type: 'string', required: true, defaultValue: '' },
         { key: 'selector', label: '元素选择器', type: 'string', defaultValue: '*' },
@@ -336,7 +381,7 @@ const workflow = reactive({
       type: 'PROCESS_DATA',
       name: '处理数据',
       icon: 'Operation',
-      position: { x: 2750, y: 274.5 },
+      position: { x: 2760, y: 280 },
       params: [
         {
           key: 'inputVariable',
@@ -371,7 +416,7 @@ const workflow = reactive({
       type: 'COMPARE_DATA',
       name: '比较数据',
       icon: 'Operation',
-      position: { x: 3050, y: 274.5 },
+      position: { x: 3060, y: 280 },
       params: [
         { key: 'value1', label: '第一个值', type: 'string', required: true, defaultValue: '' },
         { key: 'value2', label: '第二个值', type: 'string', required: true, defaultValue: '' },
@@ -403,7 +448,7 @@ const workflow = reactive({
       type: 'WAIT',
       name: '等待',
       icon: 'Clock',
-      position: { x: 3350, y: 305.5 },
+      position: { x: 3360, y: 300 },
       params: [
         { key: 'seconds', label: '等待秒数', type: 'number', required: true, defaultValue: 2 }
       ],
@@ -414,7 +459,7 @@ const workflow = reactive({
       type: 'IF_CONDITION',
       name: '条件判断',
       icon: 'Switch',
-      position: { x: 3650, y: 274.5 },
+      position: { x: 3660, y: 280 },
       params: [
         { key: 'condition', label: '条件表达式', type: 'string', required: true, defaultValue: '' },
         { key: 'trueBranchId', label: '条件为真时执行', type: 'string', defaultValue: '' },
@@ -431,7 +476,7 @@ const workflow = reactive({
       type: 'LOOP_FOR',
       name: '循环',
       icon: 'RefreshLeft',
-      position: { x: 3964, y: 289 },
+      position: { x: 3960, y: 280 },
       params: [
         { key: 'loopCount', label: '循环次数', type: 'number', required: true, defaultValue: 5 },
         { key: 'loopVariable', label: '循环变量名', type: 'string', defaultValue: 'i' }
@@ -443,7 +488,7 @@ const workflow = reactive({
       type: 'TRY_CATCH',
       name: '异常处理',
       icon: 'Warning',
-      position: { x: 4264, y: 305.5 },
+      position: { x: 4260, y: 300 },
       params: [
         { key: 'errorVariable', label: '错误变量名', type: 'string', defaultValue: 'error' }
       ],
@@ -454,7 +499,7 @@ const workflow = reactive({
       type: 'SAVE_FILE',
       name: '保存文件',
       icon: 'Download',
-      position: { x: 4564, y: 274.5 },
+      position: { x: 4560, y: 280 },
       params: [
         { key: 'data', label: '数据', type: 'string', required: true, defaultValue: '' },
         { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
@@ -473,7 +518,7 @@ const workflow = reactive({
       type: 'READ_FILE',
       name: '读取文件',
       icon: 'Document',
-      position: { x: 4864, y: 274.5 },
+      position: { x: 4860, y: 280 },
       params: [
         { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
         {
@@ -498,7 +543,7 @@ const workflow = reactive({
       type: 'WRITE_FILE',
       name: '写入文件',
       icon: 'EditPen',
-      position: { x: 5164, y: 274.5 },
+      position: { x: 5160, y: 280 },
       params: [
         { key: 'filePath', label: '文件路径', type: 'string', required: true, defaultValue: '' },
         { key: 'content', label: '文件内容', type: 'string', required: true, defaultValue: '' },
@@ -523,7 +568,7 @@ const workflow = reactive({
       type: 'DOWNLOAD_FILE',
       name: '下载文件',
       icon: 'Download',
-      position: { x: 5464, y: 289 },
+      position: { x: 5460, y: 280 },
       params: [
         { key: 'url', label: '文件URL', type: 'string', required: true, defaultValue: '' },
         { key: 'savePath', label: '保存路径', type: 'string', required: true, defaultValue: '' }
@@ -535,7 +580,7 @@ const workflow = reactive({
       type: 'UPLOAD_FILE',
       name: '上传文件',
       icon: 'Upload',
-      position: { x: 5764, y: 289 },
+      position: { x: 5760, y: 280 },
       params: [
         {
           key: 'selector',
@@ -550,14 +595,6 @@ const workflow = reactive({
     }
   ],
   edges: [
-    {
-      id: 'edge-browser_open-browser_navigate',
-      source: 'element_browser_open',
-      target: 'element_browser_navigate',
-      sourceHandle: 'element_browser_open-right',
-      targetHandle: 'element_browser_navigate-left',
-      type: 'default'
-    },
     {
       id: 'edge-browser_navigate-browser_refresh',
       source: 'element_browser_navigate',
@@ -724,6 +761,14 @@ const workflow = reactive({
       target: 'element_browser_close',
       sourceHandle: 'element_upload_file-right',
       targetHandle: 'element_browser_close-left',
+      type: 'default'
+    },
+    {
+      id: 'vueflow__edge-element_1758099841644element_1758099841644-right-element_browser_navigateelement_browser_navigate-left',
+      source: 'element_1758099841644',
+      target: 'element_browser_navigate',
+      sourceHandle: 'element_1758099841644-right',
+      targetHandle: 'element_browser_navigate-left',
       type: 'default'
     }
   ]
